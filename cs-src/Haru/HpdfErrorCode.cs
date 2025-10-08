@@ -155,6 +155,9 @@ namespace Haru
         TtfInvalidCmap = 0x105E,
         TtfInvalidFormat = 0x105F,
         TtfMissingTable = 0x1060,
+        TtInvalidFormat = 0x105F,  // Alias for TtfInvalidFormat
+        TtInvalidCmapTable = 0x105E,  // Alias for TtfInvalidCmap
+        FileNotFound = 0x1086,
 
         // Unsupported features
         UnsupportedFontType = 0x1061,

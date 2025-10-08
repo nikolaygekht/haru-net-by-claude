@@ -1,0 +1,447 @@
+/*
+ * << Haru Free PDF Library >> -- HpdfPage.cs
+ *
+ * C# port of Haru Free PDF Library
+ *
+ * Copyright (c) 1999-2025 Haru Free PDF Library
+ *
+ * Permission to use, copy, modify, distribute and sell this software
+ * and its documentation for any purpose is hereby granted without fee,
+ * provided that the above copyright notice appear in all copies and
+ * that both that copyright notice and this permission notice appear
+ * in supporting documentation.
+ * It is provided "as is" without express or implied warranty.
+ *
+ */
+
+using Haru.Objects;
+using Haru.Xref;
+using Haru.Graphics;
+using Haru.Types;
+using Haru.Font;
+using Haru.Annotations;
+using System.Collections.Generic;
+
+namespace Haru.Doc
+{
+    /// <summary>
+    /// Represents a single page in a PDF document.
+    /// </summary>
+    public class HpdfPage
+    {
+        private readonly HpdfDict _dict;
+        private readonly HpdfXref _xref;
+        private readonly HpdfStreamObject _contents;
+        private HpdfGraphicsState _graphicsState;
+        private HpdfPoint _currentPos;
+        private HpdfTransMatrix _textMatrix;
+        private HpdfTransMatrix _textLineMatrix;
+        private HpdfFont _currentFont;
+        private readonly Dictionary<string, HpdfFont> _fontResources;
+        private readonly Dictionary<string, HpdfExtGState> _extGStateResources;
+        private readonly Dictionary<string, HpdfImage> _imageResources;
+
+        /// <summary>
+        /// Default page width in points (612 = 8.5 inches).
+        /// </summary>
+        public const float DefaultWidth = 612;
+
+        /// <summary>
+        /// Default page height in points (792 = 11 inches).
+        /// </summary>
+        public const float DefaultHeight = 792;
+
+        /// <summary>
+        /// Gets the underlying dictionary object for this page.
+        /// </summary>
+        public HpdfDict Dict => _dict;
+
+        /// <summary>
+        /// Gets the parent pages object.
+        /// </summary>
+        public HpdfPages Parent { get; internal set; }
+
+        /// <summary>
+        /// Gets the contents stream for this page.
+        /// </summary>
+        public HpdfStreamObject Contents => _contents;
+
+        /// <summary>
+        /// Gets the current graphics state.
+        /// </summary>
+        public HpdfGraphicsState GraphicsState => _graphicsState;
+
+        /// <summary>
+        /// Gets or sets the current position in the path.
+        /// </summary>
+        public HpdfPoint CurrentPos
+        {
+            get => _currentPos;
+            internal set => _currentPos = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the current text matrix.
+        /// </summary>
+        public HpdfTransMatrix TextMatrix
+        {
+            get => _textMatrix;
+            internal set => _textMatrix = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the current text line matrix.
+        /// </summary>
+        public HpdfTransMatrix TextLineMatrix
+        {
+            get => _textLineMatrix;
+            internal set => _textLineMatrix = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the current font.
+        /// </summary>
+        public HpdfFont CurrentFont
+        {
+            get => _currentFont;
+            internal set => _currentFont = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the page width in points.
+        /// </summary>
+        public float Width
+        {
+            get
+            {
+                var mediaBox = GetMediaBox();
+                return mediaBox[2] - mediaBox[0];
+            }
+            set
+            {
+                var mediaBox = GetMediaBox();
+                SetMediaBox(mediaBox[0], mediaBox[1], mediaBox[0] + value, mediaBox[3]);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the page height in points.
+        /// </summary>
+        public float Height
+        {
+            get
+            {
+                var mediaBox = GetMediaBox();
+                return mediaBox[3] - mediaBox[1];
+            }
+            set
+            {
+                var mediaBox = GetMediaBox();
+                SetMediaBox(mediaBox[0], mediaBox[1], mediaBox[2], mediaBox[1] + value);
+            }
+        }
+
+        /// <summary>
+        /// Creates a new page with default size.
+        /// </summary>
+        /// <param name="xref">The cross-reference table.</param>
+        public HpdfPage(HpdfXref xref)
+        {
+            _xref = xref ?? throw new HpdfException(HpdfErrorCode.InvalidParameter, "Xref cannot be null");
+
+            _dict = new HpdfDict();
+            _dict.Add("Type", new HpdfName("Page"));
+
+            // Create default MediaBox (0, 0, 612, 792) - US Letter size
+            var mediaBox = new HpdfArray();
+            mediaBox.Add(new HpdfNumber(0));
+            mediaBox.Add(new HpdfNumber(0));
+            mediaBox.Add(new HpdfReal(DefaultWidth));
+            mediaBox.Add(new HpdfReal(DefaultHeight));
+            _dict.Add("MediaBox", mediaBox);
+
+            // Create contents stream
+            _contents = new HpdfStreamObject();
+            xref.Add(_contents);
+            _dict.Add("Contents", _contents);
+
+            // Create empty Resources dictionary
+            var resources = new HpdfDict();
+            _dict.Add("Resources", resources);
+
+            // Initialize graphics state
+            _graphicsState = new HpdfGraphicsState();
+            _currentPos = new HpdfPoint(0, 0);
+
+            // Initialize text state
+            _textMatrix = new HpdfTransMatrix(1, 0, 0, 1, 0, 0);
+            _textLineMatrix = new HpdfTransMatrix(1, 0, 0, 1, 0, 0);
+            _fontResources = new Dictionary<string, HpdfFont>();
+            _extGStateResources = new Dictionary<string, HpdfExtGState>();
+            _imageResources = new Dictionary<string, HpdfImage>();
+
+            // Add page to xref
+            xref.Add(_dict);
+        }
+
+        /// <summary>
+        /// Pushes the current graphics state onto the stack
+        /// </summary>
+        internal void PushGraphicsState()
+        {
+            _graphicsState = _graphicsState.Clone();
+        }
+
+        /// <summary>
+        /// Pops the graphics state from the stack
+        /// </summary>
+        internal void PopGraphicsState()
+        {
+            if (_graphicsState.Previous != null)
+            {
+                _graphicsState = _graphicsState.Previous;
+            }
+        }
+
+        /// <summary>
+        /// Gets the MediaBox array [llx, lly, urx, ury].
+        /// </summary>
+        /// <returns>Array of four floats representing the media box.</returns>
+        private float[] GetMediaBox()
+        {
+            if (!_dict.TryGetValue("MediaBox", out var mediaBoxObjRaw))
+                return new float[] { 0, 0, DefaultWidth, DefaultHeight };
+            var mediaBoxObj = mediaBoxObjRaw as HpdfArray;
+            if (mediaBoxObj == null || mediaBoxObj.Count != 4)
+            {
+                // Return default
+                return new float[] { 0, 0, DefaultWidth, DefaultHeight };
+            }
+
+            var result = new float[4];
+            for (int i = 0; i < 4; i++)
+            {
+                var item = mediaBoxObj[i];
+                if (item is HpdfNumber num)
+                    result[i] = num.Value;
+                else if (item is HpdfReal real)
+                    result[i] = real.Value;
+                else
+                    result[i] = 0;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Sets the MediaBox for this page.
+        /// </summary>
+        /// <param name="llx">Lower-left x coordinate.</param>
+        /// <param name="lly">Lower-left y coordinate.</param>
+        /// <param name="urx">Upper-right x coordinate.</param>
+        /// <param name="ury">Upper-right y coordinate.</param>
+        public void SetMediaBox(float llx, float lly, float urx, float ury)
+        {
+            var mediaBox = new HpdfArray();
+            mediaBox.Add(new HpdfReal(llx));
+            mediaBox.Add(new HpdfReal(lly));
+            mediaBox.Add(new HpdfReal(urx));
+            mediaBox.Add(new HpdfReal(ury));
+            _dict["MediaBox"] = mediaBox;
+        }
+
+        /// <summary>
+        /// Sets the page size using a predefined size and orientation.
+        /// </summary>
+        /// <param name="size">The page size.</param>
+        /// <param name="direction">The page orientation.</param>
+        public void SetSize(HpdfPageSize size, HpdfPageDirection direction)
+        {
+            HpdfPageSizes.GetSize(size, direction, out float width, out float height);
+            SetMediaBox(0, 0, width, height);
+        }
+
+        /// <summary>
+        /// Sets the page size using custom width and height.
+        /// </summary>
+        /// <param name="width">The page width in points.</param>
+        /// <param name="height">The page height in points.</param>
+        public void SetSize(float width, float height)
+        {
+            SetMediaBox(0, 0, width, height);
+        }
+
+        /// <summary>
+        /// Gets the Resources dictionary for this page.
+        /// </summary>
+        /// <returns>The resources dictionary.</returns>
+        public HpdfDict GetResources()
+        {
+            HpdfDict resources = null;
+            if (_dict.TryGetValue("Resources", out var resourcesObj))
+                resources = resourcesObj as HpdfDict;
+            if (resources == null)
+            {
+                resources = new HpdfDict();
+                _dict.Add("Resources", resources);
+            }
+            return resources;
+        }
+
+        /// <summary>
+        /// Adds a font to the page resources.
+        /// </summary>
+        /// <param name="font">The font to add.</param>
+        internal void AddFontResource(HpdfFont font)
+        {
+            if (font == null)
+                return;
+
+            // Check if already added
+            if (_fontResources.ContainsKey(font.LocalName))
+                return;
+
+            _fontResources[font.LocalName] = font;
+
+            // Add to Resources/Font dictionary
+            var resources = GetResources();
+            HpdfDict fontDict;
+            if (resources.TryGetValue("Font", out var fontObj))
+            {
+                fontDict = fontObj as HpdfDict;
+            }
+            else
+            {
+                fontDict = new HpdfDict();
+                resources["Font"] = fontDict;
+            }
+
+            fontDict[font.LocalName] = font.Dict;
+        }
+
+        /// <summary>
+        /// Adds an extended graphics state resource to the page.
+        /// </summary>
+        /// <param name="extGState">The extended graphics state to add.</param>
+        internal void AddExtGStateResource(HpdfExtGState extGState)
+        {
+            if (extGState == null)
+                return;
+
+            // Check if already added
+            if (_extGStateResources.ContainsKey(extGState.LocalName))
+                return;
+
+            _extGStateResources[extGState.LocalName] = extGState;
+
+            // Add to Resources/ExtGState dictionary
+            var resources = GetResources();
+            HpdfDict extGStateDict;
+            if (resources.TryGetValue("ExtGState", out var extGStateObj))
+            {
+                extGStateDict = extGStateObj as HpdfDict;
+            }
+            else
+            {
+                extGStateDict = new HpdfDict();
+                resources["ExtGState"] = extGStateDict;
+            }
+
+            extGStateDict[extGState.LocalName] = extGState.Dict;
+        }
+
+        /// <summary>
+        /// Adds an image resource to the page.
+        /// </summary>
+        /// <param name="image">The image to add.</param>
+        internal void AddImageResource(HpdfImage image)
+        {
+            if (image == null)
+                return;
+
+            // Check if already added
+            if (_imageResources.ContainsKey(image.LocalName))
+                return;
+
+            _imageResources[image.LocalName] = image;
+
+            // Add to Resources/XObject dictionary
+            var resources = GetResources();
+            HpdfDict xobjectDict;
+            if (resources.TryGetValue("XObject", out var xobjectObj))
+            {
+                xobjectDict = xobjectObj as HpdfDict;
+            }
+            else
+            {
+                xobjectDict = new HpdfDict();
+                resources["XObject"] = xobjectDict;
+            }
+
+            xobjectDict[image.LocalName] = image.Dict;
+        }
+
+        /// <summary>
+        /// Creates a new text annotation (sticky note) on this page.
+        /// </summary>
+        /// <param name="rect">The annotation rectangle.</param>
+        /// <param name="text">The text content of the annotation.</param>
+        /// <param name="icon">The icon to display (default: Note).</param>
+        /// <returns>The created text annotation.</returns>
+        public HpdfTextAnnotation CreateTextAnnotation(HpdfRect rect, string text,
+            HpdfAnnotationIcon icon = HpdfAnnotationIcon.Note)
+        {
+            var annot = new HpdfTextAnnotation(_xref, rect, text, icon);
+            AddAnnotation(annot);
+            return annot;
+        }
+
+        /// <summary>
+        /// Creates a new URI link annotation on this page.
+        /// </summary>
+        /// <param name="rect">The annotation rectangle.</param>
+        /// <param name="uri">The URI to link to.</param>
+        /// <returns>The created link annotation.</returns>
+        public HpdfLinkAnnotation CreateLinkAnnotation(HpdfRect rect, string uri)
+        {
+            var annot = new HpdfLinkAnnotation(_xref, rect, uri);
+            AddAnnotation(annot);
+            return annot;
+        }
+
+        /// <summary>
+        /// Creates a new internal link annotation (GoTo) on this page.
+        /// </summary>
+        /// <param name="rect">The annotation rectangle.</param>
+        /// <param name="destination">The destination array.</param>
+        /// <returns>The created link annotation.</returns>
+        public HpdfLinkAnnotation CreateLinkAnnotation(HpdfRect rect, HpdfArray destination)
+        {
+            var annot = new HpdfLinkAnnotation(_xref, rect, destination);
+            AddAnnotation(annot);
+            return annot;
+        }
+
+        /// <summary>
+        /// Adds an annotation to the page's Annots array.
+        /// </summary>
+        /// <param name="annot">The annotation to add.</param>
+        private void AddAnnotation(HpdfAnnotation annot)
+        {
+            // Find or create the Annots array
+            HpdfArray annotsArray;
+            if (_dict.TryGetValue("Annots", out var annotsObj))
+            {
+                annotsArray = annotsObj as HpdfArray;
+                if (annotsArray == null)
+                    throw new HpdfException(HpdfErrorCode.InvalidObject, "Annots is not an array");
+            }
+            else
+            {
+                annotsArray = new HpdfArray();
+                _dict.Add("Annots", annotsArray);
+            }
+
+            annotsArray.Add(annot.Dict);
+        }
+    }
+}

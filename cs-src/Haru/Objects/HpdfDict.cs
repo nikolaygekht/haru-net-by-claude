@@ -159,7 +159,19 @@ namespace Haru.Objects
             {
                 stream.WriteEscapedName(kvp.Key);
                 stream.WriteChar(' ');
-                kvp.Value.WriteValue(stream);
+
+                // Write indirect reference if object is indirect, otherwise write value
+                if (kvp.Value.IsIndirect && kvp.Value.ObjectId != 0)
+                {
+                    stream.WriteUInt(kvp.Value.RealObjectId);
+                    stream.WriteChar(' ');
+                    stream.WriteUInt(kvp.Value.GenerationNumber);
+                    stream.WriteString(" R");
+                }
+                else
+                {
+                    kvp.Value.WriteValue(stream);
+                }
                 stream.WriteLine();
             }
 

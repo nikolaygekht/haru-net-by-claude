@@ -161,7 +161,19 @@ namespace Haru.Objects
             {
                 if (i > 0)
                     stream.WriteChar(' ');
-                _items[i].WriteValue(stream);
+
+                // Write indirect reference if object is indirect, otherwise write value
+                if (_items[i].IsIndirect && _items[i].ObjectId != 0)
+                {
+                    stream.WriteUInt(_items[i].RealObjectId);
+                    stream.WriteChar(' ');
+                    stream.WriteUInt(_items[i].GenerationNumber);
+                    stream.WriteString(" R");
+                }
+                else
+                {
+                    _items[i].WriteValue(stream);
+                }
             }
 
             stream.WriteChar(']');
