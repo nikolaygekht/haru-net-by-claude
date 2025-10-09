@@ -443,5 +443,94 @@ namespace Haru.Doc
 
             annotsArray.Add(annot.Dict);
         }
+
+        /// <summary>
+        /// Sets a transition effect (slide show) for this page.
+        /// </summary>
+        /// <param name="type">The transition style.</param>
+        /// <param name="displayTime">Display time in seconds before transitioning.</param>
+        /// <param name="transTime">Transition duration in seconds.</param>
+        public void SetSlideShow(HpdfTransitionStyle type, float displayTime, float transTime)
+        {
+            // Create Trans dictionary for page transition
+            var transDict = new HpdfDict();
+            transDict.Add("Type", new HpdfName("Trans"));
+
+            // Map transition style to PDF name
+            string styleName = type switch
+            {
+                HpdfTransitionStyle.WipeRight => "Wipe",
+                HpdfTransitionStyle.WipeUp => "Wipe",
+                HpdfTransitionStyle.WipeLeft => "Wipe",
+                HpdfTransitionStyle.WipeDown => "Wipe",
+                HpdfTransitionStyle.BarnDoorsHorizontalOut => "Split",
+                HpdfTransitionStyle.BarnDoorsHorizontalIn => "Split",
+                HpdfTransitionStyle.BarnDoorsVerticalOut => "Split",
+                HpdfTransitionStyle.BarnDoorsVerticalIn => "Split",
+                HpdfTransitionStyle.BoxOut => "Box",
+                HpdfTransitionStyle.BoxIn => "Box",
+                HpdfTransitionStyle.BlindsHorizontal => "Blinds",
+                HpdfTransitionStyle.BlindsVertical => "Blinds",
+                HpdfTransitionStyle.Dissolve => "Dissolve",
+                HpdfTransitionStyle.GlitterRight => "Glitter",
+                HpdfTransitionStyle.GlitterDown => "Glitter",
+                HpdfTransitionStyle.GlitterTopLeftToBottomRight => "Glitter",
+                HpdfTransitionStyle.Replace => "R",
+                _ => "R"
+            };
+
+            transDict.Add("S", new HpdfName(styleName));
+            transDict.Add("D", new HpdfReal(transTime));
+
+            // Add direction/dimension based on transition type
+            if (type == HpdfTransitionStyle.WipeRight)
+                transDict.Add("Di", new HpdfNumber(0));
+            else if (type == HpdfTransitionStyle.WipeDown)
+                transDict.Add("Di", new HpdfNumber(270));
+            else if (type == HpdfTransitionStyle.WipeLeft)
+                transDict.Add("Di", new HpdfNumber(180));
+            else if (type == HpdfTransitionStyle.WipeUp)
+                transDict.Add("Di", new HpdfNumber(90));
+            else if (type == HpdfTransitionStyle.BarnDoorsHorizontalOut)
+            {
+                transDict.Add("Dm", new HpdfName("H"));
+                transDict.Add("M", new HpdfName("O"));
+            }
+            else if (type == HpdfTransitionStyle.BarnDoorsHorizontalIn)
+            {
+                transDict.Add("Dm", new HpdfName("H"));
+                transDict.Add("M", new HpdfName("I"));
+            }
+            else if (type == HpdfTransitionStyle.BarnDoorsVerticalOut)
+            {
+                transDict.Add("Dm", new HpdfName("V"));
+                transDict.Add("M", new HpdfName("O"));
+            }
+            else if (type == HpdfTransitionStyle.BarnDoorsVerticalIn)
+            {
+                transDict.Add("Dm", new HpdfName("V"));
+                transDict.Add("M", new HpdfName("I"));
+            }
+            else if (type == HpdfTransitionStyle.BoxOut)
+                transDict.Add("M", new HpdfName("O"));
+            else if (type == HpdfTransitionStyle.BoxIn)
+                transDict.Add("M", new HpdfName("I"));
+            else if (type == HpdfTransitionStyle.BlindsHorizontal)
+                transDict.Add("Dm", new HpdfName("H"));
+            else if (type == HpdfTransitionStyle.BlindsVertical)
+                transDict.Add("Dm", new HpdfName("V"));
+            else if (type == HpdfTransitionStyle.GlitterRight)
+                transDict.Add("Di", new HpdfNumber(0));
+            else if (type == HpdfTransitionStyle.GlitterDown)
+                transDict.Add("Di", new HpdfNumber(270));
+            else if (type == HpdfTransitionStyle.GlitterTopLeftToBottomRight)
+                transDict.Add("Di", new HpdfNumber(315));
+
+            _dict.Add("Trans", transDict);
+
+            // Set page duration (display time)
+            if (displayTime > 0)
+                _dict.Add("Dur", new HpdfReal(displayTime));
+        }
     }
 }

@@ -107,6 +107,59 @@ namespace BasicDemos
 
                 page.EndText();
 
+                // Add second page for TrueType fonts
+                var page2 = pdf.AddPage();
+                float height2 = page2.Height;
+                float width2 = page2.Width;
+
+                // Print the lines of the page
+                page2.SetLineWidth(1);
+                page2.Rectangle(50, 50, width2 - 100, height2 - 110);
+                page2.Stroke();
+
+                // Print the title of the page
+                page2.SetFontAndSize(defFont, 24);
+                const string pageTitle2 = "TrueType Fonts";
+                float tw2 = defFont.MeasureText(pageTitle2, 24);
+                page2.BeginText();
+                page2.MoveTextPos((width2 - tw2) / 2, height2 - 50);
+                page2.ShowText(pageTitle2);
+                page2.EndText();
+
+                // Output subtitle
+                page2.BeginText();
+                page2.SetFontAndSize(defFont, 16);
+                page2.MoveTextPos(60, height2 - 80);
+                page2.ShowText("<TrueType fonts samples>");
+                page2.EndText();
+
+                // Load TrueType fonts
+                var penguinFont = HpdfTrueTypeFont.LoadFromFile(pdf.Xref, "TT1", "demo/ttfont/PenguinAttack.ttf", true);
+                var robotoFont = HpdfTrueTypeFont.LoadFromFile(pdf.Xref, "TT2", "demo/ttfont/Roboto-Regular.ttf", true);
+
+                page2.BeginText();
+                page2.MoveTextPos(60, height2 - 105);
+
+                // PenguinAttack font
+                page2.SetFontAndSize(defFont, 9);
+                page2.ShowText("PenguinAttack.ttf");
+                page2.MoveTextPos(0, -18);
+
+                page2.SetFontAndSize(penguinFont.AsFont(), 20);
+                page2.ShowText("abcdefgABCDEFG12345!#$%&+-@?");
+                page2.MoveTextPos(0, -20);
+
+                // Roboto font
+                page2.SetFontAndSize(defFont, 9);
+                page2.ShowText("Roboto-Regular.ttf");
+                page2.MoveTextPos(0, -18);
+
+                page2.SetFontAndSize(robotoFont.AsFont(), 20);
+                page2.ShowText("abcdefgABCDEFG12345!#$%&+-@?");
+                page2.MoveTextPos(0, -20);
+
+                page2.EndText();
+
                 pdf.SaveToFile("FontDemo.pdf");
             }
             catch (Exception e)
