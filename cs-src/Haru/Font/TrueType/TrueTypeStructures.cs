@@ -213,4 +213,43 @@ namespace Haru.Font.TrueType
         public uint[] Offsets { get; set; }
         public byte[] Flags { get; set; }  // 0: unused, 1: used
     }
+
+    /// <summary>
+    /// Represents the 'post' table (PostScript information).
+    /// </summary>
+    internal class TrueTypePost
+    {
+        public uint Version { get; set; }
+        public int ItalicAngle { get; set; }  // Fixed-point 16.16
+        public short UnderlinePosition { get; set; }
+        public short UnderlineThickness { get; set; }
+        public uint IsFixedPitch { get; set; }
+        public uint MinMemType42 { get; set; }
+        public uint MaxMemType42 { get; set; }
+        public uint MinMemType1 { get; set; }
+        public uint MaxMemType1 { get; set; }
+    }
+
+    /// <summary>
+    /// Represents a glyph header from the 'glyf' table.
+    /// </summary>
+    internal class TrueTypeGlyphHeader
+    {
+        public short NumberOfContours { get; set; }
+        public short XMin { get; set; }
+        public short YMin { get; set; }
+        public short XMax { get; set; }
+        public short YMax { get; set; }
+    }
+
+    /// <summary>
+    /// Represents glyph data for subsetting.
+    /// </summary>
+    internal class TrueTypeGlyphData
+    {
+        public ushort GlyphId { get; set; }
+        public byte[] Data { get; set; }
+        public bool IsComposite { get; set; }
+        public ushort[] ComponentGlyphs { get; set; }
+    }
 }

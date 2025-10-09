@@ -78,6 +78,20 @@ namespace Haru.Font
         }
 
         /// <summary>
+        /// Creates a font wrapper for a TrueType font.
+        /// </summary>
+        /// <param name="ttFont">The TrueType font to wrap.</param>
+        internal HpdfFont(HpdfTrueTypeFont ttFont)
+        {
+            if (ttFont == null)
+                throw new HpdfException(HpdfErrorCode.InvalidParameter, "TrueType font cannot be null");
+
+            _dict = ttFont.Dict;
+            _baseFont = ttFont.BaseFont;
+            _localName = ttFont.LocalName;
+        }
+
+        /// <summary>
         /// Gets the width of a character in 1000-unit glyph space.
         /// For standard fonts, this is a simplified implementation.
         /// </summary>

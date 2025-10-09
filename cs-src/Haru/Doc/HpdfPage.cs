@@ -42,14 +42,14 @@ namespace Haru.Doc
         private readonly Dictionary<string, HpdfImage> _imageResources;
 
         /// <summary>
-        /// Default page width in points (612 = 8.5 inches).
+        /// Default page width in points (595.276 = A4 width).
         /// </summary>
-        public const float DefaultWidth = 612;
+        public const float DefaultWidth = 595.276f;
 
         /// <summary>
-        /// Default page height in points (792 = 11 inches).
+        /// Default page height in points (841.89 = A4 height).
         /// </summary>
-        public const float DefaultHeight = 792;
+        public const float DefaultHeight = 841.89f;
 
         /// <summary>
         /// Gets the underlying dictionary object for this page.
@@ -152,7 +152,7 @@ namespace Haru.Doc
             _dict = new HpdfDict();
             _dict.Add("Type", new HpdfName("Page"));
 
-            // Create default MediaBox (0, 0, 612, 792) - US Letter size
+            // Create default MediaBox (0, 0, 595.276, 841.89) - A4 size
             var mediaBox = new HpdfArray();
             mediaBox.Add(new HpdfNumber(0));
             mediaBox.Add(new HpdfNumber(0));

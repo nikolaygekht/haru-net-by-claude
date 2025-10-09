@@ -41,7 +41,15 @@ namespace Haru.Objects
         /// <inheritdoc/>
         public override void WriteValue(HpdfStream stream)
         {
-            stream.WriteHexString(Value);
+            byte[] dataToWrite = Value;
+
+            // Encrypt if encryption context is set
+            if (stream.EncryptionContext != null)
+            {
+                dataToWrite = stream.EncryptionContext.Encrypt(Value);
+            }
+
+            stream.WriteHexString(dataToWrite);
         }
 
         /// <inheritdoc/>

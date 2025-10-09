@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Haru.Objects;
+using Haru.Security;
 using Haru.Streams;
 
 namespace Haru.Xref
@@ -41,6 +42,11 @@ namespace Haru.Xref
         /// Gets the trailer dictionary that appears after the xref table
         /// </summary>
         public HpdfDict Trailer { get; }
+
+        /// <summary>
+        /// Gets or sets the encryption handler for this document
+        /// </summary>
+        private HpdfEncrypt _encrypt;
 
         /// <summary>
         /// Initializes a new xref table with the specified starting offset
@@ -170,8 +176,35 @@ namespace Haru.Xref
                 // Write: "obj_id gen_no obj\n"
                 stream.WriteString($"{objectId} {genNo} obj\n");
 
+                // Set up encryption for this object if encryption is enabled
+                // Note: The Encrypt dictionary itself must NOT be encrypted (PDF spec)
+                bool shouldEncrypt = _encrypt != null;
+                if (shouldEncrypt)
+                {
+                    // Check if this is the Encrypt dictionary
+                    if (Trailer.TryGetValue("Encrypt", out var encryptDictObj) &&
+                        encryptDictObj == Entries[i].Object)
+                    {
+                        shouldEncrypt = false; // Don't encrypt the Encrypt dictionary
+                    }
+                }
+
+                if (shouldEncrypt)
+                {
+                    // Initialize encryption key for this specific object
+                    _encrypt.InitKey(objectId, genNo);
+                    stream.EncryptionContext = _encrypt;
+                }
+                else
+                {
+                    stream.EncryptionContext = null;
+                }
+
                 // Write the object value
                 Entries[i].Object.WriteValue(stream);
+
+                // Clear encryption context after writing
+                stream.EncryptionContext = null;
 
                 // Write: "\nendobj\n"
                 stream.WriteString("\nendobj\n");
@@ -249,6 +282,23 @@ namespace Haru.Xref
             }
 
             return count;
+        }
+
+        /// <summary>
+        /// Sets the encryption handler for encrypting objects.
+        /// </summary>
+        /// <param name="encrypt">The encryption handler.</param>
+        public void SetEncryption(HpdfEncrypt encrypt)
+        {
+            _encrypt = encrypt;
+        }
+
+        /// <summary>
+        /// Gets the encryption handler if encryption is enabled.
+        /// </summary>
+        public HpdfEncrypt GetEncryption()
+        {
+            return _encrypt;
         }
     }
 }

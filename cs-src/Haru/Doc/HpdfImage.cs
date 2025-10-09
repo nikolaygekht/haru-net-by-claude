@@ -109,6 +109,14 @@ namespace Haru.Doc
         }
 
         /// <summary>
+        /// Loads a PNG image from a file (alias for LoadPngImage for API compatibility).
+        /// </summary>
+        public static HpdfImage LoadPngImageFromFile(HpdfXref xref, string localName, string filePath)
+        {
+            return LoadPngImage(xref, localName, filePath);
+        }
+
+        /// <summary>
         /// Loads a PNG image from a stream.
         /// </summary>
         public static HpdfImage LoadPngImage(HpdfXref xref, string localName, Stream stream)
@@ -397,6 +405,117 @@ namespace Haru.Doc
 
             // Add SMask reference to main image
             Dict.Add("SMask", smask);
+        }
+
+        /// <summary>
+        /// Sets a color mask for the image, making pixels within the specified RGB ranges transparent.
+        /// This is useful for simple transparency effects on RGB images.
+        /// </summary>
+        /// <param name="rmin">Minimum red value (0-255).</param>
+        /// <param name="rmax">Maximum red value (0-255).</param>
+        /// <param name="gmin">Minimum green value (0-255).</param>
+        /// <param name="gmax">Maximum green value (0-255).</param>
+        /// <param name="bmin">Minimum blue value (0-255).</param>
+        /// <param name="bmax">Maximum blue value (0-255).</param>
+        public void SetColorMask(uint rmin, uint rmax, uint gmin, uint gmax, uint bmin, uint bmax)
+        {
+            // PDF color mask array: [rmin rmax gmin gmax bmin bmax]
+            // Pixels with color components within these ranges will be transparent
+            var maskArray = new HpdfArray();
+            maskArray.Add(new HpdfNumber((int)rmin));
+            maskArray.Add(new HpdfNumber((int)rmax));
+            maskArray.Add(new HpdfNumber((int)gmin));
+            maskArray.Add(new HpdfNumber((int)gmax));
+            maskArray.Add(new HpdfNumber((int)bmin));
+            maskArray.Add(new HpdfNumber((int)bmax));
+
+            Dict.Add("Mask", maskArray);
+        }
+
+        /// <summary>
+        /// Sets a mask image for this image, providing alpha channel transparency.
+        /// The mask image must be a grayscale image with the same dimensions.
+        /// </summary>
+        /// <param name="maskImage">The mask image (must be grayscale).</param>
+        public void SetMaskImage(HpdfImage maskImage)
+        {
+            if (maskImage == null)
+                throw new HpdfException(HpdfErrorCode.InvalidParameter, "Mask image cannot be null");
+
+            // Verify mask image is grayscale
+            if (maskImage.Dict.TryGetValue("ColorSpace", out var colorSpace))
+            {
+                var colorSpaceName = colorSpace as HpdfName;
+                if (colorSpaceName == null || colorSpaceName.Value != "DeviceGray")
+                {
+                    throw new HpdfException(HpdfErrorCode.InvalidParameter,
+                        "Mask image must have DeviceGray color space");
+                }
+            }
+
+            // Verify dimensions match
+            if (maskImage.Width != Width || maskImage.Height != Height)
+            {
+                throw new HpdfException(HpdfErrorCode.InvalidParameter,
+                    "Mask image dimensions must match the main image");
+            }
+
+            // Convert the grayscale image data to 1-bit packed format
+            // The mask image is currently stored as 8-bit grayscale (1 byte per pixel)
+            // We need to convert it to 1-bit (8 pixels per byte, packed)
+            var originalData = maskImage._streamObject.Stream.ToArray();
+            int width = (int)maskImage.Width;
+            int height = (int)maskImage.Height;
+            int expectedSize = width * height; // 1 byte per pixel for 8-bit grayscale
+
+            if (originalData.Length < expectedSize)
+            {
+                throw new HpdfException(HpdfErrorCode.InvalidImage,
+                    $"Mask image data size mismatch: expected {expectedSize}, got {originalData.Length}");
+            }
+
+            // Convert 8-bit grayscale to 1-bit packed format
+            // Each row must be padded to byte boundary
+            int bytesPerRow = (width + 7) / 8; // Round up to nearest byte
+            byte[] packedData = new byte[bytesPerRow * height];
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int srcIndex = y * width + x;
+                    byte pixelValue = originalData[srcIndex];
+
+                    // Threshold: values >= 128 are considered opaque (1), < 128 are transparent (0)
+                    if (pixelValue >= 128)
+                    {
+                        int dstIndex = y * bytesPerRow + (x / 8);
+                        int bitPosition = 7 - (x % 8); // MSB first
+                        packedData[dstIndex] |= (byte)(1 << bitPosition);
+                    }
+                }
+            }
+
+            // Clear the old stream data and write the new packed data
+            maskImage._streamObject.ClearStream();
+            maskImage._streamObject.Stream.Write(packedData, 0, packedData.Length);
+
+            // Convert the mask image to an ImageMask (1-bit stencil mask)
+            // Remove ColorSpace from the mask and add ImageMask flag
+            maskImage.Dict.Remove("ColorSpace");
+            maskImage.Dict["ImageMask"] = new HpdfBoolean(true);
+
+            // For ImageMask, only 1 bit per component is allowed
+            maskImage.Dict["BitsPerComponent"] = new HpdfNumber(1);
+
+            // Decode array for ImageMask: [0 1] means 0=transparent, 1=opaque
+            var decode = new HpdfArray();
+            decode.Add(new HpdfNumber(0));
+            decode.Add(new HpdfNumber(1));
+            maskImage.Dict["Decode"] = decode;
+
+            // Add Mask entry as indirect reference to the mask image stream
+            Dict.Add("Mask", maskImage.StreamObject);
         }
 
         private class JpegInfo

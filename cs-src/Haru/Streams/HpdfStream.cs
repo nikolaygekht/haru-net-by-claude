@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using Haru.Security;
 
 namespace Haru.Streams
 {
@@ -9,6 +10,12 @@ namespace Haru.Streams
     /// </summary>
     public abstract class HpdfStream : IDisposable
     {
+        /// <summary>
+        /// Gets or sets the encryption handler for encrypting content during writing.
+        /// When set, strings and streams will be encrypted as they are written.
+        /// </summary>
+        public HpdfEncrypt EncryptionContext { get; set; }
+
         /// <summary>
         /// Gets the type of this stream
         /// </summary>

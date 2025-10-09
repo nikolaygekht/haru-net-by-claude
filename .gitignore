@@ -3,3 +3,4 @@
 bin/
 obj/
 samples-src/
+*.pdf

@@ -363,5 +363,176 @@ namespace Haru.Font.TrueType
                 return Encoding.ASCII.GetString(bytes);
             }
         }
+
+        /// <summary>
+        /// Parses the 'post' table.
+        /// </summary>
+        public TrueTypePost ParsePost(TrueTypeTable table)
+        {
+            if (table == null)
+                return null;
+
+            Seek(table.Offset);
+
+            var post = new TrueTypePost
+            {
+                Version = ReadUInt32(),
+                ItalicAngle = ReadInt32(),
+                UnderlinePosition = ReadInt16(),
+                UnderlineThickness = ReadInt16(),
+                IsFixedPitch = ReadUInt32(),
+                MinMemType42 = ReadUInt32(),
+                MaxMemType42 = ReadUInt32(),
+                MinMemType1 = ReadUInt32(),
+                MaxMemType1 = ReadUInt32()
+            };
+
+            return post;
+        }
+
+        /// <summary>
+        /// Parses the 'loca' table (glyph location table).
+        /// </summary>
+        /// <param name="table">The loca table.</param>
+        /// <param name="indexToLocFormat">Format from head table (0=short, 1=long).</param>
+        /// <param name="numGlyphs">Number of glyphs from maxp table.</param>
+        /// <returns>Array of glyph offsets.</returns>
+        public uint[] ParseLoca(TrueTypeTable table, short indexToLocFormat, ushort numGlyphs)
+        {
+            if (table == null)
+                throw new HpdfException(HpdfErrorCode.TtInvalidFormat, "loca table not found");
+
+            Seek(table.Offset);
+
+            uint[] offsets = new uint[numGlyphs + 1];
+
+            if (indexToLocFormat == 0)
+            {
+                // Short format: offsets are stored as ushort / 2
+                for (int i = 0; i <= numGlyphs; i++)
+                {
+                    offsets[i] = (uint)(ReadUInt16() * 2);
+                }
+            }
+            else
+            {
+                // Long format: offsets are stored as uint32
+                for (int i = 0; i <= numGlyphs; i++)
+                {
+                    offsets[i] = ReadUInt32();
+                }
+            }
+
+            return offsets;
+        }
+
+        /// <summary>
+        /// Reads glyph data from the 'glyf' table.
+        /// </summary>
+        /// <param name="glyfTable">The glyf table.</param>
+        /// <param name="glyphOffset">Offset to the glyph within the glyf table.</param>
+        /// <param name="nextGlyphOffset">Offset to the next glyph (to determine size).</param>
+        /// <returns>The glyph data.</returns>
+        public TrueTypeGlyphData ReadGlyphData(TrueTypeTable glyfTable, uint glyphOffset, uint nextGlyphOffset)
+        {
+            if (glyfTable == null)
+                throw new HpdfException(HpdfErrorCode.TtInvalidFormat, "glyf table not found");
+
+            uint glyphLength = nextGlyphOffset - glyphOffset;
+
+            // Empty glyph (e.g., space character)
+            if (glyphLength == 0)
+            {
+                return new TrueTypeGlyphData
+                {
+                    Data = new byte[0],
+                    IsComposite = false,
+                    ComponentGlyphs = new ushort[0]
+                };
+            }
+
+            Seek(glyfTable.Offset + glyphOffset);
+
+            // Read glyph header
+            var header = new TrueTypeGlyphHeader
+            {
+                NumberOfContours = ReadInt16(),
+                XMin = ReadInt16(),
+                YMin = ReadInt16(),
+                XMax = ReadInt16(),
+                YMax = ReadInt16()
+            };
+
+            bool isComposite = header.NumberOfContours < 0;
+            var componentGlyphs = new System.Collections.Generic.List<ushort>();
+
+            // If composite glyph, parse component references
+            if (isComposite)
+            {
+                ushort flags;
+                do
+                {
+                    flags = ReadUInt16();
+                    ushort glyphIndex = ReadUInt16();
+                    componentGlyphs.Add(glyphIndex);
+
+                    // Skip arguments and transformation data based on flags
+                    bool arg1And2AreWords = (flags & 0x0001) != 0;
+                    bool weHaveAScale = (flags & 0x0008) != 0;
+                    bool weHaveAnXAndYScale = (flags & 0x0040) != 0;
+                    bool weHaveATwoByTwo = (flags & 0x0080) != 0;
+
+                    // Skip arguments (1 or 2 bytes each)
+                    if (arg1And2AreWords)
+                    {
+                        ReadInt16(); // arg1
+                        ReadInt16(); // arg2
+                    }
+                    else
+                    {
+                        _reader.ReadByte(); // arg1
+                        _reader.ReadByte(); // arg2
+                    }
+
+                    // Skip transformation matrix
+                    if (weHaveATwoByTwo)
+                    {
+                        ReadInt16(); // xscale
+                        ReadInt16(); // scale01
+                        ReadInt16(); // scale10
+                        ReadInt16(); // yscale
+                    }
+                    else if (weHaveAnXAndYScale)
+                    {
+                        ReadInt16(); // xscale
+                        ReadInt16(); // yscale
+                    }
+                    else if (weHaveAScale)
+                    {
+                        ReadInt16(); // scale
+                    }
+
+                } while ((flags & 0x0020) != 0); // MORE_COMPONENTS flag
+            }
+
+            // Read entire glyph data
+            Seek(glyfTable.Offset + glyphOffset);
+            byte[] glyphData = ReadBytes((int)glyphLength);
+
+            return new TrueTypeGlyphData
+            {
+                Data = glyphData,
+                IsComposite = isComposite,
+                ComponentGlyphs = componentGlyphs.ToArray()
+            };
+        }
+
+        /// <summary>
+        /// Reads a Fixed-point number (16.16 format).
+        /// </summary>
+        public int ReadFixed()
+        {
+            return ReadInt32();
+        }
     }
 }

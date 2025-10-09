@@ -15,6 +15,7 @@
  */
 
 using Haru.Objects;
+using Haru.Types;
 using Haru.Xref;
 
 namespace Haru.Doc
@@ -111,6 +112,15 @@ namespace Haru.Doc
                 };
                 _dict["PageMode"] = new HpdfName(modeName);
             }
+        }
+
+        /// <summary>
+        /// Sets the page mode (convenience method for API compatibility).
+        /// </summary>
+        /// <param name="mode">The page mode to set.</param>
+        public void SetPageMode(HpdfPageMode mode)
+        {
+            PageMode = mode;
         }
 
         /// <summary>

@@ -88,6 +88,15 @@ namespace Haru.Objects
             // Before writing, update the Filter array if filters are set
             UpdateFilterArray();
 
+            // If there's stream data, prepare it and update Length BEFORE writing dictionary
+            byte[] streamDataToWrite = null;
+            if (_stream != null && _stream.Size > 0)
+            {
+                streamDataToWrite = PrepareStreamData(stream);
+                // Update the Length entry with the actual size
+                this["Length"] = new HpdfNumber(streamDataToWrite.Length);
+            }
+
             // Write the dictionary part
             stream.WriteString("<<");
             stream.WriteLine();
@@ -96,21 +105,33 @@ namespace Haru.Objects
             {
                 stream.WriteEscapedName(kvp.Key);
                 stream.WriteChar(' ');
-                kvp.Value.WriteValue(stream);
+
+                // Write indirect reference if object is indirect, otherwise write value
+                if (kvp.Value.IsIndirect && kvp.Value.ObjectId != 0)
+                {
+                    stream.WriteUInt(kvp.Value.RealObjectId);
+                    stream.WriteChar(' ');
+                    stream.WriteUInt(kvp.Value.GenerationNumber);
+                    stream.WriteString(" R");
+                }
+                else
+                {
+                    kvp.Value.WriteValue(stream);
+                }
                 stream.WriteLine();
             }
 
             stream.WriteString(">>");
 
             // If there's stream data, write the stream section
-            if (_stream != null && _stream.Size > 0)
+            if (streamDataToWrite != null)
             {
                 stream.WriteLine();
                 stream.WriteString("stream");
                 stream.WriteLine();
 
-                // Write the stream data (with filters applied if necessary)
-                WriteStreamData(stream);
+                // Write the prepared stream data
+                stream.Write(streamDataToWrite);
 
                 stream.WriteLine();
                 stream.WriteString("endstream");
@@ -161,12 +182,13 @@ namespace Haru.Objects
         }
 
         /// <summary>
-        /// Writes the stream data with filters applied
+        /// Prepares the stream data with filters and encryption applied
         /// </summary>
-        private void WriteStreamData(HpdfStream outputStream)
+        /// <returns>The prepared stream data ready to write</returns>
+        private byte[] PrepareStreamData(HpdfStream outputStream)
         {
             if (_stream == null || _stream.Size == 0)
-                return;
+                return null;
 
             // Get the raw data
             byte[] data = _stream.ToArray();
@@ -178,11 +200,14 @@ namespace Haru.Objects
                 filteredData = ApplyFlateFilter(filteredData);
             }
 
-            // Update the Length entry with the actual filtered size
-            this["Length"] = new HpdfNumber(filteredData.Length);
+            // Encrypt the data if encryption context is set
+            // NOTE: Encryption happens AFTER compression (per PDF spec)
+            if (outputStream.EncryptionContext != null)
+            {
+                filteredData = outputStream.EncryptionContext.Encrypt(filteredData);
+            }
 
-            // Write the filtered data
-            outputStream.Write(filteredData);
+            return filteredData;
         }
 
         /// <summary>

@@ -24,15 +24,6 @@ namespace Haru.Types
     }
 
     /// <summary>
-    /// Encryption mode.
-    /// </summary>
-    public enum HpdfEncryptMode
-    {
-        EncryptR2 = 2,
-        EncryptR3 = 3
-    }
-
-    /// <summary>
     /// Color space enumeration.
     /// </summary>
     public enum HpdfColorSpace
@@ -104,7 +95,7 @@ namespace Haru.Types
     /// </summary>
     public enum HpdfPageLayout
     {
-        Single = 0,
+        SinglePage = 0,
         OneColumn,
         TwoColumnLeft,
         TwoColumnRight,
@@ -119,9 +110,11 @@ namespace Haru.Types
     public enum HpdfPageMode
     {
         UseNone = 0,
-        UseOutline,
+        UseOutlines,
         UseThumbs,
         FullScreen,
+        UseOC,
+        UseAttachments,
         Eof
     }
 
@@ -425,5 +418,38 @@ namespace Haru.Types
     {
         EmbeddedFiles = 0,
         Eof
+    }
+
+    /// <summary>
+    /// Compression mode flags for PDF content.
+    /// These can be combined using bitwise OR.
+    /// </summary>
+    [System.Flags]
+    public enum HpdfCompressionMode : uint
+    {
+        /// <summary>
+        /// No compression.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Compress text and line-art graphics.
+        /// </summary>
+        Text = 1,
+
+        /// <summary>
+        /// Compress embedded image data.
+        /// </summary>
+        Image = 2,
+
+        /// <summary>
+        /// Compress other data such as metadata.
+        /// </summary>
+        Metadata = 4,
+
+        /// <summary>
+        /// Compress all content (text, images, and metadata).
+        /// </summary>
+        All = 15
     }
 }

@@ -72,14 +72,22 @@ namespace Haru.Objects
         /// <inheritdoc/>
         public override void WriteValue(HpdfStream stream)
         {
+            byte[] dataToWrite = Value;
+
+            // Encrypt if encryption context is set
+            if (stream.EncryptionContext != null)
+            {
+                dataToWrite = stream.EncryptionContext.Encrypt(Value);
+            }
+
             if (WriteAsHex)
             {
-                stream.WriteHexString(Value);
+                stream.WriteHexString(dataToWrite);
             }
             else
             {
                 // Convert bytes to string for escape processing
-                string text = Encoding.Latin1.GetString(Value);
+                string text = Encoding.Latin1.GetString(dataToWrite);
                 stream.WriteEscapedText(text);
             }
         }

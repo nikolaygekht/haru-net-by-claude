@@ -19,6 +19,7 @@ using System.IO;
 using System.Text;
 using Haru.Objects;
 using Haru.Streams;
+using Haru.Types;
 using Haru.Xref;
 
 namespace Haru.Doc
@@ -86,6 +87,7 @@ namespace Haru.Doc
         private HpdfOutline _outlineRoot;
         private bool _pdfACompliant;
         private string _pdfAConformance;
+        private HpdfEncryptDict _encryptDict;
 
         /// <summary>
         /// Gets the PDF version for this document.
@@ -257,6 +259,46 @@ namespace Haru.Doc
         }
 
         /// <summary>
+        /// Sets encryption on the document with user and owner passwords.
+        /// </summary>
+        /// <param name="userPassword">The user password (opens with restricted permissions).</param>
+        /// <param name="ownerPassword">The owner password (opens with full permissions).</param>
+        /// <param name="permission">The permission flags for the user password.</param>
+        /// <param name="mode">The encryption mode (R2=40-bit RC4, R3=128-bit RC4, R4=128-bit AES).</param>
+        public void SetEncryption(string userPassword, string ownerPassword,
+            HpdfPermission permission = HpdfPermission.Print,
+            HpdfEncryptMode mode = HpdfEncryptMode.R3)
+        {
+            // Create encryption dictionary if it doesn't exist
+            if (_encryptDict == null)
+            {
+                _encryptDict = new HpdfEncryptDict(_xref);
+            }
+
+            // Set encryption parameters
+            int keyLength = mode == HpdfEncryptMode.R2 ? 5 : 16; // 40-bit or 128-bit
+            _encryptDict.SetEncryptionMode(mode, keyLength);
+            _encryptDict.SetUserPassword(userPassword);
+            _encryptDict.SetOwnerPassword(ownerPassword);
+            _encryptDict.SetPermission(permission);
+
+            // Update PDF version based on encryption mode
+            if (mode == HpdfEncryptMode.R3 && _version < HpdfVersion.Version14)
+            {
+                _version = HpdfVersion.Version14; // R3 requires PDF 1.4
+            }
+            else if (mode == HpdfEncryptMode.R4 && _version < HpdfVersion.Version16)
+            {
+                _version = HpdfVersion.Version16; // R4 (AES) requires PDF 1.6
+            }
+        }
+
+        /// <summary>
+        /// Gets whether encryption is enabled for this document.
+        /// </summary>
+        public bool IsEncrypted => _encryptDict != null;
+
+        /// <summary>
         /// Saves the document to a stream.
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
@@ -268,6 +310,10 @@ namespace Haru.Doc
             // Add PDF/A components if enabled
             if (_pdfACompliant)
                 ApplyPdfACompliance();
+
+            // Prepare encryption if enabled
+            if (_encryptDict != null)
+                ApplyEncryption();
 
             // Prepare outlines before writing
             if (_outlineRoot != null)
@@ -305,6 +351,41 @@ namespace Haru.Doc
             // 3. Add Document ID
             var documentId = HpdfDocumentId.GenerateId(_info);
             _xref.Trailer.Add("ID", documentId);
+        }
+
+        /// <summary>
+        /// Applies encryption to the document.
+        /// </summary>
+        private void ApplyEncryption()
+        {
+            // Check if document ID already exists (e.g., from PDF/A compliance)
+            HpdfArray documentId;
+            if (_xref.Trailer.TryGetValue("ID", out var existingId) && existingId is HpdfArray existingIdArray)
+            {
+                documentId = existingIdArray;
+            }
+            else
+            {
+                // Generate new document ID (required for encryption)
+                documentId = HpdfDocumentId.GenerateId(_info);
+                _xref.Trailer.Add("ID", documentId);
+            }
+
+            // Extract the encryption ID bytes from the ID array
+            byte[] idBytes = null;
+            if (documentId.Count > 0 && documentId[0] is HpdfBinary firstId)
+            {
+                idBytes = firstId.Value;
+            }
+
+            // Prepare encryption dictionary with the ID
+            _encryptDict.Prepare(idBytes, _info);
+
+            // Add encryption dictionary to trailer
+            _xref.Trailer.Add("Encrypt", _encryptDict.Dict);
+
+            // Store encryption handler in xref for use during object writing
+            _xref.SetEncryption(_encryptDict.Encrypt);
         }
 
         /// <summary>

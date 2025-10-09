@@ -25,7 +25,7 @@ namespace Haru.Types
 
         // Default graphic state values
         public const string DefFont = "Helvetica";
-        public const HpdfPageLayout DefPageLayout = HpdfPageLayout.Single;
+        public const HpdfPageLayout DefPageLayout = HpdfPageLayout.SinglePage;
         public const HpdfPageMode DefPageMode = HpdfPageMode.UseNone;
         public const float DefWordSpace = 0;
         public const float DefCharSpace = 0;

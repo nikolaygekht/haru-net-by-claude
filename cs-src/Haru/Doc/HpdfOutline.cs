@@ -96,6 +96,15 @@ namespace Haru.Doc
         }
 
         /// <summary>
+        /// Sets whether the outline is opened (children visible) by default.
+        /// </summary>
+        /// <param name="opened">True to show children by default, false to hide them.</param>
+        public void SetOpened(bool opened)
+        {
+            _opened = opened;
+        }
+
+        /// <summary>
         /// Sets the destination for this outline (where it navigates to when clicked).
         /// </summary>
         /// <param name="destination">The destination array.</param>
@@ -105,6 +114,18 @@ namespace Haru.Doc
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Destination cannot be null");
 
             _dict.Add("Dest", destination);
+        }
+
+        /// <summary>
+        /// Sets the destination for this outline (where it navigates to when clicked).
+        /// </summary>
+        /// <param name="destination">The destination object.</param>
+        public void SetDestination(HpdfDestination destination)
+        {
+            if (destination == null)
+                throw new HpdfException(HpdfErrorCode.InvalidParameter, "Destination cannot be null");
+
+            _dict.Add("Dest", destination.DestArray);
         }
 
         /// <summary>

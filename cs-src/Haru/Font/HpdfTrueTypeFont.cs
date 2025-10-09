@@ -21,6 +21,7 @@ using Haru.Objects;
 using Haru.Xref;
 using Haru.Types;
 using Haru.Font.TrueType;
+using Haru.Streams;
 
 namespace Haru.Font
 {
@@ -44,10 +45,14 @@ namespace Haru.Font
         private TrueTypeCmapFormat4 _cmap;
         private TrueTypeOS2 _os2;
         private TrueTypeGlyphOffsets _glyphOffsets;
+        private TrueTypePost _post;
+        private uint[] _locaOffsets;
 
         private byte[] _fontData;
         private bool _embedding;
         private HpdfDict _descriptor;
+        private HpdfStreamObject _fontFileStream;
+        private HpdfStreamObject _toUnicodeStream;
 
         /// <summary>
         /// Gets the underlying dictionary object for this font.
@@ -68,6 +73,14 @@ namespace Haru.Font
         /// Gets the font descriptor dictionary.
         /// </summary>
         public HpdfDict Descriptor => _descriptor;
+
+        /// <summary>
+        /// Gets an HpdfFont wrapper for this TrueType font that can be used with page operations.
+        /// </summary>
+        public HpdfFont AsFont()
+        {
+            return new HpdfFont(this);
+        }
 
         private HpdfTrueTypeFont(HpdfXref xref, string localName, bool embedding)
         {
@@ -147,6 +160,13 @@ namespace Haru.Font
                 font.ParseOS2Table(parser, os2Table);
             }
 
+            // Parse post table if present (for italic angle)
+            var postTable = parser.FindTable(font._offsetTable, "post");
+            if (postTable != null)
+            {
+                font._post = parser.ParsePost(postTable);
+            }
+
             // Initialize glyph tracking for subsetting
             if (embedding)
             {
@@ -157,6 +177,13 @@ namespace Haru.Font
                 };
                 // Mark glyph 0 (.notdef) as used
                 font._glyphOffsets.Flags[0] = 1;
+
+                // Parse loca table for subsetting
+                var locaTable = parser.FindTable(font._offsetTable, "loca");
+                if (locaTable != null)
+                {
+                    font._locaOffsets = parser.ParseLoca(locaTable, font._head.IndexToLocFormat, font._maxp.NumGlyphs);
+                }
             }
 
             // Extract font name
@@ -360,13 +387,16 @@ namespace Haru.Font
             _dict.Add("FirstChar", new HpdfNumber(firstChar));
             _dict.Add("LastChar", new HpdfNumber(lastChar));
 
-            // Add Widths array
+            // Add Widths array (scaled to 1000-unit em square)
             var widths = new HpdfArray();
             for (int i = firstChar; i <= lastChar; i++)
             {
                 ushort glyphId = GetGlyphId((ushort)i);
                 int width = GetGlyphWidth(glyphId);
-                widths.Add(new HpdfNumber(width));
+
+                // Scale from font units to 1000-unit em square (PDF standard)
+                int scaledWidth = (int)Math.Round(width * 1000.0 / _head.UnitsPerEm);
+                widths.Add(new HpdfNumber(scaledWidth));
             }
             _dict.Add("Widths", widths);
 
@@ -380,19 +410,8 @@ namespace Haru.Font
             _descriptor.Add("Type", new HpdfName("FontDescriptor"));
             _descriptor.Add("FontName", new HpdfName(_baseFont));
 
-            // Calculate flags
-            int flags = 0;
-            if (_os2 != null)
-            {
-                if ((_os2.Panose[3] == 9)) // Monospaced
-                    flags |= 1; // FixedPitch
-                flags |= 32; // Nonsymbolic
-            }
-            else
-            {
-                flags = 32; // Nonsymbolic
-            }
-
+            // Calculate flags based on font properties
+            int flags = CalculateFlags();
             _descriptor.Add("Flags", new HpdfNumber(flags));
 
             // Add font bounding box
@@ -403,18 +422,151 @@ namespace Haru.Font
             bbox.Add(new HpdfNumber(_head.YMax));
             _descriptor.Add("FontBBox", bbox);
 
+            // Calculate and add italic angle
+            double italicAngle = CalculateItalicAngle();
+            _descriptor.Add("ItalicAngle", new HpdfReal((float)italicAngle));
+
             // Add metrics
-            _descriptor.Add("ItalicAngle", new HpdfNumber(0));
             _descriptor.Add("Ascent", new HpdfNumber(_hhea.Ascender));
             _descriptor.Add("Descent", new HpdfNumber(_hhea.Descender));
-            _descriptor.Add("CapHeight", new HpdfNumber(_head.YMax));
-            _descriptor.Add("StemV", new HpdfNumber(80)); // Default value
+
+            // Calculate CapHeight (use OS/2 or estimate from bbox)
+            int capHeight = _os2 != null ? _os2.STypoAscender : _head.YMax;
+            _descriptor.Add("CapHeight", new HpdfNumber(capHeight));
+
+            // Calculate StemV (estimate based on font weight)
+            int stemV = CalculateStemV();
+            _descriptor.Add("StemV", new HpdfNumber(stemV));
+
+            // Embed font data if requested
+            if (_embedding && _fontData != null)
+            {
+                EmbedFontData();
+            }
+
+            // Add ToUnicode CMap for text extraction
+            CreateToUnicodeCMap();
 
             // Link descriptor to font
             _dict.Add("FontDescriptor", _descriptor);
 
             // Add to xref
             _xref.Add(_descriptor);
+        }
+
+        /// <summary>
+        /// Calculates font descriptor flags based on font properties.
+        /// </summary>
+        private int CalculateFlags()
+        {
+            int flags = 0;
+
+            if (_os2 != null)
+            {
+                // Bit 1: FixedPitch
+                if (_os2.Panose.Length > 3 && _os2.Panose[3] == 9)
+                    flags |= 1;
+
+                // Bit 2: Serif (from PANOSE)
+                if (_os2.Panose.Length > 0 && _os2.Panose[0] == 2)
+                    flags |= 2;
+
+                // Bit 4: Script (from PANOSE)
+                if (_os2.Panose.Length > 0 && _os2.Panose[0] == 3)
+                    flags |= 8;
+
+                // Bit 6: Italic
+                if ((_os2.FsSelection & 0x01) != 0 || (_head.MacStyle & 0x02) != 0)
+                    flags |= 64;
+            }
+
+            // Bit 6: Nonsymbolic (always set for TrueType text fonts)
+            flags |= 32;
+
+            return flags;
+        }
+
+        /// <summary>
+        /// Calculates the italic angle from the post table.
+        /// </summary>
+        private double CalculateItalicAngle()
+        {
+            if (_post != null)
+            {
+                // ItalicAngle is in Fixed 16.16 format
+                return _post.ItalicAngle / 65536.0;
+            }
+
+            // Check OS/2 and head tables for italic flag
+            if (_os2 != null && (_os2.FsSelection & 0x01) != 0)
+                return -12.0; // Default italic angle
+
+            if ((_head.MacStyle & 0x02) != 0)
+                return -12.0; // Default italic angle
+
+            return 0.0;
+        }
+
+        /// <summary>
+        /// Calculates StemV based on font weight.
+        /// </summary>
+        private int CalculateStemV()
+        {
+            if (_os2 != null)
+            {
+                // Estimate based on weight class (100-900)
+                // Formula: StemV ≈ 50 + (weight - 400) / 5
+                int weight = _os2.WeightClass;
+                return Math.Max(50, 50 + (weight - 400) / 5);
+            }
+
+            return 80; // Default value
+        }
+
+        /// <summary>
+        /// Embeds the font data in the PDF.
+        /// </summary>
+        private void EmbedFontData()
+        {
+            // Create font file stream
+            _fontFileStream = new HpdfStreamObject();
+
+            // For TrueType fonts, use FontFile2
+            _fontFileStream.Add("Length1", new HpdfNumber(_fontData.Length));
+
+            // Add font data to stream
+            _fontFileStream.WriteToStream(_fontData);
+
+            // Apply compression
+            _fontFileStream.Filter = HpdfStreamFilter.FlateDecode;
+
+            // Link to font descriptor
+            _descriptor.Add("FontFile2", _fontFileStream);
+
+            // Add to xref
+            _xref.Add(_fontFileStream);
+        }
+
+        /// <summary>
+        /// Creates the ToUnicode CMap for text extraction.
+        /// </summary>
+        private void CreateToUnicodeCMap()
+        {
+            // Create ToUnicode CMap for WinAnsiEncoding
+            var cmap = ToUnicodeCMap.CreateWinAnsiCMap();
+            string cmapContent = cmap.Generate();
+
+            // Create stream object
+            _toUnicodeStream = new HpdfStreamObject();
+            byte[] cmapBytes = System.Text.Encoding.UTF8.GetBytes(cmapContent);
+            _toUnicodeStream.WriteToStream(cmapBytes);
+            _toUnicodeStream.Filter = HpdfStreamFilter.FlateDecode;
+
+            // Link to font dictionary
+            _dict.Add("ToUnicode", _toUnicodeStream);
+
+            // Add to xref
+            _xref.Add(_toUnicodeStream);
         }
 
         /// <summary>
