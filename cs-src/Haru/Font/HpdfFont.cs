@@ -27,6 +27,7 @@ namespace Haru.Font
         private readonly HpdfDict _dict;
         private readonly string _baseFont;
         private readonly string _localName;
+        private readonly HpdfTrueTypeFont _ttFont;
 
         /// <summary>
         /// Gets the underlying dictionary object for this font.
@@ -42,6 +43,11 @@ namespace Haru.Font
         /// Gets the local name used to reference this font in page resources.
         /// </summary>
         public string LocalName => _localName;
+
+        /// <summary>
+        /// Gets the encoding code page for this font (for TrueType fonts), or null for standard fonts.
+        /// </summary>
+        public int? EncodingCodePage => _ttFont?.CodePage;
 
         /// <summary>
         /// Creates a standard Type 1 font.
@@ -86,6 +92,7 @@ namespace Haru.Font
             if (ttFont == null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "TrueType font cannot be null");
 
+            _ttFont = ttFont;
             _dict = ttFont.Dict;
             _baseFont = ttFont.BaseFont;
             _localName = ttFont.LocalName;

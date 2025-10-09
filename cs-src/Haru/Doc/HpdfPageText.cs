@@ -260,6 +260,7 @@ namespace Haru.Doc
 
         /// <summary>
         /// Shows a text string (Tj operator).
+        /// Text is encoded using the current font's encoding (for TrueType fonts) or PDFDocEncoding (for standard fonts).
         /// </summary>
         /// <param name="page">The page.</param>
         /// <param name="text">The text to show.</param>
@@ -269,13 +270,25 @@ namespace Haru.Doc
                 return;
 
             var stream = page.Contents.Stream;
-            stream.WriteEscapedText(text);
+
+            // Use font's encoding if it has one (TrueType fonts)
+            if (page.CurrentFont?.EncodingCodePage.HasValue == true)
+            {
+                stream.WriteEscapedText(text, page.CurrentFont.EncodingCodePage.Value);
+            }
+            else
+            {
+                // Standard fonts use PDFDocEncoding
+                stream.WriteEscapedText(text);
+            }
+
             stream.WriteString(" Tj\n");
         }
 
         /// <summary>
         /// Moves to the next line and shows text (combined operator).
         /// Equivalent to: MoveToNextLine(); ShowText(text);
+        /// Text is encoded using the current font's encoding (for TrueType fonts) or PDFDocEncoding (for standard fonts).
         /// </summary>
         /// <param name="page">The page.</param>
         /// <param name="text">The text to show.</param>
@@ -285,7 +298,18 @@ namespace Haru.Doc
                 return;
 
             var stream = page.Contents.Stream;
-            stream.WriteEscapedText(text);
+
+            // Use font's encoding if it has one (TrueType fonts)
+            if (page.CurrentFont?.EncodingCodePage.HasValue == true)
+            {
+                stream.WriteEscapedText(text, page.CurrentFont.EncodingCodePage.Value);
+            }
+            else
+            {
+                // Standard fonts use PDFDocEncoding
+                stream.WriteEscapedText(text);
+            }
+
             stream.WriteString(" '\n");
 
             // Move to next line
@@ -297,6 +321,7 @@ namespace Haru.Doc
 
         /// <summary>
         /// Sets word and character spacing, moves to next line, and shows text (" operator).
+        /// Text is encoded using the current font's encoding (for TrueType fonts) or PDFDocEncoding (for standard fonts).
         /// </summary>
         /// <param name="page">The page.</param>
         /// <param name="wordSpace">Word spacing.</param>
@@ -312,7 +337,18 @@ namespace Haru.Doc
             stream.WriteChar(' ');
             stream.WriteReal(charSpace);
             stream.WriteChar(' ');
-            stream.WriteEscapedText(text);
+
+            // Use font's encoding if it has one (TrueType fonts)
+            if (page.CurrentFont?.EncodingCodePage.HasValue == true)
+            {
+                stream.WriteEscapedText(text, page.CurrentFont.EncodingCodePage.Value);
+            }
+            else
+            {
+                // Standard fonts use PDFDocEncoding
+                stream.WriteEscapedText(text);
+            }
+
             stream.WriteString(" \"\n");
 
             // Update state

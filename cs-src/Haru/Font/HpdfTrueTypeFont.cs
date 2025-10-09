@@ -53,6 +53,7 @@ namespace Haru.Font
         private HpdfDict _descriptor;
         private HpdfStreamObject _fontFileStream;
         private HpdfStreamObject _toUnicodeStream;
+        private int _codePage;
 
         /// <summary>
         /// Gets the underlying dictionary object for this font.
@@ -70,6 +71,11 @@ namespace Haru.Font
         public string LocalName => _localName;
 
         /// <summary>
+        /// Gets the code page used for encoding this font.
+        /// </summary>
+        public int CodePage => _codePage;
+
+        /// <summary>
         /// Gets the font descriptor dictionary.
         /// </summary>
         public HpdfDict Descriptor => _descriptor;
@@ -82,16 +88,17 @@ namespace Haru.Font
             return new HpdfFont(this);
         }
 
-        private HpdfTrueTypeFont(HpdfXref xref, string localName, bool embedding)
+        private HpdfTrueTypeFont(HpdfXref xref, string localName, bool embedding, int codePage)
         {
             _xref = xref ?? throw new ArgumentNullException(nameof(xref));
             _localName = localName ?? throw new ArgumentNullException(nameof(localName));
             _embedding = embedding;
+            _codePage = codePage;
             _dict = new HpdfDict();
         }
 
         /// <summary>
-        /// Loads a TrueType font from a file.
+        /// Loads a TrueType font from a file with default code page (437 - DOS).
         /// </summary>
         /// <param name="xref">The cross-reference table.</param>
         /// <param name="localName">Local resource name (e.g., "F1").</param>
@@ -100,6 +107,20 @@ namespace Haru.Font
         /// <returns>The loaded TrueType font.</returns>
         public static HpdfTrueTypeFont LoadFromFile(HpdfXref xref, string localName, string filePath, bool embedding)
         {
+            return LoadFromFile(xref, localName, filePath, embedding, 437);
+        }
+
+        /// <summary>
+        /// Loads a TrueType font from a file with specified code page.
+        /// </summary>
+        /// <param name="xref">The cross-reference table.</param>
+        /// <param name="localName">Local resource name (e.g., "F1").</param>
+        /// <param name="filePath">Path to the TTF file.</param>
+        /// <param name="embedding">Whether to embed the font data.</param>
+        /// <param name="codePage">The code page to use for encoding (e.g., 437 for DOS, 1251 for Cyrillic).</param>
+        /// <returns>The loaded TrueType font.</returns>
+        public static HpdfTrueTypeFont LoadFromFile(HpdfXref xref, string localName, string filePath, bool embedding, int codePage)
+        {
             if (!File.Exists(filePath))
                 throw new HpdfException(HpdfErrorCode.FileNotFound, $"Font file not found: {filePath}");
 
@@ -107,7 +128,7 @@ namespace Haru.Font
 
             using (var stream = new MemoryStream(fontData))
             {
-                return LoadFromStream(xref, localName, stream, fontData, embedding);
+                return LoadFromStream(xref, localName, stream, fontData, embedding, codePage);
             }
         }
 
@@ -119,10 +140,11 @@ namespace Haru.Font
         /// <param name="stream">Stream containing TTF data.</param>
         /// <param name="fontData">Font data bytes (for embedding).</param>
         /// <param name="embedding">Whether to embed the font data.</param>
+        /// <param name="codePage">The code page to use for encoding (e.g., 437 for DOS, 1251 for Cyrillic).</param>
         /// <returns>The loaded TrueType font.</returns>
-        public static HpdfTrueTypeFont LoadFromStream(HpdfXref xref, string localName, Stream stream, byte[] fontData, bool embedding)
+        public static HpdfTrueTypeFont LoadFromStream(HpdfXref xref, string localName, Stream stream, byte[] fontData, bool embedding, int codePage = 437)
         {
-            var font = new HpdfTrueTypeFont(xref, localName, embedding);
+            var font = new HpdfTrueTypeFont(xref, localName, embedding, codePage);
 
             if (embedding)
                 font._fontData = fontData;
@@ -371,9 +393,6 @@ namespace Haru.Font
             _dict.Add("Subtype", new HpdfName("TrueType"));
             _dict.Add("BaseFont", new HpdfName(_baseFont));
 
-            // For now, use WinAnsiEncoding
-            _dict.Add("Encoding", new HpdfName("WinAnsiEncoding"));
-
             // Add FirstChar and LastChar
             byte firstChar = 32;
             byte lastChar = 255;
@@ -387,11 +406,37 @@ namespace Haru.Font
             _dict.Add("FirstChar", new HpdfNumber(firstChar));
             _dict.Add("LastChar", new HpdfNumber(lastChar));
 
+            // Register code page provider if needed
+            try
+            {
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            }
+            catch
+            {
+                // Already registered
+            }
+
+            var encoding = System.Text.Encoding.GetEncoding(_codePage);
+
+            // Create custom Encoding dictionary with Differences array
+            // This tells the PDF reader which glyph to render for each byte value
+            CreateEncodingDictionary(encoding, firstChar, lastChar);
+
             // Add Widths array (scaled to 1000-unit em square)
+            // For each byte value in the encoding, we need to:
+            // 1. Convert byte to Unicode using the code page
+            // 2. Look up the glyph ID for that Unicode value
+            // 3. Get the width for that glyph
             var widths = new HpdfArray();
             for (int i = firstChar; i <= lastChar; i++)
             {
-                ushort glyphId = GetGlyphId((ushort)i);
+                // Convert byte value to Unicode character using the code page
+                byte[] byteArray = new byte[] { (byte)i };
+                string str = encoding.GetString(byteArray);
+                ushort unicode = (str.Length > 0) ? (ushort)str[0] : (ushort)0;
+
+                // Get glyph ID for this Unicode character
+                ushort glyphId = GetGlyphId(unicode);
                 int width = GetGlyphWidth(glyphId);
 
                 // Scale from font units to 1000-unit em square (PDF standard)
@@ -402,6 +447,97 @@ namespace Haru.Font
 
             // Add to xref
             _xref.Add(_dict);
+        }
+
+        /// <summary>
+        /// Creates a custom Encoding dictionary with Differences array for the specified code page.
+        /// This maps byte codes to Unicode characters for proper glyph rendering.
+        /// </summary>
+        private void CreateEncodingDictionary(System.Text.Encoding encoding, byte firstChar, byte lastChar)
+        {
+            // For standard encodings, just use the built-in name
+            if (_codePage == 1252)
+            {
+                _dict.Add("Encoding", new HpdfName("WinAnsiEncoding"));
+                return;
+            }
+            else if (_codePage == 10000)
+            {
+                _dict.Add("Encoding", new HpdfName("MacRomanEncoding"));
+                return;
+            }
+
+            // For custom code pages, create an Encoding dictionary with Differences array
+            var encodingDict = new HpdfDict();
+            encodingDict.Add("Type", new HpdfName("Encoding"));
+
+            // Use WinAnsiEncoding as base for Western characters (0x20-0x7E are the same)
+            encodingDict.Add("BaseEncoding", new HpdfName("WinAnsiEncoding"));
+
+            // Build Differences array
+            // Format: [code1 /glyphname1 /glyphname2 ... code2 /glyphname3 ...]
+            var differences = new HpdfArray();
+
+            // Track if we need to add a range
+            int rangeStart = -1;
+            var rangeGlyphs = new List<string>();
+
+            for (int i = firstChar; i <= lastChar; i++)
+            {
+                // Convert byte value to Unicode character using the code page
+                byte[] byteArray = new byte[] { (byte)i };
+                string str = encoding.GetString(byteArray);
+                ushort unicode = (str.Length > 0) ? (ushort)str[0] : (ushort)0;
+
+                // Skip if it's ASCII range (0x20-0x7E) and matches WinAnsi
+                // WinAnsi and most code pages share ASCII characters
+                if (i >= 0x20 && i <= 0x7E)
+                {
+                    // Flush current range if any
+                    if (rangeStart >= 0)
+                    {
+                        differences.Add(new HpdfNumber(rangeStart));
+                        foreach (var glyph in rangeGlyphs)
+                        {
+                            differences.Add(new HpdfName(glyph));
+                        }
+                        rangeStart = -1;
+                        rangeGlyphs.Clear();
+                    }
+                    continue;
+                }
+
+                // For non-ASCII, we need to specify the glyph name
+                // Use uni[XXXX] format where XXXX is the Unicode hex value
+                string glyphName = $"uni{unicode:X4}";
+
+                // Start a new range or continue current one
+                if (rangeStart < 0)
+                {
+                    rangeStart = i;
+                }
+                rangeGlyphs.Add(glyphName);
+            }
+
+            // Flush final range if any
+            if (rangeStart >= 0)
+            {
+                differences.Add(new HpdfNumber(rangeStart));
+                foreach (var glyph in rangeGlyphs)
+                {
+                    differences.Add(new HpdfName(glyph));
+                }
+            }
+
+            // Only add Differences if we have custom mappings
+            if (differences.Count > 0)
+            {
+                encodingDict.Add("Differences", differences);
+            }
+
+            // Add encoding dictionary to xref and link to font
+            _xref.Add(encodingDict);
+            _dict.Add("Encoding", encodingDict);
         }
 
         private void CreateFontDescriptor()
@@ -552,8 +688,8 @@ namespace Haru.Font
         /// </summary>
         private void CreateToUnicodeCMap()
         {
-            // Create ToUnicode CMap for WinAnsiEncoding
-            var cmap = ToUnicodeCMap.CreateWinAnsiCMap();
+            // Create ToUnicode CMap for the specified code page
+            var cmap = ToUnicodeCMap.CreateFromCodePage(_codePage);
             string cmapContent = cmap.Generate();
 
             // Create stream object

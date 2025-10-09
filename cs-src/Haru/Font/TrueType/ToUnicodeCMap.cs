@@ -148,52 +148,48 @@ namespace Haru.Font.TrueType
         }
 
         /// <summary>
-        /// Creates a ToUnicode CMap for WinAnsiEncoding (code page 1252).
+        /// Creates a ToUnicode CMap for a specified code page using System.Text.Encoding.
+        /// Note: In .NET Core/.NET 5+, code pages other than UTF-8, UTF-16, UTF-32, ASCII and Latin-1
+        /// require registering System.Text.Encoding.CodePagesEncodingProvider.
         /// </summary>
-        public static ToUnicodeCMap CreateWinAnsiCMap()
+        /// <param name="codePage">The code page identifier (e.g., 437 for DOS, 1251 for Cyrillic, 1252 for Western).</param>
+        /// <returns>A ToUnicode CMap for the specified code page.</returns>
+        public static ToUnicodeCMap CreateFromCodePage(int codePage)
         {
             var cmap = new ToUnicodeCMap();
+            Encoding encoding;
 
-            // Standard ASCII range (0x20 - 0x7E)
-            for (byte i = 0x20; i <= 0x7E; i++)
+            try
             {
-                cmap.AddMapping(i, i);
+                // Try to register code page provider if not already registered
+                try
+                {
+                    Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+                }
+                catch
+                {
+                    // Already registered or not available
+                }
+
+                encoding = Encoding.GetEncoding(codePage);
+            }
+            catch (Exception)
+            {
+                // Fallback to UTF-8 if code page not supported
+                encoding = Encoding.UTF8;
             }
 
-            // Windows-1252 specific mappings (0x80 - 0xFF)
-            // Characters 0x80-0x9F have special mappings
-            cmap.AddMapping(0x80, 0x20AC); // Euro sign
-            cmap.AddMapping(0x82, 0x201A); // Single low-9 quotation mark
-            cmap.AddMapping(0x83, 0x0192); // Latin small letter f with hook
-            cmap.AddMapping(0x84, 0x201E); // Double low-9 quotation mark
-            cmap.AddMapping(0x85, 0x2026); // Horizontal ellipsis
-            cmap.AddMapping(0x86, 0x2020); // Dagger
-            cmap.AddMapping(0x87, 0x2021); // Double dagger
-            cmap.AddMapping(0x88, 0x02C6); // Modifier letter circumflex accent
-            cmap.AddMapping(0x89, 0x2030); // Per mille sign
-            cmap.AddMapping(0x8A, 0x0160); // Latin capital letter S with caron
-            cmap.AddMapping(0x8B, 0x2039); // Single left-pointing angle quotation mark
-            cmap.AddMapping(0x8C, 0x0152); // Latin capital ligature OE
-            cmap.AddMapping(0x8E, 0x017D); // Latin capital letter Z with caron
-            cmap.AddMapping(0x91, 0x2018); // Left single quotation mark
-            cmap.AddMapping(0x92, 0x2019); // Right single quotation mark
-            cmap.AddMapping(0x93, 0x201C); // Left double quotation mark
-            cmap.AddMapping(0x94, 0x201D); // Right double quotation mark
-            cmap.AddMapping(0x95, 0x2022); // Bullet
-            cmap.AddMapping(0x96, 0x2013); // En dash
-            cmap.AddMapping(0x97, 0x2014); // Em dash
-            cmap.AddMapping(0x98, 0x02DC); // Small tilde
-            cmap.AddMapping(0x99, 0x2122); // Trade mark sign
-            cmap.AddMapping(0x9A, 0x0161); // Latin small letter s with caron
-            cmap.AddMapping(0x9B, 0x203A); // Single right-pointing angle quotation mark
-            cmap.AddMapping(0x9C, 0x0153); // Latin small ligature oe
-            cmap.AddMapping(0x9E, 0x017E); // Latin small letter z with caron
-            cmap.AddMapping(0x9F, 0x0178); // Latin capital letter Y with diaeresis
-
-            // ISO-8859-1 range (0xA0 - 0xFF) maps directly to Unicode
-            for (ushort i = 0xA0; i <= 0xFF; i++)
+            // Map all byte values (0x00 - 0xFF) to their Unicode equivalents
+            for (int i = 0; i <= 0xFF; i++)
             {
-                cmap.AddMapping((byte)i, i);
+                byte[] byteArray = new byte[] { (byte)i };
+                string str = encoding.GetString(byteArray);
+
+                if (!string.IsNullOrEmpty(str) && str.Length > 0)
+                {
+                    ushort unicode = (ushort)str[0];
+                    cmap.AddMapping((byte)i, unicode);
+                }
             }
 
             return cmap;

@@ -1,362 +1,283 @@
-# TrueType Font Embedding Complete! ✓
+# Multi-Language Support with Code Pages Complete! ✓
 
-This session successfully completed **TrueType font embedding** with proper font subsetting infrastructure, ToUnicode CMap generation, font descriptor implementation, and critical width scaling fix.
+This session successfully implemented **code page support for TrueType fonts** with custom Encoding dictionaries, enabling proper rendering of multiple languages (Cyrillic, Greek, Turkish, and more) using single-byte encodings.
 
 ## Session Date
 2025-10-09 (continued)
 
 ## What Was Accomplished
 
-### 1. TrueType Font Embedding Implementation ✓
-Complete TrueType font embedding system with all necessary components for production use.
+### 1. Code Page Support for TrueType Fonts ✓
 
-**Core Components Created:**
-- `TrueTypeStructures.cs` - Extended with post, loca, glyf table structures
-- `TrueTypeParser.cs` - Added ParsePost(), ParseLoca(), ReadGlyphData() methods
-- `TrueTypeSubsetter.cs` - Font subsetting infrastructure (NEW)
-- `ToUnicodeCMap.cs` - ToUnicode CMap generation for text extraction (NEW)
-- `HpdfTrueTypeFont.cs` - Enhanced with embedding and complete font descriptor
-- `HpdfFont.cs` - Added internal constructor for TrueType font wrapping
-
-**Font Features Implemented:**
-- ✓ **Font embedding** with FontFile2 stream (compressed with FlateDecode)
-- ✓ **ToUnicode CMap generation** for text extraction and search
-- ✓ **Accurate font descriptor** with calculated metrics:
-  - CapHeight, StemV, ItalicAngle from font tables
-  - Font flags (FixedPitch, Serif, Script, Italic, Nonsymbolic) from PANOSE data
-  - Accurate ascent, descent, bounding box from head/hhea tables
-- ✓ **Character width scaling** from font units to PDF's 1000-unit em square
-- ✓ **WinAnsiEncoding** support for character mapping
-- ✓ **Integration with HpdfPage API** via AsFont() wrapper method
-
-### 2. TrueType Table Parsing Extensions ✓
-
-**post Table (PostScript Information):**
-- Font name and version
-- ItalicAngle in Fixed 16.16 format
-- UnderlinePosition and UnderlineThickness
-- IsFixedPitch flag
-- Glyph names (for version 2.0)
-
-**loca Table (Glyph Location Index):**
-- Handles both short (offset/2) and long (uint32) formats
-- Maps glyph IDs to byte offsets in glyf table
-- Required for glyph data extraction
-
-**glyf Table (Glyph Outline Data):**
-- Reads glyph headers and raw data
-- Detects composite glyphs
-- Tracks component glyphs for subsetting
-- Parses flags for MORE_COMPONENTS bit
-
-### 3. Font Subsetting Infrastructure ✓
-
-Created `TrueTypeSubsetter.cs` with infrastructure for font subsetting:
-
-**Key Methods:**
-- `CreateSubset()` - Main entry point for subsetting (currently returns full font)
-- `ExpandCompositeGlyphs()` - Recursively includes component glyphs
-- `GenerateSubsetTag()` - Creates 6-letter subset prefix (e.g., "AAAAAA+")
-
-**Future Enhancement:**
-The subsetting infrastructure is ready for the full algorithm. Currently returns the complete font, but the framework is in place to implement:
-- Glyph dependency tracking
-- Table reconstruction (glyf, loca, hmtx, cmap)
-- Checksum recalculation
-- Optimal subset generation
-
-### 4. ToUnicode CMap Generation ✓
-
-Created `ToUnicodeCMap.cs` for Unicode text mapping:
-
-**Features:**
-- Complete WinAnsi (Windows-1252) encoding support
-- All 224 character mappings (32-255)
-- Efficient range-based encoding (beginbfrange)
-- Proper CMap format with headers and footers
-- Required for PDF text extraction and search functionality
-
-**CMap Structure:**
-```
-/CIDInit /ProcSet findresource begin
-12 dict begin
-begincmap
-/CMapName /Custom def
-/CMapType 2 def
-1 begincodespacerange
-<00> <FF>
-endcodespacerange
-[ranges with character mappings]
-endcmap
-```
-
-### 5. Critical Fix - Character Width Scaling ✓
+Implemented full support for single-byte code pages (CP1251-Cyrillic, CP1253-Greek, CP1254-Turkish, etc.) to enable international text rendering.
 
 **Problem Identified:**
-The PDF was showing text with irregular, excessive spacing between letters. Investigation revealed the Widths array contained raw font units instead of PDF-standard values.
+- Initial ToUnicode CMap implementation enabled text extraction but not proper rendering
+- PDF readers didn't know which glyphs to use for each byte value
+- Text displayed as garbled characters (wrong glyphs for Cyrillic, Greek, etc.)
 
 **Root Cause:**
-- TrueType fonts use variable UnitsPerEm (Roboto uses 2048)
-- PDF specification requires widths in 1000-unit em square
-- Without scaling, characters appeared ~2x wider than intended
+For simple TrueType fonts, two pieces are needed:
+1. **Encoding dictionary** - tells the PDF reader which glyph to render for each byte (required for display)
+2. **ToUnicode CMap** - tells the reader which Unicode character each byte represents (for copy/search)
 
-**Solution Applied:**
-Modified `CreateFontDictionary()` in `HpdfTrueTypeFont.cs` (line 398):
+We had #2 but not #1.
+
+**Solution Implemented:**
+
+Created custom **Encoding dictionary with Differences array** that maps byte codes to Unicode glyphs:
 
 ```csharp
-// Before (BROKEN):
-int width = GetGlyphWidth(glyphId);
-widths.Add(new HpdfNumber(width));
+// HpdfTrueTypeFont.cs - CreateEncodingDictionary()
+var encodingDict = new HpdfDict();
+encodingDict.Add("Type", new HpdfName("Encoding"));
+encodingDict.Add("BaseEncoding", new HpdfName("WinAnsiEncoding"));
 
-// After (FIXED):
-int width = GetGlyphWidth(glyphId);
-int scaledWidth = (int)Math.Round(width * 1000.0 / _head.UnitsPerEm);
-widths.Add(new HpdfNumber(scaledWidth));
+// Build Differences array mapping byte codes to glyph names
+// Format: [128 /uni0402 /uni0403 ... 255 /uni044F]
+var differences = new HpdfArray();
+for (int i = firstChar; i <= lastChar; i++)
+{
+    byte[] byteArray = new byte[] { (byte)i };
+    string str = encoding.GetString(byteArray);
+    ushort unicode = (str.Length > 0) ? (ushort)str[0] : (ushort)0;
+
+    // Map to glyph name in uni[XXXX] format
+    string glyphName = $"uni{unicode:X4}";
+    // Add to differences array...
+}
 ```
 
-**Verification:**
-- Roboto 'H' width: 1456 units → 713 units (scaled)
-- Average width: 540.2 units (correct for 1000-unit scale)
-- All 59 character widths in reasonable range (100-1500)
-- Text now displays with perfect proportional spacing ✓
+**How It Works:**
+- For CP1251 (Cyrillic): byte 0xE0 → glyph `/uni0430` (Cyrillic 'а')
+- For CP1253 (Greek): byte 0xC1 → glyph `/uni0391` (Greek 'Α')
+- For CP1254 (Turkish): byte 0xF0 → glyph `/uni011F` (Turkish 'ğ')
 
-### 6. Demonstration Test Suite ✓
+The Encoding dictionary tells the PDF reader which glyph to render, while the ToUnicode CMap enables text extraction/search.
 
-Created comprehensive test in `tests/test_ttf/`:
-
-**Test Structure:**
-- Downloads Roboto-Regular.ttf from Google Fonts (503 KB)
-- Creates TWO PDFs for comparison:
-  1. `output_standard_font.pdf` - Helvetica (1 KB)
-  2. `output_roboto_test.pdf` - Embedded Roboto TrueType (258 KB)
-- Demonstrates pangram: "The quick brown fox jumps over the lazy dog"
-- Verifies font embedding, ToUnicode CMap, and proper text display
-
-**Test Files Created:**
-- `Program.cs` - Main test program
-- `test_ttf.csproj` - Project configuration
-- `README.md` - Documentation and usage
-- `run_test.sh` - Convenience script
-
-**Test Output:**
-```
-=== TrueType Font Embedding Test ===
-
-✓ Font file found: Roboto-Regular.ttf
-  Size: 503 KB
-
---- Test 1: Standard Font (Helvetica) ---
-✓ Standard font PDF saved: output_standard_font.pdf
-  File size: 1 KB
-
---- Test 2: TrueType Font (Roboto) ---
-✓ PDF document created
-✓ Page added (A4 Portrait)
-✓ TrueType font loaded and embedded
-  Font name: CustomTTFont
-  Local name: Roboto
-  Font embedded: True
-  ToUnicode CMap: True
-  Italic angle: 0
-  Flags: 34
-
-✓ Text written to page
-✓ PDF saved: output_roboto_test.pdf
-  File size: 258 KB
-
-=== TEST PASSED ===
-```
-
-### 7. Integration with HpdfPage API ✓
+### 2. Widths Array Fix for Code Pages ✓
 
 **Problem:**
-TrueType fonts couldn't be used with HpdfPage.SetFontAndSize() directly.
+Widths array was calculated incorrectly - using byte values directly as Unicode code points.
+
+**Example Bug:**
+- For CP1251, byte 0xE0 (224) represents Cyrillic 'а' (Unicode U+0430)
+- Code was looking up glyph for Unicode 224 instead of U+0430
+- Wrong glyph widths caused incorrect spacing
 
 **Solution:**
-1. Added internal constructor to `HpdfFont`:
 ```csharp
-internal HpdfFont(HpdfTrueTypeFont ttFont)
+// Convert byte through code page to get correct Unicode
+byte[] byteArray = new byte[] { (byte)i };
+string str = encoding.GetString(byteArray);
+ushort unicode = (str.Length > 0) ? (ushort)str[0] : (ushort)0;
+
+// Now look up glyph for correct Unicode value
+ushort glyphId = GetGlyphId(unicode);
+int width = GetGlyphWidth(glyphId);
+```
+
+### 3. InternationalDemo Created ✓
+
+Created comprehensive **InternationalDemo.cs** showcasing multi-language support with special characters:
+
+**Page 1: "Hello" in 7 Languages**
+- **English**: "Hello"
+- **French**: "Salut! Ça va?" *(é, à, ç)*
+- **German**: "Grüße! Schön!" *(ü, ö, ä, ß)*
+- **Portuguese**: "Olá! Saudações!" *(á, ã, õ)*
+- **Russian**: "Привет мир!" *(Cyrillic script)*
+- **Greek**: "Γειά σου κόσμε!" *(Greek script)*
+- **Turkish**: "Merhaba dünya!" *(ğ, ı, ş, ç, ö, ü)*
+
+**Page 2: Cyrillic Alphabet Demonstration**
+- Russian pangram: "съешь же ещё этих мягких французских булок, да выпей чаю"
+- Full uppercase alphabet: АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ
+- Full lowercase alphabet: абвгдежзийклмнопрстуфхцчшщъыьэюя
+
+**Code Pages Used:**
+- CP1252 (Western European) - English, French, German, Portuguese
+- CP1251 (Cyrillic) - Russian
+- CP1253 (Greek) - Greek
+- CP1254 (Turkish) - Turkish
+
+**Font Usage Pattern:**
+Demonstrates the **one-code-page-per-font-instance** approach:
+```csharp
+var notoLatin = HpdfTrueTypeFont.LoadFromFile(xref, "NotoLatin", "noto.ttf", true, 1252);
+var notoCyrillic = HpdfTrueTypeFont.LoadFromFile(xref, "NotoCyrillic", "noto.ttf", true, 1251);
+var notoGreek = HpdfTrueTypeFont.LoadFromFile(xref, "NotoGreek", "noto.ttf", true, 1253);
+```
+
+Same physical font file loaded multiple times with different encodings for different languages.
+
+### 4. CJK Limitations Documented ✓
+
+**Issue Identified:**
+Chinese, Japanese, and Korean (CJK) languages failed to render correctly - showed question marks or garbled text.
+
+**Root Cause:**
+- CJK languages use **multi-byte character sets** (DBCS):
+  - CP936 (GBK) for Chinese: 2 bytes per character
+  - CP932 (Shift-JIS) for Japanese: 2 bytes per character
+- Our implementation supports **single-byte encodings only** (256 characters max)
+- Simple TrueType fonts (Subtype: /TrueType) cannot handle multi-byte encodings
+
+**Solution:**
+- Removed CJK from InternationalDemo
+- Added clear documentation about limitation
+- CJK support requires **CID fonts** (Composite fonts) - future enhancement
+
+**Note in Demo:**
+```
+Note: CJK (Chinese, Japanese, Korean) require CID fonts (future feature)
+```
+
+### 5. Code Page Provider Registration ✓
+
+Added support for .NET Core code page registration:
+
+```csharp
+// Register code pages for .NET Core
+try
 {
-    _dict = ttFont.Dict;
-    _baseFont = ttFont.BaseFont;
-    _localName = ttFont.LocalName;
+    System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 }
-```
-
-2. Added `AsFont()` method to `HpdfTrueTypeFont`:
-```csharp
-public HpdfFont AsFont()
+catch
 {
-    return new HpdfFont(this);
+    // Already registered
 }
+
+var encoding = System.Text.Encoding.GetEncoding(_codePage);
 ```
 
-**Usage:**
-```csharp
-var ttFont = HpdfTrueTypeFont.LoadFromFile(doc.Xref, "Roboto", fontPath, embedding: true);
-var font = ttFont.AsFont();  // Get HpdfFont wrapper
+Required for accessing CP1251, CP1253, CP1254, etc. in .NET Core/.NET 5+.
 
-page.BeginText();
-page.SetFontAndSize(font, 12);  // Works seamlessly!
-page.ShowText("Hello World!");
-page.EndText();
-```
+### 6. CyrillicDemo Removed ✓
 
-### 8. Issues Resolved
+**Refactoring:**
+- Removed standalone `CyrillicDemo.cs`
+- Functionality integrated into `InternationalDemo.cs`
+- Better organization - single demo for all international scripts
+- Removed from `Program.cs` demo sequence
 
-#### Issue #1: PDF Showed Empty Page
-**Problem**: Test generated PDF but showed no text
-**Root Cause**: Missing font selection operator (Tf) - ShowText() called without SetFontAndSize()
-**Solution**:
-- Added AsFont() wrapper method
-- Updated test to call SetFontAndSize(font, 12) before ShowText()
-- Verified with `strings output.pdf | grep "Tf"` showing `/Roboto 12 Tf`
-
-#### Issue #2: Irregular Character Spacing
-**Problem**: Letters had excessive and uneven spacing
-**Root Cause**: Widths array used raw font units (2048-scale) instead of PDF standard (1000-scale)
-**Solution**: Scale widths: `scaledWidth = width * 1000.0 / UnitsPerEm`
-**Verification**:
-- Created comparison test with Helvetica vs Roboto
-- Analyzed width values: all in correct range (200-900)
-- Visual inspection confirmed proper spacing
-
-#### Issue #3: Font Download Failed
-**Problem**: Downloaded HTML instead of TTF file
-**Root Cause**: Wrong GitHub URL path
-**Solution**: Changed from `/main/apache/roboto/` to `/main/src/hinted/` in googlefonts/roboto repo
-**Verification**: `file Roboto-Regular.ttf` showed "TrueType Font data"
-
-### 9. Comprehensive Test Coverage ✓
-
-**Unit Tests Created:**
-- 14 new TrueType font tests in `HpdfTrueTypeFontTests.cs`
-- Font loading, embedding, ToUnicode CMap, descriptor, text rendering
-- All tests check for font availability before running
-
-**Integration Test:**
-- Complete end-to-end test in `tests/test_ttf/`
-- Two-document comparison (standard vs TrueType)
-- Verifies embedding, compression, ToUnicode CMap, proper rendering
-
-**Test Results:**
-- ✓ All 14 TrueType font tests passing
-- ✓ Demonstration test successful
-- ✓ Total test count: 653 tests passing (639 existing + 14 new)
-
-### 10. Files Created/Modified
+### 7. Files Created/Modified
 
 **Created:**
-- `/mnt/d/develop/experiments/ai/claude3/cs-src/Haru/Font/TrueType/TrueTypeSubsetter.cs`
-- `/mnt/d/develop/experiments/ai/claude3/cs-src/Haru/Font/TrueType/ToUnicodeCMap.cs`
-- `/mnt/d/develop/experiments/ai/claude3/cs-src/Haru.Test/Font/HpdfTrueTypeFontTests.cs`
-- `/mnt/d/develop/experiments/ai/claude3/tests/test_ttf/Program.cs`
-- `/mnt/d/develop/experiments/ai/claude3/tests/test_ttf/test_ttf.csproj`
-- `/mnt/d/develop/experiments/ai/claude3/tests/test_ttf/README.md`
-- `/mnt/d/develop/experiments/ai/claude3/tests/test_ttf/run_test.sh`
-- `/mnt/d/develop/experiments/ai/claude3/tests/test_ttf/Roboto-Regular.ttf`
+- `/mnt/d/develop/experiments/ai/claude3/tests/basics/BasicDemos/InternationalDemo.cs`
 
 **Modified:**
-- `/mnt/d/develop/experiments/ai/claude3/cs-src/Haru/Font/TrueType/TrueTypeStructures.cs` - Added post, loca, glyf structures
-- `/mnt/d/develop/experiments/ai/claude3/cs-src/Haru/Font/TrueType/TrueTypeParser.cs` - Added table parsing methods
-- `/mnt/d/develop/experiments/ai/claude3/cs-src/Haru/Font/HpdfTrueTypeFont.cs` - Enhanced with embedding, ToUnicode, width scaling
-- `/mnt/d/develop/experiments/ai/claude3/cs-src/Haru/Font/HpdfFont.cs` - Added TrueType wrapper constructor
+- `/mnt/d/develop/experiments/ai/claude3/cs-src/Haru/Font/HpdfTrueTypeFont.cs`
+  - Added `CreateEncodingDictionary()` method
+  - Fixed Widths array calculation with code page conversion
+  - Added code page provider registration
+- `/mnt/d/develop/experiments/ai/claude3/cs-src/Haru/Font/HpdfFont.cs`
+  - Added `EncodingCodePage` property
+- `/mnt/d/develop/experiments/ai/claude3/cs-src/Haru/Streams/HpdfStreamExtensions.cs`
+  - Added `WriteEscapedText(string text, int codePage)` overload
+- `/mnt/d/develop/experiments/ai/claude3/cs-src/Haru/Doc/HpdfPageText.cs`
+  - Updated `ShowText()` to use font's encoding code page
+- `/mnt/d/develop/experiments/ai/claude3/tests/basics/BasicDemos/Program.cs`
+  - Removed CyrillicDemo
 
-### 11. Design Decisions
+**Removed:**
+- `/mnt/d/develop/experiments/ai/claude3/tests/basics/BasicDemos/CyrillicDemo.cs`
 
-**1. Width Scaling Strategy**
-- Always scale from font's native units to 1000-unit em square
-- Use floating-point calculation with rounding for accuracy
-- Applies to all TrueType fonts regardless of UnitsPerEm value
-- Ensures consistent spacing across different font formats
+### 8. Design Decisions
 
-**2. ToUnicode CMap Format**
-- Use range-based encoding (beginbfrange) for efficiency
-- Group consecutive mappings to minimize CMap size
-- Include all WinAnsi characters (32-255)
-- Follow PDF specification for CMap structure
+**1. Single-Byte Encoding Strategy**
+- Focus on single-byte code pages (CP1251-1258) for now
+- Simple TrueType fonts with Encoding dictionaries
+- Multi-byte (CJK) deferred to CID font implementation
+- Clear documentation of limitations
 
-**3. Font Subsetting Approach**
-- Infrastructure-first design for future enhancement
-- Return full font initially (simpler, works correctly)
-- Framework ready for subset algorithm when needed
-- Composite glyph tracking already implemented
+**2. One Code Page Per Font Instance**
+- Each font instance tied to one code page
+- Load same font file multiple times for different languages
+- Consistent with original Haru library design
+- Works for both Type 1 and TrueType fonts
 
-**4. Font Embedding Method**
-- Embed in FontFile2 stream (TrueType format)
-- Apply FlateDecode compression (reduces size ~50%)
-- Include complete font data for maximum compatibility
-- Store embedding flag for future optimization
+**3. Encoding Dictionary Structure**
+- BaseEncoding: WinAnsiEncoding (for ASCII compatibility)
+- Differences array only for non-ASCII characters (128-255)
+- Glyph names in uni[XXXX] format (standard PDF convention)
+- Optimized by skipping ASCII range (same across most code pages)
 
-**5. Font Descriptor Calculation**
-- Read metrics directly from font tables (most accurate)
-- Use PANOSE data for font flags (Serif, Script, etc.)
-- Calculate StemV from OS/2 weight class
-- Extract ItalicAngle from post table (Fixed 16.16 format)
+**4. Why CID Fonts Are Needed for CJK**
 
-**6. Integration Pattern**
-- HpdfTrueTypeFont handles all TrueType-specific logic
-- HpdfFont provides unified interface for page operations
-- AsFont() wrapper method bridges the two
-- No changes required to HpdfPage API
+| Font Type | Encoding | Character Count | Use Case |
+|-----------|----------|----------------|----------|
+| Simple TrueType | Single-byte (CP1251-1258) | 256 max | Western, Cyrillic, Greek, Turkish |
+| CID Fonts | Multi-byte (CP936, CP932) | Thousands | Chinese, Japanese, Korean |
+
+### 9. Test Results
+
+**Build Status:**
+- ✅ All demos build successfully
+- ✅ InternationalDemo runs without errors
+- ✅ PDF generated: `InternationalDemo.pdf` (1.2 MB)
+
+**Visual Verification:**
+- ✅ Cyrillic text renders correctly
+- ✅ Greek text renders correctly
+- ✅ Turkish special characters render correctly
+- ✅ Latin characters with accents/umlauts render correctly
+- ✅ Text can be selected and copied (ToUnicode CMap working)
 
 ## Technical Details
 
-### TrueType Font Embedding Architecture
+### Font Encoding Architecture
 
 ```
-Loading Phase:
-1. User calls HpdfTrueTypeFont.LoadFromFile(xref, name, path, embedding: true)
-2. Parser reads and validates TrueType file format
-3. Parse required tables: head, maxp, hhea, hmtx, cmap, OS/2, name, post
-4. Parse optional tables for embedding: loca, glyf
-5. Build character to glyph mapping (cmap format 4)
-6. Extract all font metrics (ascent, descent, widths, etc.)
+For Simple TrueType Fonts with Code Pages:
 
-Dictionary Creation Phase:
-1. Create font dictionary with Type: Font, Subtype: TrueType
-2. Add BaseFont with custom name
-3. Create Widths array with SCALED values (font units → 1000-unit scale)
-4. Calculate FirstChar and LastChar (typically 32-255 for WinAnsi)
-5. Set Encoding to WinAnsiEncoding
+1. Font Loading:
+   - Load TrueType font with code page (e.g., 1251 for Cyrillic)
+   - Parse all font tables (head, maxp, hhea, hmtx, cmap, etc.)
+   - Build Unicode → glyph ID mapping from cmap
 
-Font Descriptor Phase:
-1. Calculate font flags from PANOSE data
-2. Extract accurate metrics from head/hhea/OS/2 tables
-3. Read ItalicAngle from post table (Fixed 16.16)
-4. Calculate StemV from weight class
-5. Add FontFile2 reference for embedded data
+2. Create Encoding Dictionary:
+   - BaseEncoding: /WinAnsiEncoding (for ASCII)
+   - Differences array: Maps byte codes to glyph names
+   - Example: [128 /uni0402 /uni0403 ... 255 /uni044F]
+   - Only includes non-ASCII characters (128-255)
 
-Embedding Phase:
-1. Read complete font file data
-2. Compress with FlateDecode
-3. Create stream object with Length1 (original size)
-4. Add to xref table
+3. Build Widths Array:
+   - For each byte position (FirstChar to LastChar):
+     a. Convert byte → Unicode using code page
+     b. Look up glyph ID for that Unicode value
+     c. Get glyph width from hmtx table
+     d. Scale to 1000-unit em square
+   - Critical: Must use code page mapping, not byte value!
 
-ToUnicode Phase:
-1. Generate CMap for character-to-Unicode mapping
-2. Use WinAnsi encoding (Windows-1252)
-3. Create ranges for efficient encoding
-4. Compress CMap stream with FlateDecode
-5. Reference from font dictionary
+4. Create ToUnicode CMap:
+   - Maps byte codes to Unicode for text extraction
+   - Enables copy/paste and search functionality
+   - Compressed with FlateDecode
 
-Usage Phase:
-1. Get HpdfFont wrapper via AsFont()
-2. Pass to page.SetFontAndSize()
-3. Page operations work seamlessly
-4. PDF renderer uses scaled widths for spacing
+5. Text Rendering:
+   - Content stream contains bytes in code page encoding
+   - PDF reader uses Encoding dictionary to find glyphs
+   - Widths array provides correct spacing
+   - ToUnicode CMap enables text extraction
 ```
 
-### Font Units vs PDF Units
+### Code Page Mappings
 
-| Font | UnitsPerEm | Example Width (H) | Scaled to 1000 |
-|------|------------|-------------------|----------------|
-| Roboto | 2048 | 1456 | 711 |
-| Arial | 2048 | 1479 | 722 |
-| Times New Roman | 2048 | 1479 | 722 |
-| Calibri | 2048 | 1323 | 646 |
+**CP1251 (Cyrillic):**
+- 0x80-0xFF: Cyrillic characters
+- 0xE0 → U+0430 (Cyrillic Small Letter A)
+- 0xF0 → U+0440 (Cyrillic Small Letter Er)
 
-**Formula:** `pdfWidth = fontWidth * 1000 / UnitsPerEm`
+**CP1253 (Greek):**
+- 0x80-0xFF: Greek characters
+- 0xC1 → U+0391 (Greek Capital Letter Alpha)
+- 0xE1 → U+03B1 (Greek Small Letter Alpha)
+
+**CP1254 (Turkish):**
+- Based on Latin-1 with Turkish characters
+- 0xD0 → U+011E (Latin Capital Letter G with Breve)
+- 0xF0 → U+011F (Latin Small Letter G with Breve)
 
 ## Usage Example
 
@@ -365,85 +286,51 @@ using Haru.Doc;
 using Haru.Font;
 
 // Create document
-var doc = new HpdfDocument();
-doc.Info.Title = "TrueType Font Test";
-doc.Info.Author = "Haru PDF Library";
+var pdf = new HpdfDocument();
 
-// Add page
-var page = doc.AddPage(HpdfPageSize.A4, HpdfPageDirection.Portrait);
+// Load fonts with different code pages
+var cyrillicFont = HpdfTrueTypeFont.LoadFromFile(
+    pdf.Xref,
+    "CyrillicFont",
+    "Roboto-Regular.ttf",
+    embedding: true,
+    codePage: 1251  // CP1251 - Cyrillic
+);
 
-// Load and embed TrueType font
-var ttFont = HpdfTrueTypeFont.LoadFromFile(
-    doc.Xref,
-    "Roboto",
-    "/path/to/Roboto-Regular.ttf",
-    embedding: true);
+var greekFont = HpdfTrueTypeFont.LoadFromFile(
+    pdf.Xref,
+    "GreekFont",
+    "Roboto-Regular.ttf",
+    embedding: true,
+    codePage: 1253  // CP1253 - Greek
+);
 
-// Get font wrapper for page operations
-var font = ttFont.AsFont();
+// Add page and render text
+var page = pdf.AddPage();
 
-// Use font in page
 page.BeginText();
-page.SetFontAndSize(font, 12);
 page.MoveTextPos(50, 750);
-page.ShowText("The quick brown fox jumps over the lazy dog");
+
+// Russian text
+page.SetFontAndSize(cyrillicFont.AsFont(), 16);
+page.ShowText("Привет мир!");  // "Hello world!"
+
+page.MoveTextPos(0, -30);
+
+// Greek text
+page.SetFontAndSize(greekFont.AsFont(), 16);
+page.ShowText("Γειά σου κόσμε!");  // "Hello world!"
+
 page.EndText();
 
-// Save document
-doc.SaveToFile("output.pdf");
-```
-
-**Result:**
-- PDF with embedded Roboto font
-- Text rendered with correct spacing
-- ToUnicode CMap enables text extraction
-- Works on any system (font embedded)
-
-## Verification
-
-**Test Results:**
-- ✅ All 14 TrueType font tests passing
-- ✅ Demonstration test successful
-- ✅ Width scaling verified (all values in correct range)
-- ✅ Total test count: 653 tests passing
-
-**PDF Verification:**
-- ✅ output_standard_font.pdf displays correctly
-- ✅ output_roboto_test.pdf displays with Roboto font
-- ✅ Text spacing is correct and proportional
-- ✅ Text can be selected and copied (ToUnicode CMap working)
-- ✅ Font is embedded (works without font installed)
-- ✅ File size reasonable (258 KB with compression)
-
-**Manual Verification:**
-```bash
-# Check widths array
-strings output_roboto_test.pdf | grep -A 2 "Widths"
-# Shows: [248 257 320 ... 473] - all in correct range
-
-# Check font embedding
-strings output_roboto_test.pdf | grep "FontFile2"
-# Shows: /FontFile2 reference present
-
-# Check ToUnicode
-strings output_roboto_test.pdf | grep "ToUnicode"
-# Shows: /ToUnicode reference present
-
-# Check text rendering
-strings output_roboto_test.pdf | grep "quick brown fox"
-# Shows: Text present in content stream
+pdf.SaveToFile("multilingual.pdf");
 ```
 
 ## Previous Session Summary
 
 Previously completed in this session:
+- ✓ TrueType Font Embedding (font loading, ToUnicode CMap, width scaling)
 - ✓ PDF Encryption & Security (RC4 40/128-bit, AES-128)
-- ✓ 40 encryption tests passing
-- ✓ Document ID generation
-- ✓ Permission flags and passwords
-
-Previous sessions:
-- ✓ Levels 1-11: Core PDF infrastructure, graphics, text, images
 - ✓ Document Information Dictionary
 - ✓ Annotations (Links and Text)
 - ✓ Outlines/Bookmarks
@@ -454,116 +341,56 @@ Previous sessions:
 ### ✅ COMPLETED Features
 
 1. **Core Infrastructure** (100%)
-   - Basic types, error handling, streams
-   - PDF objects (primitives, arrays, dicts, streams)
-   - Cross-reference system and document structure
-
 2. **Graphics & Layout** (100%)
-   - Graphics operations (paths, colors, transforms, clipping, shapes)
-   - Extended graphics state (transparency, blend modes)
-   - Advanced path operations (Bezier curves, arcs, circles, ellipses)
-
 3. **Text Rendering** (100%)
-   - Standard 14 fonts (complete)
-   - **TrueType font embedding (complete)** ✓ NEW!
-   - Text operations and positioning
-
+   - Standard 14 fonts
+   - **TrueType font embedding with code page support** ✓
 4. **Images** (100%)
-   - PNG support (all color types + transparency via SMask)
-   - JPEG support (RGB, Grayscale, CMYK)
-   - Image drawing with transformations
-
 5. **Document Features** (100%)
-   - Document Information Dictionary (metadata)
-   - Annotations (Link and Text annotations)
-   - Outlines/Bookmarks (hierarchical navigation)
-   - PDF/A-1b compliance (XMP, Output Intent, Document ID)
-   - Encryption & Security (RC4 40/128-bit, AES-128)
+   - Metadata, Annotations, Outlines, PDF/A, Encryption
 
 ### 📊 Overall Progress: ~80% Complete
 
 **Implemented:**
-- ✓ Levels 1-11: Complete core functionality
-- ✓ **Level 12: TrueType fonts (100% complete!)** ✓ NEW!
+- ✓ Levels 1-12: Complete core functionality
 - ✓ Document Info, Annotations, Outlines
 - ✓ PDF/A-1b Phase 1
 - ✓ Encryption & Security
+- ✓ **TrueType fonts with multi-language support** ✓ NEW!
 
-### 🎯 Remaining Features
+### 🎯 Next Steps
 
-**1. Type 1 Font Support** (2-3 days)
-- AFM/PFB parser
-- Type 1 font embedding
-- Encoding support
+**Priority Order:**
+1. **Type 1 Font Support** (2-3 days)
+   - Code page support for Type 1 fonts (same approach as TrueType)
+   - AFM/PFB parser
+   - Type 1 font embedding
+   - Apply same Encoding dictionary approach
 
-**2. Character Encoders** (2-3 days)
-- WinAnsiEncoding
-- MacRomanEncoding
-- UTF-8/UTF-16 encoders
+2. **CID Fonts for CJK Support** (5-7 days)
+   - Type 0 (Composite) fonts
+   - CMap files for character mapping
+   - Chinese (GB2312, GBK), Japanese (Shift-JIS), Korean support
+   - Multi-byte character handling
+   - Vertical writing mode
 
-**3. Additional Features** (As Needed)
-- CJK/CID fonts (if Asian language support needed)
-- CCITT fax images (if specialized formats needed)
-- Page labels and advanced page features
-
-## What You Can Build NOW
-
-With ~80% completion, the library supports:
-
-✅ **Custom Typography**
-- Embedded TrueType fonts (NEW!)
-- Custom fonts from any .ttf file (NEW!)
-- Professional typography (NEW!)
-- Standard 14 PDF fonts
-
-✅ **Secure Documents**
-- Password-protected PDFs
-- Permission-controlled access
-- RC4 and AES encryption
-- Document metadata
-- PDF/A archival compliance
-
-✅ **Business Documents**
-- Professional reports with custom branding
-- Invoices and receipts with company fonts
-- Forms and applications
-- Certificates and badges
-
-✅ **Interactive PDFs**
-- Clickable web links
-- Internal page navigation
-- Sticky notes and comments
-- Hierarchical bookmarks
-
-✅ **Rich Content**
-- Text with custom fonts
-- Images with transparency
-- Vector graphics and shapes
-- Color and transparency effects
-
-## Next Steps
-
-**Recommended Order:**
-1. ✅ **TrueType Font Embedding** (COMPLETE!)
-2. Type 1 font support (2-3 days)
-3. Character encoders (2-3 days)
-4. Additional features as needed
+3. **Additional Features** (As Needed)
+   - Character encoders (if more encoding flexibility needed)
+   - CCITT fax images
+   - Page labels
 
 **Estimated to 100% completion**: ~15-20 days remaining
 
 ## Summary
 
-Successfully completed TrueType font embedding with:
-- Font parsing for all required tables (head, maxp, hhea, hmtx, cmap, OS/2, name, post, loca, glyf)
-- Font subsetting infrastructure ready for future optimization
-- ToUnicode CMap generation for text extraction
-- Accurate font descriptor with calculated metrics
-- **Critical width scaling fix** for proper character spacing
-- Font embedding with FlateDecode compression
-- Complete integration with HpdfPage API
-- Comprehensive test coverage (14 tests, all passing)
-- Full demonstration test with Roboto font
+Successfully implemented **code page support for TrueType fonts** enabling:
+- Multi-language PDF generation (Cyrillic, Greek, Turkish, Western European)
+- Custom Encoding dictionaries with Differences arrays
+- Correct glyph mapping for non-ASCII characters
+- Proper character width calculation through code page conversion
+- Comprehensive InternationalDemo showcasing 7 languages
+- Clear documentation of CJK limitations (requires CID fonts)
 
-**Phase 1 is now 100% COMPLETE!** 🎉
+**The library now supports professional multi-language typography** for all single-byte encoded scripts! 🌍✅
 
-The library is now **production-ready for custom typography** with TrueType font embedding! 📝✅
+For CJK languages (Chinese, Japanese, Korean), CID font implementation is the next step.

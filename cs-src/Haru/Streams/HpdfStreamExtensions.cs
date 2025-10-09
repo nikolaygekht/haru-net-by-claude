@@ -115,7 +115,8 @@ namespace Haru.Streams
         }
 
         /// <summary>
-        /// Writes an escaped PDF text string to the stream (enclosed in parentheses)
+        /// Writes an escaped PDF text string to the stream (enclosed in parentheses).
+        /// Uses PDFDocEncoding for ASCII text.
         /// </summary>
         public static void WriteEscapedText(this HpdfStream stream, string text)
         {
@@ -126,6 +127,7 @@ namespace Haru.Streams
 
             stream.WriteByte((byte)'(');
 
+            // ASCII text - use PDFDocEncoding (which is compatible with ASCII)
             foreach (char c in text)
             {
                 // Escape special characters in PDF strings
@@ -155,6 +157,59 @@ namespace Haru.Streams
                 else
                 {
                     stream.WriteByte((byte)c);
+                }
+            }
+
+            stream.WriteByte((byte)')');
+        }
+
+        /// <summary>
+        /// Writes an escaped PDF text string using a specific encoding code page.
+        /// </summary>
+        public static void WriteEscapedText(this HpdfStream stream, string text, int codePage)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+            if (text == null)
+                throw new ArgumentNullException(nameof(text));
+
+            // Convert text to bytes using the specified code page
+            Encoding encoding;
+            try
+            {
+                encoding = Encoding.GetEncoding(codePage);
+            }
+            catch
+            {
+                // Fallback to Latin-1 if code page not available
+                encoding = Encoding.GetEncoding(28591); // ISO-8859-1
+            }
+
+            byte[] bytes = encoding.GetBytes(text);
+
+            stream.WriteByte((byte)'(');
+
+            foreach (byte b in bytes)
+            {
+                // Escape special characters in PDF strings
+                if (b == (byte)'(' || b == (byte)')' || b == (byte)'\\')
+                {
+                    stream.WriteByte((byte)'\\');
+                    stream.WriteByte(b);
+                }
+                else if (b == (byte)'\r')
+                {
+                    stream.WriteByte((byte)'\\');
+                    stream.WriteByte((byte)'r');
+                }
+                else if (b == (byte)'\n')
+                {
+                    stream.WriteByte((byte)'\\');
+                    stream.WriteByte((byte)'n');
+                }
+                else
+                {
+                    stream.WriteByte(b);
                 }
             }
 

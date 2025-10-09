@@ -36,6 +36,10 @@ namespace BasicDemos
             EncryptedDemo.Run();
             Console.WriteLine("EncryptedDemo completed.\n");
 
+            Console.WriteLine("Running InternationalDemo...");
+            InternationalDemo.Run();
+            Console.WriteLine("InternationalDemo completed.\n");
+
             Console.WriteLine("All demos completed successfully!");
             Console.WriteLine("PDF files have been generated in the current directory.");
         }

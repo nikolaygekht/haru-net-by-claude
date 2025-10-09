@@ -180,49 +180,84 @@ All previously partially implemented features have been completed!
 
 ## ⚠ NOT YET IMPLEMENTED
 
-### 1. Type 1 Font Support (0% complete)
-**Priority**: Medium
+### 1. Type 1 Font Support with Code Pages (0% complete)
+**Priority**: High (Next Feature)
 **Complexity**: Medium
 **Estimated Effort**: 2-3 days
 
 **Required Components**:
 - [ ] AFM (Adobe Font Metrics) parser
-- [ ] PFB (Printer Font Binary) parser
+- [ ] PFB (Printer Font Binary) parser (optional for embedding)
 - [ ] Type 1 font embedding
-- [ ] Character width extraction
+- [ ] Character width extraction from AFM
+- [ ] **Code page support (CP1251, CP1253, etc.) - same as TrueType**
+- [ ] **Custom Encoding dictionary with Differences array**
+- [ ] **ToUnicode CMap generation for text extraction**
 - [ ] Encoding support (StandardEncoding, WinAnsiEncoding, etc.)
+
+**Implementation Strategy**:
+Apply the same code page approach as TrueType fonts:
+1. Load Type 1 font with code page parameter
+2. Parse AFM for metrics and glyph names
+3. Create Encoding dictionary with Differences array
+4. Generate ToUnicode CMap
+5. Support same single-byte encodings (CP1251-1258)
 
 **Files to Create**:
 - `cs-src/Haru/Font/HpdfType1Font.cs`
 - `cs-src/Haru/Font/Type1/AfmParser.cs`
-- `cs-src/Haru/Font/Type1/PfbParser.cs`
+- `cs-src/Haru/Font/Type1/PfbParser.cs` (optional)
+
+**Files to Update**:
+- `cs-src/Haru/Font/HpdfFont.cs` - Add code page support constructor
 
 **C Source References**:
 - `c-src/hpdf_fontdef_type1.c` (800+ lines)
 - `c-src/hpdf_font_type1.c` (600+ lines)
 
+**Design Consistency**:
+- One code page per font instance (same as TrueType)
+- Same Encoding dictionary structure
+- Same ToUnicode CMap generation
+- Works for both Type 1 and TrueType fonts
+
 ---
 
 ### 2. CID Fonts (CJK Support) (0% complete)
-**Priority**: Low-Medium
+**Priority**: Medium (Required for Chinese, Japanese, Korean)
 **Complexity**: High
 **Estimated Effort**: 5-7 days
 
+**Why CID Fonts Are Needed**:
+- CJK languages have thousands of characters (can't fit in 256-byte encoding)
+- Require multi-byte character sets (DBCS):
+  - CP936 (GBK) for Simplified Chinese - 2 bytes per character
+  - CP932 (Shift-JIS) for Japanese - 2 bytes per character
+  - CP949 (EUC-KR) for Korean - 2 bytes per character
+- Simple TrueType fonts (Subtype: /TrueType) only support single-byte encodings
+- **CID fonts (Type 0 Composite fonts)** support multi-byte encodings
+
+**Current Limitation**:
+- InternationalDemo shows: "Note: CJK requires CID fonts (future feature)"
+- Chinese "你好" displays as "????"
+- Japanese "こんにちは" displays as garbled characters
+
 **Required Components**:
-- [ ] CID font architecture
-- [ ] CMap files for character mapping
-- [ ] Chinese (CNS, CNT) font support
-- [ ] Japanese font support
-- [ ] Korean font support
-- [ ] Vertical writing mode
-- [ ] Type 0 (composite) fonts
+- [ ] Type 0 (Composite) font support
+- [ ] CID font architecture (CIDFont dictionary)
+- [ ] CMap files for multi-byte character mapping
+- [ ] Chinese (GB2312, GBK) font support
+- [ ] Japanese (Shift-JIS, Unicode) font support
+- [ ] Korean (EUC-KR) font support
+- [ ] Vertical writing mode (for Japanese/Chinese)
+- [ ] CID-keyed font embedding with TrueType
 
 **Files to Create**:
-- `cs-src/Haru/Font/HpdfCIDFont.cs`
-- `cs-src/Haru/Font/CID/CMapParser.cs`
-- `cs-src/Haru/Font/CID/ChineseFont.cs`
-- `cs-src/Haru/Font/CID/JapaneseFont.cs`
-- `cs-src/Haru/Font/CID/KoreanFont.cs`
+- `cs-src/Haru/Font/HpdfCIDFont.cs` - Type 0 composite font
+- `cs-src/Haru/Font/CID/CMapParser.cs` - Multi-byte character mapping
+- `cs-src/Haru/Font/CID/ChineseFont.cs` - GB2312/GBK support
+- `cs-src/Haru/Font/CID/JapaneseFont.cs` - Shift-JIS support
+- `cs-src/Haru/Font/CID/KoreanFont.cs` - EUC-KR support
 
 **C Source References**:
 - `c-src/hpdf_fontdef_cid.c` (400+ lines)
@@ -231,6 +266,21 @@ All previously partially implemented features have been completed!
 - `c-src/hpdf_fontdef_jp.c` (7000+ lines - character data)
 - `c-src/hpdf_fontdef_kr.c` (4000+ lines - character data)
 - `c-src/hpdf_font_cid.c` (1000+ lines)
+
+**PDF Structure for CID Fonts**:
+```
+Type 0 Font (Composite)
+├── Type: /Font
+├── Subtype: /Type0
+├── BaseFont: /FontName
+├── Encoding: /UnicodeCMap (or predefined CMap)
+└── DescendantFonts: [CIDFont dictionary]
+    ├── Type: /Font
+    ├── Subtype: /CIDFontType2 (TrueType-based)
+    ├── CIDSystemInfo: << /Registry /Ordering /Supplement >>
+    ├── FontDescriptor: (with FontFile2 for TrueType)
+    └── W: [CID width array]
+```
 
 ---
 
@@ -449,22 +499,31 @@ All previously partially implemented features have been completed!
 
 **Phase 1 Status**: 6 of 6 complete! 🎉 **PHASE 1 COMPLETE!**
 
-### Phase 2: Extended Font Support (Medium Priority)
-7. **Type 1 Fonts** (2-3 days)
-   - AFM parsing
-   - Basic embedding
+### Phase 2: Extended Font Support (Medium-High Priority)
+7. **Type 1 Fonts with Code Pages** (2-3 days) - **NEXT PRIORITY**
+   - AFM parsing for metrics
+   - Code page support (CP1251, CP1253, CP1254, etc.)
+   - Custom Encoding dictionary with Differences array (same as TrueType)
+   - ToUnicode CMap generation
+   - PFB parsing for embedding (optional)
+   - Design consistency with TrueType implementation
 
-8. **Encoders** (2-3 days)
-   - WinAnsi, MacRoman
-   - UTF-8/UTF-16
+8. **CID/CJK Fonts** (5-7 days) - **HIGH PRIORITY FOR INTERNATIONAL**
+   - Type 0 (Composite) font support
+   - Multi-byte character encoding (CP936, CP932, CP949)
+   - Chinese, Japanese, Korean language support
+   - CMap files for character mapping
+   - Enables InternationalDemo to support all major languages
 
-9. **PDF/A Phase 2** (2-3 days)
-   - Font embedding enforcement
-   - Completes TrueType work from Phase 1
+9. **Encoders** (2-3 days) - **OPTIONAL**
+   - May not be needed if Type 1 and CID fonts use same approach
+   - WinAnsi, MacRoman (already supported via code pages)
+   - UTF-8/UTF-16 (for future enhancements)
 
 ### Phase 3: Advanced Features (Lower Priority)
-10. **CID/CJK Fonts** (5-7 days)
-    - If international support needed
+10. **PDF/A Phase 2** (2-3 days)
+    - Font embedding enforcement
+    - Completes TrueType/Type 1 work from Phase 1
 
 11. **Additional Image Formats** (1-2 days)
     - CCITT fax images
