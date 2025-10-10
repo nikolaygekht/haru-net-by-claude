@@ -260,7 +260,10 @@ namespace Haru.Doc
 
         /// <summary>
         /// Shows a text string (Tj operator).
-        /// Text is encoded using the current font's encoding (for TrueType fonts) or PDFDocEncoding (for standard fonts).
+        /// Text is encoded using the current font's encoding:
+        /// - CID fonts (Type 0): Glyph IDs as hex string (for CIDToGIDMap=Identity)
+        /// - TrueType fonts: Code page encoding (literal string)
+        /// - Standard fonts: PDFDocEncoding
         /// </summary>
         /// <param name="page">The page.</param>
         /// <param name="text">The text to show.</param>
@@ -271,8 +274,14 @@ namespace Haru.Doc
 
             var stream = page.Contents.Stream;
 
+            // CID fonts with CIDToGIDMap=Identity require glyph IDs in content stream
+            if (page.CurrentFont?.IsCIDFont == true)
+            {
+                byte[] glyphIds = page.CurrentFont.ConvertTextToGlyphIDs(text);
+                stream.WriteHexString(glyphIds);
+            }
             // Use font's encoding if it has one (TrueType fonts)
-            if (page.CurrentFont?.EncodingCodePage.HasValue == true)
+            else if (page.CurrentFont?.EncodingCodePage.HasValue == true)
             {
                 stream.WriteEscapedText(text, page.CurrentFont.EncodingCodePage.Value);
             }
@@ -288,7 +297,10 @@ namespace Haru.Doc
         /// <summary>
         /// Moves to the next line and shows text (combined operator).
         /// Equivalent to: MoveToNextLine(); ShowText(text);
-        /// Text is encoded using the current font's encoding (for TrueType fonts) or PDFDocEncoding (for standard fonts).
+        /// Text is encoded using the current font's encoding:
+        /// - CID fonts (Type 0): Glyph IDs as hex string (for CIDToGIDMap=Identity)
+        /// - TrueType fonts: Code page encoding (literal string)
+        /// - Standard fonts: PDFDocEncoding
         /// </summary>
         /// <param name="page">The page.</param>
         /// <param name="text">The text to show.</param>
@@ -299,8 +311,14 @@ namespace Haru.Doc
 
             var stream = page.Contents.Stream;
 
+            // CID fonts with CIDToGIDMap=Identity require glyph IDs in content stream
+            if (page.CurrentFont?.IsCIDFont == true)
+            {
+                byte[] glyphIds = page.CurrentFont.ConvertTextToGlyphIDs(text);
+                stream.WriteHexString(glyphIds);
+            }
             // Use font's encoding if it has one (TrueType fonts)
-            if (page.CurrentFont?.EncodingCodePage.HasValue == true)
+            else if (page.CurrentFont?.EncodingCodePage.HasValue == true)
             {
                 stream.WriteEscapedText(text, page.CurrentFont.EncodingCodePage.Value);
             }
@@ -321,7 +339,10 @@ namespace Haru.Doc
 
         /// <summary>
         /// Sets word and character spacing, moves to next line, and shows text (" operator).
-        /// Text is encoded using the current font's encoding (for TrueType fonts) or PDFDocEncoding (for standard fonts).
+        /// Text is encoded using the current font's encoding:
+        /// - CID fonts (Type 0): Glyph IDs as hex string (for CIDToGIDMap=Identity)
+        /// - TrueType fonts: Code page encoding (literal string)
+        /// - Standard fonts: PDFDocEncoding
         /// </summary>
         /// <param name="page">The page.</param>
         /// <param name="wordSpace">Word spacing.</param>
@@ -338,8 +359,14 @@ namespace Haru.Doc
             stream.WriteReal(charSpace);
             stream.WriteChar(' ');
 
+            // CID fonts with CIDToGIDMap=Identity require glyph IDs in content stream
+            if (page.CurrentFont?.IsCIDFont == true)
+            {
+                byte[] glyphIds = page.CurrentFont.ConvertTextToGlyphIDs(text);
+                stream.WriteHexString(glyphIds);
+            }
             // Use font's encoding if it has one (TrueType fonts)
-            if (page.CurrentFont?.EncodingCodePage.HasValue == true)
+            else if (page.CurrentFont?.EncodingCodePage.HasValue == true)
             {
                 stream.WriteEscapedText(text, page.CurrentFont.EncodingCodePage.Value);
             }

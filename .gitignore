@@ -1,6 +1,6 @@
-.claude/
 .vs/
 bin/
 obj/
 samples-src/
 *.pdf
+*.zip

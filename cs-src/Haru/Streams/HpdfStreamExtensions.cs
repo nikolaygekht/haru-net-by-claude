@@ -217,6 +217,44 @@ namespace Haru.Streams
         }
 
         /// <summary>
+        /// Writes text as MBCS hex string for CID fonts with Identity-H encoding.
+        /// Text is encoded using the font's code page (CP932, CP936, CP949, CP950)
+        /// and written as hex string format: <XXXX> where XXXX is the multi-byte value.
+        /// </summary>
+        public static void WriteEscapedTextMBCS(this HpdfStream stream, string text, int codePage)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+            if (text == null)
+                throw new ArgumentNullException(nameof(text));
+
+            // Convert text to MBCS bytes using the code page
+            Encoding encoding;
+            try
+            {
+                encoding = Encoding.GetEncoding(codePage);
+            }
+            catch
+            {
+                // Fallback to UTF-8 if code page not available
+                encoding = Encoding.UTF8;
+            }
+
+            byte[] mbcsBytes = encoding.GetBytes(text);
+
+            // Write as hex string
+            stream.WriteByte((byte)'<');
+
+            foreach (byte b in mbcsBytes)
+            {
+                stream.WriteByte(ToHexDigit((b >> 4) & 0x0F));
+                stream.WriteByte(ToHexDigit(b & 0x0F));
+            }
+
+            stream.WriteByte((byte)'>');
+        }
+
+        /// <summary>
         /// Writes binary data as hexadecimal to the stream (enclosed in angle brackets)
         /// </summary>
         public static void WriteHexString(this HpdfStream stream, byte[] data)

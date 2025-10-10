@@ -14,8 +14,10 @@
  *
  */
 
+using System;
 using Haru.Objects;
 using Haru.Xref;
+using Haru.Font.CID;
 
 namespace Haru.Font
 {
@@ -29,6 +31,7 @@ namespace Haru.Font
         private readonly string _localName;
         private readonly HpdfTrueTypeFont _ttFont;
         private readonly HpdfType1Font _type1Font;
+        private readonly HpdfCIDFont _cidFont;
 
         /// <summary>
         /// Gets the underlying dictionary object for this font.
@@ -46,9 +49,27 @@ namespace Haru.Font
         public string LocalName => _localName;
 
         /// <summary>
-        /// Gets the encoding code page for this font (for TrueType/Type 1 fonts), or null for standard fonts.
+        /// Gets the encoding code page for this font (for TrueType/Type 1/CID fonts), or null for standard fonts.
         /// </summary>
-        public int? EncodingCodePage => _ttFont?.CodePage ?? _type1Font?.CodePage;
+        public int? EncodingCodePage => _ttFont?.CodePage ?? _type1Font?.CodePage ?? _cidFont?.CodePage;
+
+        /// <summary>
+        /// Gets whether this is a CID font (Type 0 composite font with Identity-H encoding).
+        /// CID fonts with CIDToGIDMap=Identity require glyph IDs in the content stream.
+        /// </summary>
+        public bool IsCIDFont => _cidFont != null;
+
+        /// <summary>
+        /// Converts text to glyph IDs for CID fonts.
+        /// For CID fonts with CIDToGIDMap=Identity, text must be converted to glyph IDs.
+        /// </summary>
+        public byte[] ConvertTextToGlyphIDs(string text)
+        {
+            if (_cidFont != null)
+                return _cidFont.ConvertTextToGlyphIDs(text);
+
+            return Array.Empty<byte>();
+        }
 
         /// <summary>
         /// Creates a standard Type 1 font.
@@ -112,6 +133,21 @@ namespace Haru.Font
             _dict = type1Font.Dict;
             _baseFont = type1Font.BaseFont;
             _localName = type1Font.LocalName;
+        }
+
+        /// <summary>
+        /// Creates a font wrapper for a CID font.
+        /// </summary>
+        /// <param name="cidFont">The CID font to wrap.</param>
+        internal HpdfFont(HpdfCIDFont cidFont)
+        {
+            if (cidFont == null)
+                throw new HpdfException(HpdfErrorCode.InvalidParameter, "CID font cannot be null");
+
+            _cidFont = cidFont;
+            _dict = cidFont.Dict;
+            _baseFont = cidFont.BaseFont;
+            _localName = cidFont.LocalName;
         }
 
         /// <summary>
