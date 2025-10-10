@@ -16,6 +16,7 @@ using Haru.Xref;
 using Haru.Types;
 using Haru.Font.TrueType;
 using Haru.Streams;
+using Haru.Doc;
 
 namespace Haru.Font.CID
 {
@@ -40,6 +41,7 @@ namespace Haru.Font.CID
         private TrueTypeHhea _hhea;
         private TrueTypeLongHorMetric[] _hMetrics;
         private TrueTypeNameTable _nameTable;
+        private TrueTypeTable _nameTableRef;  // Reference to name table for extracting strings
         private TrueTypeCmapFormat4 _cmap;
         private TrueTypeOS2 _os2;
         private TrueTypePost _post;
@@ -95,29 +97,39 @@ namespace Haru.Font.CID
         /// Loads a TrueType font as a CID font with specified code page.
         /// Supports CJK code pages: 932 (Japanese), 936 (Chinese Simplified),
         /// 949 (Korean), 950 (Chinese Traditional).
+        /// Automatically upgrades PDF version to 1.4 if needed (required for Adobe Acrobat CID font support).
         /// </summary>
-        /// <param name="xref">The cross-reference table.</param>
+        /// <param name="document">The PDF document.</param>
         /// <param name="localName">Local resource name (e.g., "CJK1").</param>
         /// <param name="filePath">Path to the TTF file.</param>
         /// <param name="codePage">Code page for encoding (e.g., 932 for Japanese).</param>
         /// <returns>The loaded CID font.</returns>
         public static HpdfCIDFont LoadFromTrueTypeFile(
-            HpdfXref xref,
+            HpdfDocument document,
             string localName,
             string filePath,
             int codePage)
         {
+            if (document == null)
+                throw new ArgumentNullException(nameof(document));
+
             if (!File.Exists(filePath))
                 throw new HpdfException(HpdfErrorCode.FileNotFound, $"Font file not found: {filePath}");
 
             // Validate code page
             ValidateCodePage(codePage);
 
+            // CID fonts require PDF 1.4 or later for Adobe Acrobat compatibility
+            if (document.Version < HpdfVersion.Version14)
+            {
+                document.Version = HpdfVersion.Version14;
+            }
+
             byte[] fontData = File.ReadAllBytes(filePath);
 
             using (var stream = new MemoryStream(fontData))
             {
-                return LoadFromStream(xref, localName, stream, fontData, codePage);
+                return LoadFromStream(document.Xref, localName, stream, fontData, codePage);
             }
         }
 
@@ -154,6 +166,7 @@ namespace Haru.Font.CID
             var nameTable = parser.FindTable(font._offsetTable, "name");
             if (nameTable != null)
             {
+                font._nameTableRef = nameTable;  // Store table reference for later string extraction
                 font._nameTable = parser.ParseName(nameTable);
             }
 
@@ -359,11 +372,174 @@ namespace Haru.Font.CID
             }
         }
 
+        /// <summary>
+        /// Extracts the PostScript name from the TrueType font's name table.
+        /// PostScript name is stored as name ID 6.
+        /// </summary>
         private string ExtractFontName()
         {
-            // Use a simple name for Adobe compatibility
-            // Previous implementation with system font names caused "Cannot find or create font" errors
-            return $"CIDFont-{_localName}";
+            if (_nameTable == null || _nameTableRef == null || _nameTable.NameRecords == null)
+            {
+                // Fallback to synthetic name if name table not available
+                return $"CIDFont-{_localName}";
+            }
+
+            // Create parser from font data to read name strings
+            using (var stream = new MemoryStream(_fontData))
+            {
+                var parser = new TrueTypeParser(stream);
+
+                // Priority 1: PostScript name (name ID 6) - Platform 3 (Microsoft), Encoding 1 (Unicode), Language 0x0409 (English US)
+                TrueTypeNameRecord postScriptName = FindNameRecord(_nameTable.NameRecords, 6, 3, 1, 0x0409);
+
+                // Priority 2: PostScript name - Platform 3, any encoding, any language
+                if (postScriptName == null)
+                    postScriptName = FindNameRecord(_nameTable.NameRecords, 6, 3);
+
+                // Priority 3: PostScript name - Platform 1 (Macintosh)
+                if (postScriptName == null)
+                    postScriptName = FindNameRecord(_nameTable.NameRecords, 6, 1);
+
+                // Priority 4: PostScript name - Any platform
+                if (postScriptName == null)
+                    postScriptName = FindNameRecord(_nameTable.NameRecords, 6);
+
+                if (postScriptName != null)
+                {
+                    string name = parser.ReadNameString(_nameTable, _nameTableRef, postScriptName);
+                    if (!string.IsNullOrWhiteSpace(name))
+                    {
+                        // Clean up the name - remove invalid characters for PDF names
+                        // PDF names cannot contain spaces, so some fonts use hyphen instead
+                        return CleanFontName(name);
+                    }
+                }
+
+                // Fallback: Try family name (ID 1) + subfamily name (ID 2)
+                TrueTypeNameRecord familyName = FindNameRecord(_nameTable.NameRecords, 1, 3, 1, 0x0409);
+                if (familyName == null)
+                    familyName = FindNameRecord(_nameTable.NameRecords, 1, 3);
+                if (familyName == null)
+                    familyName = FindNameRecord(_nameTable.NameRecords, 1);
+
+                if (familyName != null)
+                {
+                    string name = parser.ReadNameString(_nameTable, _nameTableRef, familyName);
+                    if (!string.IsNullOrWhiteSpace(name))
+                    {
+                        return CleanFontName(name);
+                    }
+                }
+
+                // Last resort: use synthetic name
+                return $"CIDFont-{_localName}";
+            }
+        }
+
+        /// <summary>
+        /// Finds a name record by name ID, platform ID, encoding ID, and language ID.
+        /// </summary>
+        private TrueTypeNameRecord FindNameRecord(TrueTypeNameRecord[] records, ushort nameId,
+            ushort? platformId = null, ushort? encodingId = null, ushort? languageId = null)
+        {
+            foreach (var record in records)
+            {
+                if (record.NameId == nameId &&
+                    (!platformId.HasValue || record.PlatformId == platformId.Value) &&
+                    (!encodingId.HasValue || record.EncodingId == encodingId.Value) &&
+                    (!languageId.HasValue || record.LanguageId == languageId.Value))
+                {
+                    return record;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Cleans font name for use in PDF.
+        /// Removes or replaces characters that are invalid in PDF names.
+        /// </summary>
+        private string CleanFontName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
+
+            // Remove spaces and invalid characters
+            // PDF names should not contain: space, #, /, (, ), <, >, [, ], {, }, %, null
+            var cleaned = new System.Text.StringBuilder();
+            foreach (char c in name)
+            {
+                if (c > 32 && c < 127 &&  // Printable ASCII
+                    c != '#' && c != '/' && c != '(' && c != ')' &&
+                    c != '<' && c != '>' && c != '[' && c != ']' &&
+                    c != '{' && c != '}' && c != '%' && c != ' ')
+                {
+                    cleaned.Append(c);
+                }
+                else if (c == ' ')
+                {
+                    // Replace spaces with hyphen (common in font names)
+                    cleaned.Append('-');
+                }
+                // Skip other invalid characters
+            }
+
+            string result = cleaned.ToString();
+
+            // Ensure name is not empty
+            return string.IsNullOrWhiteSpace(result) ? $"CIDFont-{_localName}" : result;
+        }
+
+        /// <summary>
+        /// Extracts the font family name from the name table (name ID 1).
+        /// </summary>
+        private string ExtractFontFamily()
+        {
+            if (_nameTable == null || _nameTableRef == null || _nameTable.NameRecords == null)
+                return null;
+
+            using (var stream = new MemoryStream(_fontData))
+            {
+                var parser = new TrueTypeParser(stream);
+
+                // Find family name (name ID 1)
+                TrueTypeNameRecord familyName = FindNameRecord(_nameTable.NameRecords, 1, 3, 1, 0x0409);
+                if (familyName == null)
+                    familyName = FindNameRecord(_nameTable.NameRecords, 1, 3);
+                if (familyName == null)
+                    familyName = FindNameRecord(_nameTable.NameRecords, 1);
+
+                if (familyName != null)
+                {
+                    string name = parser.ReadNameString(_nameTable, _nameTableRef, familyName);
+                    if (!string.IsNullOrWhiteSpace(name))
+                    {
+                        return name.Trim();
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the language tag based on code page.
+        /// </summary>
+        private string GetLanguageTag()
+        {
+            switch (_codePage)
+            {
+                case 932: // Japanese
+                    return "ja";
+                case 936: // Simplified Chinese
+                    return "zh-CN";
+                case 949: // Korean
+                    return "ko";
+                case 950: // Traditional Chinese
+                    return "zh-TW";
+                default:
+                    return null;
+            }
         }
 
         /// <summary>
@@ -420,6 +596,28 @@ namespace Haru.Font.CID
 
             // Link to embedded font file
             _descriptor.Add("FontFile2", _fontFileStream);
+
+            // Adobe compatibility: Add optional but recommended fields
+            // Extract font family name for FontFamily field
+            string fontFamily = ExtractFontFamily();
+            if (!string.IsNullOrEmpty(fontFamily))
+            {
+                _descriptor.Add("FontFamily", new HpdfString(fontFamily));
+            }
+
+            // Add FontStretch (assume Normal for CJK fonts)
+            _descriptor.Add("FontStretch", new HpdfName("Normal"));
+
+            // Add FontWeight from OS/2 table
+            int fontWeight = _os2 != null ? _os2.WeightClass : 400;
+            _descriptor.Add("FontWeight", new HpdfNumber(fontWeight));
+
+            // Add Lang (language tag) based on code page
+            string langTag = GetLanguageTag();
+            if (!string.IsNullOrEmpty(langTag))
+            {
+                _descriptor.Add("Lang", new HpdfName(langTag));
+            }
 
             // Add to xref BEFORE referencing
             _xref.Add(_descriptor);
