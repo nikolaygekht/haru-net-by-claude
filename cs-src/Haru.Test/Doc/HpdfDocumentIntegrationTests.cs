@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Xunit;
 using FluentAssertions;
 using Haru.Doc;
+using HpdfPageMode = Haru.Types.HpdfPageMode;
 
 namespace Haru.Test.Doc
 {

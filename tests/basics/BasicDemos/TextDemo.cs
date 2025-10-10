@@ -1,4 +1,4 @@
-/*
+﻿/*
  * << Haru Free PDF Library >> -- TextDemo.cs
  *
  * Adapted from original C demo to use the new C# Haru library
@@ -292,7 +292,7 @@ namespace BasicDemos
                 page.EndText();
 
                 // Save the document to a file
-                pdf.SaveToFile("TextDemo.pdf");
+                pdf.SaveToFile("pdfs/TextDemo.pdf");
 
             }
             catch (Exception e)

@@ -1,4 +1,6 @@
-using System;
+﻿using System;
+using System.IO;
+using System.Reflection;
 
 namespace BasicDemos
 {
@@ -6,6 +8,20 @@ namespace BasicDemos
     {
         static void Main(string[] args)
         {
+            string? exePath = Assembly.GetExecutingAssembly().Location;
+            // Get the directory containing the .exe file
+            if (exePath != null)
+            {
+                string? exeDirectory = Path.GetDirectoryName(exePath);
+                // Set the current working directory to that folder
+                if (exeDirectory != null)
+                    Directory.SetCurrentDirectory(exeDirectory);
+            }
+
+            if (!Directory.Exists("pdfs"))
+                Directory.CreateDirectory("pdfs");
+
+
             Console.WriteLine("Running Haru PDF Library Basic Demos...\n");
 
             Console.WriteLine("Running FontDemo...");
@@ -39,6 +55,10 @@ namespace BasicDemos
             Console.WriteLine("Running InternationalDemo...");
             InternationalDemo.Run();
             Console.WriteLine("InternationalDemo completed.\n");
+
+            Console.WriteLine("Running Type1FontDemo...");
+            Type1FontDemo.Run();
+            Console.WriteLine("Type1FontDemo completed.\n");
 
             Console.WriteLine("All demos completed successfully!");
             Console.WriteLine("PDF files have been generated in the current directory.");

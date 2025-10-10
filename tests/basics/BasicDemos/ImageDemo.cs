@@ -1,4 +1,4 @@
-/*
+﻿/*
  * << Haru Free PDF Library >> -- ImageDemo.cs
  *
  * Adapted from original C demo to use the new C# Haru library
@@ -202,7 +202,7 @@ namespace BasicDemos
                 ShowDescription(page, x, y, "Alpha");
 
                 // Save the document to a file
-                pdf.SaveToFile("ImageDemo.pdf");
+                pdf.SaveToFile("pdfs/ImageDemo.pdf");
 
             }
             catch (Exception e)

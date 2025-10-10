@@ -1,4 +1,4 @@
-/*
+﻿/*
  * << Haru Free PDF Library >> -- EncryptedDemo.cs
  *
  * Demonstrates PDF encryption capabilities with different modes
@@ -245,7 +245,7 @@ namespace BasicDemos
             );
 
             // Save the document
-            pdf.SaveToFile("PermissionSample.pdf");
+            pdf.SaveToFile("pdfs/PermissionSample.pdf");
         }
     }
 }

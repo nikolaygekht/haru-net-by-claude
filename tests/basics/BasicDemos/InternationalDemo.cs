@@ -1,4 +1,4 @@
-/*
+﻿/*
  * << Haru Free PDF Library >> -- InternationalDemo.cs
  *
  * Demonstrates international text rendering using embedded Noto fonts with various code pages
@@ -71,7 +71,7 @@ namespace BasicDemos
                 // Create Page 2: Cyrillic alphabet test
                 CreatePage2_CyrillicAlphabet(pdf, notoLatin, notoCyrillic);
 
-                pdf.SaveToFile("InternationalDemo.pdf");
+                pdf.SaveToFile("pdfs/InternationalDemo.pdf");
 
                 Console.WriteLine("InternationalDemo.pdf created successfully!");
                 Console.WriteLine("Page 1: Greetings in 7 languages with special characters");

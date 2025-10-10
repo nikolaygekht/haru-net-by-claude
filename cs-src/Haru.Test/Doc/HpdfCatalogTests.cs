@@ -3,6 +3,7 @@ using FluentAssertions;
 using Haru.Doc;
 using Haru.Objects;
 using Haru.Xref;
+using HpdfPageMode = Haru.Types.HpdfPageMode;
 
 namespace Haru.Test.Doc
 {

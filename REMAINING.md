@@ -2,9 +2,9 @@
 
 ## Summary Statistics
 - **C Source Files**: 57 implementation files
-- **C# Files Implemented**: 88+ files (including TrueType font embedding)
-- **Completion Estimate**: ~80% of core functionality
-- **Tests Passing**: 653 tests across all components
+- **C# Files Implemented**: 95+ files (including TrueType and Type 1 font support)
+- **Completion Estimate**: ~85% of core functionality
+- **Tests Passing**: 653+ tests across all components
 
 ---
 
@@ -65,7 +65,7 @@
 - ✓ DrawImage operator with transformation
 - ✓ Image resource management
 
-### TrueType Fonts (100% Complete - ✓ NEW!)
+### TrueType Fonts (100% Complete - ✓)
 - ✓ TrueType table structures (head, maxp, hhea, hmtx, cmap, name, OS/2, post, loca, glyf)
 - ✓ TrueType parser (big-endian binary reader)
 - ✓ Font loading from file/stream
@@ -77,8 +77,24 @@
 - ✓ **ToUnicode CMap generation for text extraction**
 - ✓ **Composite glyph tracking**
 - ✓ **Font embedding in PDF with FontFile2 stream**
+- ✓ **Code page support (CP1251-1258)**
+- ✓ **Custom Encoding dictionaries with Differences arrays**
 - ✓ **Integration with HpdfPage API via AsFont() wrapper**
 - ✓ **14 comprehensive tests passing**
+
+### Type 1 (PostScript) Fonts (100% Complete - ✓ NEW!)
+- ✓ AFM (Adobe Font Metrics) parser
+- ✓ PFB (Printer Font Binary) parser for embedding
+- ✓ PostScript glyph name to Unicode mapping (including Cyrillic afii names)
+- ✓ Font loading from AFM/PFB files
+- ✓ Character width extraction from AFM data
+- ✓ Font metrics and descriptor generation
+- ✓ **Font embedding with FontFile stream (Length1/Length2/Length3)**
+- ✓ **Code page support (CP1251-1258) - same as TrueType**
+- ✓ **Custom Encoding dictionary with AFM glyph names**
+- ✓ **ToUnicode CMap generation (shared with TrueType)**
+- ✓ **Multi-language support (Western, Cyrillic, etc.)**
+- ✓ **Type1FontDemo showcasing Western and Russian text**
 
 ### Document Metadata (100% Complete)
 - ✓ Document Information Dictionary (HpdfInfo)
@@ -180,46 +196,44 @@ All previously partially implemented features have been completed!
 
 ## ⚠ NOT YET IMPLEMENTED
 
-### 1. Type 1 Font Support with Code Pages (0% complete)
-**Priority**: High (Next Feature)
+### 1. ~~Type 1 Font Support with Code Pages~~ ✅ **COMPLETE!** (2-3 days)
+**Priority**: ~~High~~ ✓ Done
 **Complexity**: Medium
-**Estimated Effort**: 2-3 days
+**Completed**: Session 2025-10-09
 
-**Required Components**:
-- [ ] AFM (Adobe Font Metrics) parser
-- [ ] PFB (Printer Font Binary) parser (optional for embedding)
-- [ ] Type 1 font embedding
-- [ ] Character width extraction from AFM
-- [ ] **Code page support (CP1251, CP1253, etc.) - same as TrueType**
-- [ ] **Custom Encoding dictionary with Differences array**
-- [ ] **ToUnicode CMap generation for text extraction**
-- [ ] Encoding support (StandardEncoding, WinAnsiEncoding, etc.)
+**Implemented Components**:
+- ✓ AFM (Adobe Font Metrics) parser with glyph name mapping
+- ✓ PFB (Printer Font Binary) parser for font embedding
+- ✓ Type 1 font embedding with FontFile stream
+- ✓ Character width extraction from AFM
+- ✓ **Code page support (CP1251, CP1253, etc.) - same as TrueType**
+- ✓ **Custom Encoding dictionary with AFM glyph names (not uni format)**
+- ✓ **ToUnicode CMap generation for text extraction (shared with TrueType)**
+- ✓ **PostScript glyph name to Unicode mapping (including Cyrillic afii names)**
 
-**Implementation Strategy**:
-Apply the same code page approach as TrueType fonts:
-1. Load Type 1 font with code page parameter
-2. Parse AFM for metrics and glyph names
-3. Create Encoding dictionary with Differences array
-4. Generate ToUnicode CMap
-5. Support same single-byte encodings (CP1251-1258)
+**Implementation Highlights**:
+1. ✓ Load Type 1 font with code page parameter
+2. ✓ Parse AFM for metrics and glyph names
+3. ✓ Create Encoding dictionary with Differences array **using actual AFM glyph names**
+4. ✓ Generate ToUnicode CMap (shared with TrueType)
+5. ✓ Support same single-byte encodings (CP1251-1258)
 
-**Files to Create**:
-- `cs-src/Haru/Font/HpdfType1Font.cs`
-- `cs-src/Haru/Font/Type1/AfmParser.cs`
-- `cs-src/Haru/Font/Type1/PfbParser.cs` (optional)
+**Critical Fix**:
+- Initially used `uni{unicode:X4}` glyph names in Encoding dictionary
+- PDF reader couldn't find glyphs (Type 1 fonts use PostScript names like "afii10033")
+- Fixed by looking up actual glyph names from AFM data
 
-**Files to Update**:
-- `cs-src/Haru/Font/HpdfFont.cs` - Add code page support constructor
+**Files Created**:
+- `cs-src/Haru/Font/HpdfType1Font.cs` - Main Type 1 font implementation
+- `cs-src/Haru/Font/Type1/AfmData.cs` - AFM data structures
+- `cs-src/Haru/Font/Type1/AfmParser.cs` - AFM parser
+- `cs-src/Haru/Font/Type1/GlyphNames.cs` - PostScript glyph → Unicode mapping
+- `cs-src/Haru/Font/Type1/PfbParser.cs` - PFB parser
+- `cs-src/Haru/Font/ToUnicodeCMap.cs` - Generalized from TrueType namespace
+- `tests/basics/BasicDemos/Type1FontDemo.cs` - Demo with Western and Cyrillic text
 
-**C Source References**:
-- `c-src/hpdf_fontdef_type1.c` (800+ lines)
-- `c-src/hpdf_font_type1.c` (600+ lines)
-
-**Design Consistency**:
-- One code page per font instance (same as TrueType)
-- Same Encoding dictionary structure
-- Same ToUnicode CMap generation
-- Works for both Type 1 and TrueType fonts
+**Files Updated**:
+- `cs-src/Haru/Font/HpdfFont.cs` - Added Type 1 font support
 
 ---
 
@@ -444,17 +458,17 @@ Type 0 Font (Composite)
 | **Outlines/Bookmarks** | **100%** | ✓ **Done** | - |
 | **PDF/A Phase 1** | **100%** | ✓ **Done** | - |
 | **Encryption & Security** | **100%** | ✓ **Done** | - |
-| **TrueType Fonts** | **100%** | ✓ **Done** | **- (NEW!)** |
-| Type 1 Fonts | 0% | Medium | 2-3 days |
+| **TrueType Fonts** | **100%** | ✓ **Done** | - |
+| **Type 1 Fonts** | **100%** | ✓ **Done** | **- (NEW!)** |
 | Encoders | 0% | Medium | 2-3 days |
 | CID/CJK Fonts | 0% | Low | 5-7 days |
 | Page Labels | 0% | Low | 0.5 day |
 | 3D/U3D | 0% | Very Low | 3-4 days |
 | CCITT Images | 0% | Low | 1-2 days |
 
-**Overall Completion**: ~80% (up from 75%!)
-**Estimated Remaining Effort**: 15-20 days of development (down from 20-25 days)
-**Latest Progress**: ✅ TrueType Font Embedding complete (+14 tests passing)
+**Overall Completion**: ~85% (up from 80%!)
+**Estimated Remaining Effort**: 10-15 days of development (down from 15-20 days)
+**Latest Progress**: ✅ Type 1 Font Support complete (AFM/PFB parsing, code pages, Cyrillic support)
 
 ---
 
@@ -497,28 +511,31 @@ Type 0 Font (Composite)
    - ✓ Width scaling fix
    - ✓ 14 tests passing
 
-**Phase 1 Status**: 6 of 6 complete! 🎉 **PHASE 1 COMPLETE!**
+7. ~~**Type 1 Fonts with Code Pages**~~ ✅ **COMPLETE!** (2-3 days)
+   - ✓ AFM parsing for metrics
+   - ✓ PFB parsing for embedding
+   - ✓ Code page support (CP1251, CP1253, CP1254, etc.)
+   - ✓ Custom Encoding dictionary with AFM glyph names (not uni format)
+   - ✓ ToUnicode CMap generation (shared with TrueType)
+   - ✓ PostScript glyph name mapping (including Cyrillic afii names)
+   - ✓ Design consistency with TrueType implementation
+
+**Phase 1 Status**: 7 of 7 complete! 🎉 **PHASE 1 COMPLETE!**
 
 ### Phase 2: Extended Font Support (Medium-High Priority)
-7. **Type 1 Fonts with Code Pages** (2-3 days) - **NEXT PRIORITY**
-   - AFM parsing for metrics
-   - Code page support (CP1251, CP1253, CP1254, etc.)
-   - Custom Encoding dictionary with Differences array (same as TrueType)
-   - ToUnicode CMap generation
-   - PFB parsing for embedding (optional)
-   - Design consistency with TrueType implementation
 
-8. **CID/CJK Fonts** (5-7 days) - **HIGH PRIORITY FOR INTERNATIONAL**
+8. **CID/CJK Fonts** (5-7 days) - **NEXT PRIORITY - HIGH FOR INTERNATIONAL**
    - Type 0 (Composite) font support
    - Multi-byte character encoding (CP936, CP932, CP949)
    - Chinese, Japanese, Korean language support
    - CMap files for character mapping
    - Enables InternationalDemo to support all major languages
 
-9. **Encoders** (2-3 days) - **OPTIONAL**
-   - May not be needed if Type 1 and CID fonts use same approach
+9. **Encoders** (2-3 days) - **OPTIONAL / MAY NOT BE NEEDED**
+   - Already have code page support in TrueType and Type 1 fonts
    - WinAnsi, MacRoman (already supported via code pages)
    - UTF-8/UTF-16 (for future enhancements)
+   - May be redundant with current implementation
 
 ### Phase 3: Advanced Features (Lower Priority)
 10. **PDF/A Phase 2** (2-3 days)
@@ -615,9 +632,10 @@ The remaining work is mostly for **specialized features** like additional font f
   - Outlines ✅
   - PDF/A Phase 1 ✅
   - Encryption & Security ✅
-  - **TrueType Font Embedding ✅ (NEW!)**
-- **Next**: Phase 2 - Type 1 fonts and encoders (4-6 days)
+  - TrueType Font Embedding ✅
+  - **Type 1 Font Support ✅ (NEW!)**
+- **Next**: Phase 2 - CID/CJK fonts for international support (5-7 days)
 
-**Total Tests**: 653 passing (14 new TrueType font tests added)
-**Overall Progress**: ~80% complete
-**Estimated to 100%**: 15-20 days remaining
+**Total Tests**: 653+ passing (14 TrueType font tests + Type 1 font demos)
+**Overall Progress**: ~85% complete (up from 80%)
+**Estimated to 100%**: 10-15 days remaining

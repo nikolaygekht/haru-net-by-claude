@@ -1,4 +1,4 @@
-/*
+﻿/*
  * << Haru Free PDF Library >> -- LineDemo.cs
  *
  * Adapted from original C demo to use the new C# Haru library
@@ -302,7 +302,7 @@ namespace BasicDemos
                 page.CurveTo(x1, y1, x2, y2, x3, y3);
                 page.Stroke();
 
-                pdf.SaveToFile("LineDemo.pdf");
+                pdf.SaveToFile("pdfs/LineDemo.pdf");
             }
             catch (Exception e)
             {

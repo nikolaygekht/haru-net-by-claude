@@ -1,4 +1,4 @@
-/*
+﻿/*
  * << Haru Free PDF Library >> -- FontDemo.cs
  *
  * Adapted from original C demo to use the new C# Haru library
@@ -160,7 +160,7 @@ namespace BasicDemos
 
                 page2.EndText();
 
-                pdf.SaveToFile("FontDemo.pdf");
+                pdf.SaveToFile("pdfs/FontDemo.pdf");
             }
             catch (Exception e)
             {

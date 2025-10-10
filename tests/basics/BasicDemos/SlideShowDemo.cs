@@ -1,4 +1,4 @@
-/*
+﻿/*
  * << Haru Free PDF Library >> -- SlideShowDemo.cs
  *
  * Adapted from original C demo to use the new C# Haru library
@@ -22,7 +22,7 @@ namespace BasicDemos
         private static Random rand = new Random();
 
         private static void PrintPage(HpdfPage page, HpdfFont font, string caption,
-            HpdfTransitionStyle type, HpdfPage prev, HpdfPage next)
+            HpdfTransitionStyle type, HpdfPage? prev, HpdfPage? next)
         {
             float r = (float)rand.Next(255) / 255f;
             float g = (float)rand.Next(255) / 255f;
@@ -163,7 +163,7 @@ namespace BasicDemos
                 pdf.Catalog.SetPageMode(HpdfPageMode.FullScreen);
 
                 // Save the document to a file
-                pdf.SaveToFile("SlideShowDemo.pdf");
+                pdf.SaveToFile("pdfs/SlideShowDemo.pdf");
             }
             catch (Exception e)
             {

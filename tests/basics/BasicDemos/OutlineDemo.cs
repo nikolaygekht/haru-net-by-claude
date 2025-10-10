@@ -1,4 +1,4 @@
-/*
+﻿/*
  * << Haru Free PDF Library >> -- OutlineDemo.cs
  *
  * Adapted from original C demo to use the new C# Haru library
@@ -76,7 +76,7 @@ namespace BasicDemos
                 outline2.SetDestination(dst);
 
                 // Save the document to a file
-                pdf.SaveToFile("OutlineDemo.pdf");
+                pdf.SaveToFile("pdfs/OutlineDemo.pdf");
 
             }
             catch (Exception e)
