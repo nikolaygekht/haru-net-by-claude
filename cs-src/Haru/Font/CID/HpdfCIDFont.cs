@@ -113,11 +113,11 @@ namespace Haru.Font.CID
             if (document == null)
                 throw new ArgumentNullException(nameof(document));
 
+            // Validate code page first (before file existence check for better error reporting)
+            ValidateCodePage(codePage);
+
             if (!File.Exists(filePath))
                 throw new HpdfException(HpdfErrorCode.FileNotFound, $"Font file not found: {filePath}");
-
-            // Validate code page
-            ValidateCodePage(codePage);
 
             // CID fonts require PDF 1.4 or later for Adobe Acrobat compatibility
             if (document.Version < HpdfVersion.Version14)
