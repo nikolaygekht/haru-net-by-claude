@@ -1,4 +1,4 @@
-/*
+﻿/*
  * << Haru Free PDF Library >> -- CJKDemo.cs
  *
  * CJK (Chinese, Japanese, Korean) Font Demo
@@ -75,28 +75,28 @@ namespace BasicDemos
 
                 // Traditional Chinese (Taiwan)
                 var chineseTraditionalFont = HpdfCIDFont.LoadFromTrueTypeFile(
-                    pdf.Xref,
+                    pdf,
                     "CHT",
                     "demo/ttfont/noto-cht.ttf",
                     950);  // CP950 (Big5)
 
                 // Simplified Chinese (China)
                 var chineseSimplifiedFont = HpdfCIDFont.LoadFromTrueTypeFile(
-                    pdf.Xref,
+                    pdf,
                     "CHS",
                     "demo/ttfont/noto-chs.ttf",
                     936);  // CP936 (GBK)
 
                 // Japanese
                 var japaneseFont = HpdfCIDFont.LoadFromTrueTypeFile(
-                    pdf.Xref,
+                    pdf,
                     "JP",
                     "demo/ttfont/noto-jp.ttf",
                     932);  // CP932 (Shift-JIS)
 
                 // Korean
                 var koreanFont = HpdfCIDFont.LoadFromTrueTypeFile(
-                    pdf.Xref,
+                    pdf,
                     "KR",
                     "demo/ttfont/noto-kr.ttf",
                     949);  // CP949 (EUC-KR)
