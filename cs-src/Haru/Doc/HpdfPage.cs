@@ -445,6 +445,212 @@ namespace Haru.Doc
         }
 
         /// <summary>
+        /// Sets the CropBox for this page.
+        /// The CropBox defines the region to which the contents of the page shall be clipped when displayed or printed.
+        /// </summary>
+        /// <param name="left">Lower-left x coordinate.</param>
+        /// <param name="bottom">Lower-left y coordinate.</param>
+        /// <param name="right">Upper-right x coordinate.</param>
+        /// <param name="top">Upper-right y coordinate.</param>
+        public void SetCropBox(float left, float bottom, float right, float top)
+        {
+            var cropBox = new HpdfArray();
+            cropBox.Add(new HpdfReal(left));
+            cropBox.Add(new HpdfReal(bottom));
+            cropBox.Add(new HpdfReal(right));
+            cropBox.Add(new HpdfReal(top));
+            _dict["CropBox"] = cropBox;
+        }
+
+        /// <summary>
+        /// Sets the CropBox for this page using an HpdfBox structure.
+        /// </summary>
+        /// <param name="box">The crop box.</param>
+        public void SetCropBox(HpdfBox box)
+        {
+            SetCropBox(box.Left, box.Bottom, box.Right, box.Top);
+        }
+
+        /// <summary>
+        /// Gets the CropBox for this page, if set.
+        /// </summary>
+        /// <returns>The crop box, or null if not set.</returns>
+        public HpdfBox? GetCropBox()
+        {
+            if (!_dict.TryGetValue("CropBox", out var cropBoxObj))
+                return null;
+
+            if (cropBoxObj is HpdfArray arr && arr.Count == 4)
+            {
+                float[] values = new float[4];
+                for (int i = 0; i < 4; i++)
+                {
+                    if (arr[i] is HpdfNumber num)
+                        values[i] = num.Value;
+                    else if (arr[i] is HpdfReal real)
+                        values[i] = real.Value;
+                }
+                return new HpdfBox(values[0], values[1], values[2], values[3]);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Sets the BleedBox for this page.
+        /// The BleedBox defines the region to which the contents of the page shall be clipped
+        /// when output in a production environment (e.g., for printing with bleed).
+        /// </summary>
+        /// <param name="left">Lower-left x coordinate.</param>
+        /// <param name="bottom">Lower-left y coordinate.</param>
+        /// <param name="right">Upper-right x coordinate.</param>
+        /// <param name="top">Upper-right y coordinate.</param>
+        public void SetBleedBox(float left, float bottom, float right, float top)
+        {
+            var bleedBox = new HpdfArray();
+            bleedBox.Add(new HpdfReal(left));
+            bleedBox.Add(new HpdfReal(bottom));
+            bleedBox.Add(new HpdfReal(right));
+            bleedBox.Add(new HpdfReal(top));
+            _dict["BleedBox"] = bleedBox;
+        }
+
+        /// <summary>
+        /// Sets the BleedBox for this page using an HpdfBox structure.
+        /// </summary>
+        /// <param name="box">The bleed box.</param>
+        public void SetBleedBox(HpdfBox box)
+        {
+            SetBleedBox(box.Left, box.Bottom, box.Right, box.Top);
+        }
+
+        /// <summary>
+        /// Gets the BleedBox for this page, if set.
+        /// </summary>
+        /// <returns>The bleed box, or null if not set.</returns>
+        public HpdfBox? GetBleedBox()
+        {
+            if (!_dict.TryGetValue("BleedBox", out var bleedBoxObj))
+                return null;
+
+            if (bleedBoxObj is HpdfArray arr && arr.Count == 4)
+            {
+                float[] values = new float[4];
+                for (int i = 0; i < 4; i++)
+                {
+                    if (arr[i] is HpdfNumber num)
+                        values[i] = num.Value;
+                    else if (arr[i] is HpdfReal real)
+                        values[i] = real.Value;
+                }
+                return new HpdfBox(values[0], values[1], values[2], values[3]);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Sets the TrimBox for this page.
+        /// The TrimBox defines the intended dimensions of the finished page after trimming.
+        /// </summary>
+        /// <param name="left">Lower-left x coordinate.</param>
+        /// <param name="bottom">Lower-left y coordinate.</param>
+        /// <param name="right">Upper-right x coordinate.</param>
+        /// <param name="top">Upper-right y coordinate.</param>
+        public void SetTrimBox(float left, float bottom, float right, float top)
+        {
+            var trimBox = new HpdfArray();
+            trimBox.Add(new HpdfReal(left));
+            trimBox.Add(new HpdfReal(bottom));
+            trimBox.Add(new HpdfReal(right));
+            trimBox.Add(new HpdfReal(top));
+            _dict["TrimBox"] = trimBox;
+        }
+
+        /// <summary>
+        /// Sets the TrimBox for this page using an HpdfBox structure.
+        /// </summary>
+        /// <param name="box">The trim box.</param>
+        public void SetTrimBox(HpdfBox box)
+        {
+            SetTrimBox(box.Left, box.Bottom, box.Right, box.Top);
+        }
+
+        /// <summary>
+        /// Gets the TrimBox for this page, if set.
+        /// </summary>
+        /// <returns>The trim box, or null if not set.</returns>
+        public HpdfBox? GetTrimBox()
+        {
+            if (!_dict.TryGetValue("TrimBox", out var trimBoxObj))
+                return null;
+
+            if (trimBoxObj is HpdfArray arr && arr.Count == 4)
+            {
+                float[] values = new float[4];
+                for (int i = 0; i < 4; i++)
+                {
+                    if (arr[i] is HpdfNumber num)
+                        values[i] = num.Value;
+                    else if (arr[i] is HpdfReal real)
+                        values[i] = real.Value;
+                }
+                return new HpdfBox(values[0], values[1], values[2], values[3]);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Sets the ArtBox for this page.
+        /// The ArtBox defines the extent of the page's meaningful content
+        /// (including potential white space) as intended by the page's creator.
+        /// </summary>
+        /// <param name="left">Lower-left x coordinate.</param>
+        /// <param name="bottom">Lower-left y coordinate.</param>
+        /// <param name="right">Upper-right x coordinate.</param>
+        /// <param name="top">Upper-right y coordinate.</param>
+        public void SetArtBox(float left, float bottom, float right, float top)
+        {
+            var artBox = new HpdfArray();
+            artBox.Add(new HpdfReal(left));
+            artBox.Add(new HpdfReal(bottom));
+            artBox.Add(new HpdfReal(right));
+            artBox.Add(new HpdfReal(top));
+            _dict["ArtBox"] = artBox;
+        }
+
+        /// <summary>
+        /// Sets the ArtBox for this page using an HpdfBox structure.
+        /// </summary>
+        /// <param name="box">The art box.</param>
+        public void SetArtBox(HpdfBox box)
+        {
+            SetArtBox(box.Left, box.Bottom, box.Right, box.Top);
+        }
+
+        /// <summary>
+        /// Gets the ArtBox for this page, if set.
+        /// </summary>
+        /// <returns>The art box, or null if not set.</returns>
+        public HpdfBox? GetArtBox()
+        {
+            if (!_dict.TryGetValue("ArtBox", out var artBoxObj))
+                return null;
+
+            if (artBoxObj is HpdfArray arr && arr.Count == 4)
+            {
+                float[] values = new float[4];
+                for (int i = 0; i < 4; i++)
+                {
+                    if (arr[i] is HpdfNumber num)
+                        values[i] = num.Value;
+                    else if (arr[i] is HpdfReal real)
+                        values[i] = real.Value;
+                }
+                return new HpdfBox(values[0], values[1], values[2], values[3]);
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Sets a transition effect (slide show) for this page.
         /// </summary>
         /// <param name="type">The transition style.</param>

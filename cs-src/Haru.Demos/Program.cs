@@ -64,6 +64,10 @@ namespace BasicDemos
             CJKDemo.Run();
             Console.WriteLine("CJKDemo completed.\n");
 
+            Console.WriteLine("Running PageLabelAndBoundaryDemo...");
+            PageLabelAndBoundaryDemo.Run();
+            Console.WriteLine("PageLabelAndBoundaryDemo completed.\n");
+
             Console.WriteLine("All demos completed successfully!");
             Console.WriteLine("PDF files have been generated in the current directory.");
         }

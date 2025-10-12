@@ -88,6 +88,7 @@ namespace Haru.Doc
         private bool _pdfACompliant;
         private string _pdfAConformance;
         private HpdfEncryptDict _encryptDict;
+        private readonly Dictionary<int, HpdfPageLabel> _pageLabels;
 
         /// <summary>
         /// Gets the PDF version for this document.
@@ -190,6 +191,7 @@ namespace Haru.Doc
             _version = HpdfVersion.Version12; // Default to PDF 1.2
             _xref = new HpdfXref(0);
             _pageList = new List<HpdfPage>();
+            _pageLabels = new Dictionary<int, HpdfPageLabel>();
 
             // Create root pages
             _rootPages = new HpdfPages(_xref);
@@ -318,6 +320,9 @@ namespace Haru.Doc
             // Prepare outlines before writing
             if (_outlineRoot != null)
                 PrepareOutlines(_outlineRoot);
+
+            // Apply page labels if any have been added
+            ApplyPageLabels();
 
             var hpdfStream = new HpdfMemoryStream();
 
@@ -450,6 +455,52 @@ namespace Haru.Doc
             var header = VersionHeaders[(int)_version];
             var headerBytes = Encoding.ASCII.GetBytes(header);
             stream.Write(headerBytes, 0, headerBytes.Length);
+        }
+
+        /// <summary>
+        /// Adds a page label to define custom page numbering for a page range.
+        /// </summary>
+        /// <param name="pageNum">The starting page number (0-based index).</param>
+        /// <param name="style">The numbering style.</param>
+        /// <param name="firstPage">The value of the numeric portion for the first page (default: 1).</param>
+        /// <param name="prefix">Optional prefix string (default: null).</param>
+        public void AddPageLabel(int pageNum, HpdfPageNumStyle style, int firstPage = 1, string prefix = null)
+        {
+            if (pageNum < 0)
+                throw new HpdfException(HpdfErrorCode.InvalidParameter, "Page number must be >= 0");
+
+            var label = new HpdfPageLabel(style, firstPage, prefix);
+            _pageLabels[pageNum] = label;
+        }
+
+        /// <summary>
+        /// Applies page labels to the document catalog.
+        /// This method is called automatically before saving.
+        /// </summary>
+        private void ApplyPageLabels()
+        {
+            if (_pageLabels.Count == 0)
+                return;
+
+            // Create PageLabels dictionary with Nums array
+            var pageLabelsDict = new HpdfDict();
+            var numsArray = new HpdfArray();
+
+            // Sort page labels by page number and add to Nums array
+            var sortedLabels = new List<int>(_pageLabels.Keys);
+            sortedLabels.Sort();
+
+            foreach (var pageNum in sortedLabels)
+            {
+                var label = _pageLabels[pageNum];
+                numsArray.Add(new HpdfNumber(pageNum));
+                numsArray.Add(label.ToDict());
+            }
+
+            pageLabelsDict.Add("Nums", numsArray);
+
+            // Add PageLabels to catalog
+            _catalog.SetPageLabels(pageLabelsDict);
         }
 
         /// <summary>

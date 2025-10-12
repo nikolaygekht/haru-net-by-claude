@@ -175,5 +175,29 @@ namespace Haru.Doc
                 return names as HpdfDict;
             return null;
         }
+
+        /// <summary>
+        /// Sets the page labels dictionary for the catalog.
+        /// Page labels control how page numbers are displayed in PDF viewers.
+        /// </summary>
+        /// <param name="pageLabelsDict">The page labels dictionary containing the number tree.</param>
+        public void SetPageLabels(HpdfDict pageLabelsDict)
+        {
+            if (pageLabelsDict == null)
+                throw new HpdfException(HpdfErrorCode.InvalidParameter, "PageLabels dictionary cannot be null");
+
+            _dict["PageLabels"] = pageLabelsDict;
+        }
+
+        /// <summary>
+        /// Gets the page labels dictionary from the catalog.
+        /// </summary>
+        /// <returns>The page labels dictionary, or null if not set.</returns>
+        public HpdfDict GetPageLabels()
+        {
+            if (_dict.TryGetValue("PageLabels", out var pageLabels))
+                return pageLabels as HpdfDict;
+            return null;
+        }
     }
 }
