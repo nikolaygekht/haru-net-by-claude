@@ -199,5 +199,29 @@ namespace Haru.Doc
                 return pageLabels as HpdfDict;
             return null;
         }
+
+        /// <summary>
+        /// Sets the AcroForm dictionary for the catalog.
+        /// This enables interactive forms in the PDF document.
+        /// </summary>
+        /// <param name="acroForm">The AcroForm dictionary.</param>
+        public void SetAcroForm(HpdfDict acroForm)
+        {
+            if (acroForm == null)
+                throw new HpdfException(HpdfErrorCode.InvalidParameter, "AcroForm dictionary cannot be null");
+
+            _dict["AcroForm"] = acroForm;
+        }
+
+        /// <summary>
+        /// Gets the AcroForm dictionary from the catalog.
+        /// </summary>
+        /// <returns>The AcroForm dictionary, or null if not set.</returns>
+        public HpdfDict GetAcroForm()
+        {
+            if (_dict.TryGetValue("AcroForm", out var acroForm))
+                return acroForm as HpdfDict;
+            return null;
+        }
     }
 }

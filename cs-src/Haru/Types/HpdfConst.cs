@@ -1,3 +1,5 @@
+using Haru.Doc;
+
 namespace Haru.Types
 {
     /// <summary>

@@ -1,7 +1,7 @@
 # Current Implementation Status
 
-**Last Updated**: 2025-10-12
-**Overall Progress**: ~92% Complete
+**Last Updated**: 2025-10-13
+**Overall Progress**: ~95% Complete
 
 ## Summary
 
@@ -90,6 +90,17 @@ Haru.NET is a complete port of the Haru PDF library from C to .NET 8.0. The libr
   - Permission flags (print, copy, edit, annotate)
   - Object-by-object encryption
   - Automatic PDF version updates (1.4 for R3, 1.6 for R4)
+- ⚠️ **AcroForms (Interactive Forms)** - 90% Complete
+  - ✓ Form field types (Text, Checkbox, Radio, Choice/Combo, Signature)
+  - ✓ Field properties (required, read-only, multiline, password)
+  - ✓ Widget annotations with appearance streams
+  - ✓ NeedAppearances flag for viewer rendering
+  - ✓ Default appearance strings
+  - ✓ Calculation order support
+  - ⚠️ **Known Issues**:
+    - **Checkboxes/Radio Buttons**: Work in Chrome, not in Edge, partial in Adobe Acrobat (updates only on blur)
+    - **Signature Fields**: Work in Adobe Acrobat, not in Chrome/Edge
+    - Needs investigation of PDF spec and comparison with working examples
 
 ## Project Structure
 
@@ -116,12 +127,14 @@ cs-src/
 - **SlideShowDemo** - Page transitions
 - **EncryptionDemo** - Password-protected PDFs
 - **PageLabelAndBoundaryDemo** - Custom page numbering and page boundaries
+- **AcroFormsDemo** - Interactive form fields (text, checkbox, radio, dropdown, signature)
 
 ## Test Coverage
 
-- **674+ unit tests** passing across all components
+- **681 unit tests** passing across all components
 - **21 CID font tests** (loading, code pages, glyph conversion, integration)
 - **40 encryption tests** (16 unit + 24 integration)
+- **20 AcroForms tests** (text fields, checkboxes, radio buttons, choice fields, signatures)
 - **16 document info tests**
 - **14 TrueType font tests**
 - **13 PDF/A tests**

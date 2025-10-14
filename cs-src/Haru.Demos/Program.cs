@@ -68,6 +68,10 @@ namespace BasicDemos
             PageLabelAndBoundaryDemo.Run();
             Console.WriteLine("PageLabelAndBoundaryDemo completed.\n");
 
+            Console.WriteLine("Running AcroFormsDemo...");
+            AcroFormsDemo.Run();
+            Console.WriteLine("AcroFormsDemo completed.\n");
+
             Console.WriteLine("All demos completed successfully!");
             Console.WriteLine("PDF files have been generated in the current directory.");
         }

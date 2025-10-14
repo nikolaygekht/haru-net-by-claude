@@ -1,20 +1,6 @@
 namespace Haru.Types
 {
     /// <summary>
-    /// PDF version enumeration.
-    /// </summary>
-    public enum HpdfPdfVer
-    {
-        Ver12 = 0,
-        Ver13,
-        Ver14,
-        Ver15,
-        Ver16,
-        Ver17,
-        VerEof
-    }
-
-    /// <summary>
     /// PDF/A types.
     /// </summary>
     public enum HpdfPdfAType
@@ -87,20 +73,6 @@ namespace Haru.Types
     {
         Horizontal = 0,
         Vertical,
-        Eof
-    }
-
-    /// <summary>
-    /// Page layout.
-    /// </summary>
-    public enum HpdfPageLayout
-    {
-        SinglePage = 0,
-        OneColumn,
-        TwoColumnLeft,
-        TwoColumnRight,
-        TwoPageLeft,
-        TwoPageRight,
         Eof
     }
 
@@ -340,35 +312,6 @@ namespace Haru.Types
         GlitterTopLeftToBottomRight,
         Replace,
         Eof
-    }
-
-    /// <summary>
-    /// Standard page sizes.
-    /// </summary>
-    public enum HpdfPageSizes
-    {
-        Letter = 0,
-        Legal,
-        A3,
-        A4,
-        A5,
-        B4,
-        B5,
-        Executive,
-        Us4x6,
-        Us4x8,
-        Us5x7,
-        Comm10,
-        Eof
-    }
-
-    /// <summary>
-    /// Page direction (orientation).
-    /// </summary>
-    public enum HpdfPageDirection
-    {
-        Portrait = 0,
-        Landscape
     }
 
     /// <summary>

@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Haru.Forms;
 using Haru.Objects;
 using Haru.Streams;
 using Haru.Types;
@@ -89,6 +90,7 @@ namespace Haru.Doc
         private string _pdfAConformance;
         private HpdfEncryptDict _encryptDict;
         private readonly Dictionary<int, HpdfPageLabel> _pageLabels;
+        private HpdfAcroForm _acroForm;
 
         /// <summary>
         /// Gets the PDF version for this document.
@@ -324,6 +326,10 @@ namespace Haru.Doc
             // Apply page labels if any have been added
             ApplyPageLabels();
 
+            // Apply AcroForm if it exists
+            if (_acroForm != null)
+                ApplyAcroForm();
+
             var hpdfStream = new HpdfMemoryStream();
 
             // Write PDF header
@@ -504,8 +510,52 @@ namespace Haru.Doc
         }
 
         /// <summary>
+        /// Applies the AcroForm to the document catalog.
+        /// This method is called automatically before saving.
+        /// </summary>
+        private void ApplyAcroForm()
+        {
+            // Prepare the AcroForm for writing
+            _acroForm.PrepareForWriting();
+
+            // Add AcroForm to catalog
+            _catalog.SetAcroForm(_acroForm.Dict);
+
+            // AcroForms require PDF version 1.5 or higher
+            if (_version < HpdfVersion.Version15)
+            {
+                _version = HpdfVersion.Version15;
+            }
+        }
+
+        /// <summary>
         /// Gets the total number of pages in the document.
         /// </summary>
         public int PageCount => _pageList.Count;
+
+        /// <summary>
+        /// Gets the AcroForm for this document, creating it if it doesn't exist.
+        /// Use this to add interactive form fields to your PDF.
+        /// </summary>
+        /// <returns>The AcroForm instance.</returns>
+        public HpdfAcroForm GetOrCreateAcroForm()
+        {
+            if (_acroForm == null)
+            {
+                _acroForm = new HpdfAcroForm(_xref);
+                // Enable NeedAppearances by default since we're not generating appearances
+                _acroForm.SetNeedAppearances(true);
+            }
+            return _acroForm;
+        }
+
+        /// <summary>
+        /// Gets the AcroForm for this document if it exists.
+        /// </summary>
+        /// <returns>The AcroForm instance, or null if not created yet.</returns>
+        public HpdfAcroForm GetAcroForm()
+        {
+            return _acroForm;
+        }
     }
 }

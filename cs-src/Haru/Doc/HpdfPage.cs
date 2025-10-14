@@ -20,6 +20,7 @@ using Haru.Graphics;
 using Haru.Types;
 using Haru.Font;
 using Haru.Annotations;
+using Haru.Forms;
 using System.Collections.Generic;
 
 namespace Haru.Doc
@@ -419,6 +420,23 @@ namespace Haru.Doc
             var annot = new HpdfLinkAnnotation(_xref, rect, destination);
             AddAnnotation(annot);
             return annot;
+        }
+
+        /// <summary>
+        /// Adds a widget annotation (form field) to this page.
+        /// This method is used to place form field widgets on the page.
+        /// </summary>
+        /// <param name="widget">The widget annotation to add.</param>
+        public void AddWidgetAnnotation(HpdfWidgetAnnotation widget)
+        {
+            if (widget == null)
+                throw new HpdfException(HpdfErrorCode.InvalidParameter, "Widget cannot be null");
+
+            // Set page reference in widget
+            widget.SetPage(_dict);
+
+            // Add to page's Annots array
+            AddAnnotation(widget);
         }
 
         /// <summary>
