@@ -91,6 +91,7 @@ namespace Haru.Doc
         private HpdfEncryptDict _encryptDict;
         private readonly Dictionary<int, HpdfPageLabel> _pageLabels;
         private HpdfAcroForm _acroForm;
+        private HpdfCompressionMode _compressionMode;
 
         /// <summary>
         /// Gets the PDF version for this document.
@@ -186,6 +187,16 @@ namespace Haru.Doc
         public bool IsPdfACompliant => _pdfACompliant;
 
         /// <summary>
+        /// Gets or sets the compression mode for the document.
+        /// Controls which types of content will be compressed in the PDF.
+        /// </summary>
+        public HpdfCompressionMode CompressionMode
+        {
+            get => _compressionMode;
+            set => _compressionMode = value;
+        }
+
+        /// <summary>
         /// Creates a new PDF document.
         /// </summary>
         public HpdfDocument()
@@ -194,6 +205,7 @@ namespace Haru.Doc
             _xref = new HpdfXref(0);
             _pageList = new List<HpdfPage>();
             _pageLabels = new Dictionary<int, HpdfPageLabel>();
+            _compressionMode = HpdfCompressionMode.None; // Default to no compression
 
             // Create root pages
             _rootPages = new HpdfPages(_xref);
@@ -217,6 +229,10 @@ namespace Haru.Doc
         public HpdfPage AddPage()
         {
             var page = new HpdfPage(_xref);
+
+            // Apply document compression mode to the page
+            page.SetCompressionMode(_compressionMode);
+
             _currentPages.AddKid(page);
             _pageList.Add(page);
             _currentPage = page;

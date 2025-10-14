@@ -59,6 +59,10 @@ namespace BasicDemos
                 const string pageTitle = "FontDemo";
 
                 var pdf = new HpdfDocument();
+
+                // Enable compression for all content types
+                pdf.SetCompressionMode(HpdfCompressionMode.All);
+
                 var page = pdf.AddPage();
 
                 float height = page.Height;

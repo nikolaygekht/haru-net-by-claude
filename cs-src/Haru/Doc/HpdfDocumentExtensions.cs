@@ -69,8 +69,6 @@ namespace Haru.Doc
         /// <summary>
         /// Sets the compression mode for the document.
         /// This controls which types of content will be compressed in the PDF.
-        /// Note: In this implementation, compression is currently not fully implemented.
-        /// This method is provided for API compatibility.
         /// </summary>
         /// <param name="document">The PDF document.</param>
         /// <param name="mode">The compression mode flags.</param>
@@ -79,10 +77,7 @@ namespace Haru.Doc
             if (document == null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Document cannot be null");
 
-            // TODO: Store compression mode and apply it during PDF generation
-            // For now, this is a no-op but maintains API compatibility
-            // In a full implementation, this would set flags that are checked when
-            // writing stream objects to determine whether to apply FlateDecode filter
+            document.CompressionMode = mode;
         }
 
         /// <summary>

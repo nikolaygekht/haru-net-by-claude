@@ -113,6 +113,9 @@ namespace BasicDemos
             {
                 var pdf = new HpdfDocument();
 
+                // Enable compression to reduce file size
+                pdf.SetCompressionMode(HpdfCompressionMode.All);
+
                 // Create default font
                 var font = new HpdfFont(pdf.Xref, HpdfStandardFont.Courier, "F1");
 

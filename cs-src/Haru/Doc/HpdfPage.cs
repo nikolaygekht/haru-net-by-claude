@@ -34,6 +34,7 @@ namespace Haru.Doc
         private readonly HpdfDict _dict;
         private readonly HpdfXref _xref;
         private readonly HpdfStreamObject _contents;
+        private HpdfCompressionMode _compressionMode;
         private HpdfGraphicsState _graphicsState;
         private HpdfPoint _currentPos;
         private HpdfTransMatrix _textMatrix;
@@ -172,6 +173,9 @@ namespace Haru.Doc
             _contents = new HpdfStreamObject();
             xref.Add(_contents);
             _dict.Add("Contents", _contents);
+
+            // Default compression mode - will be set by document when page is added
+            _compressionMode = HpdfCompressionMode.None;
 
             // Create empty Resources dictionary
             var resources = new HpdfDict();
@@ -675,6 +679,26 @@ namespace Haru.Doc
                 return new HpdfBox(values[0], values[1], values[2], values[3]);
             }
             return null;
+        }
+
+        /// <summary>
+        /// Sets the compression mode for this page's content stream.
+        /// </summary>
+        /// <param name="mode">The compression mode to apply.</param>
+        internal void SetCompressionMode(HpdfCompressionMode mode)
+        {
+            _compressionMode = mode;
+
+            // Apply compression to content stream based on mode
+            if ((mode & HpdfCompressionMode.Text) != 0)
+            {
+                // Text compression applies to page content streams
+                _contents.Filter = HpdfStreamFilter.FlateDecode;
+            }
+            else
+            {
+                _contents.Filter = HpdfStreamFilter.None;
+            }
         }
 
         /// <summary>
