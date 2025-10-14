@@ -15,6 +15,7 @@
  */
 
 using System;
+using Haru.Graphics;
 using Haru.Types;
 
 namespace Haru.Doc
@@ -30,40 +31,40 @@ namespace Haru.Doc
         /// Draws a circle centered at (x, y) with the given radius.
         /// Uses Bezier curves to approximate the circle.
         /// </summary>
-        public static void Circle(this HpdfPage page, float x, float y, float radius)
+        public static void Circle(this IDrawable drawable, float x, float y, float radius)
         {
             if (radius <= 0)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "Radius must be positive");
 
             // Start at leftmost point
-            page.MoveTo(x - radius, y);
+            drawable.MoveTo(x - radius, y);
 
             // Draw four quarter circles using cubic Bezier curves
             // The control points are offset by KAPPA * radius from the endpoints
 
             // First quarter: left to top
-            page.CurveTo(
+            drawable.CurveTo(
                 x - radius, y + radius * KAPPA,    // control point 1
                 x - radius * KAPPA, y + radius,    // control point 2
                 x, y + radius                      // end point
             );
 
             // Second quarter: top to right
-            page.CurveTo(
+            drawable.CurveTo(
                 x + radius * KAPPA, y + radius,    // control point 1
                 x + radius, y + radius * KAPPA,    // control point 2
                 x + radius, y                      // end point
             );
 
             // Third quarter: right to bottom
-            page.CurveTo(
+            drawable.CurveTo(
                 x + radius, y - radius * KAPPA,    // control point 1
                 x + radius * KAPPA, y - radius,    // control point 2
                 x, y - radius                      // end point
             );
 
             // Fourth quarter: bottom to left
-            page.CurveTo(
+            drawable.CurveTo(
                 x - radius * KAPPA, y - radius,    // control point 1
                 x - radius, y - radius * KAPPA,    // control point 2
                 x - radius, y                      // end point (back to start)
@@ -73,39 +74,39 @@ namespace Haru.Doc
         /// <summary>
         /// Draws an ellipse centered at (x, y) with the given x and y radii.
         /// </summary>
-        public static void Ellipse(this HpdfPage page, float x, float y, float xRadius, float yRadius)
+        public static void Ellipse(this IDrawable drawable, float x, float y, float xRadius, float yRadius)
         {
             if (xRadius <= 0 || yRadius <= 0)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "Radii must be positive");
 
             // Start at leftmost point
-            page.MoveTo(x - xRadius, y);
+            drawable.MoveTo(x - xRadius, y);
 
             // Draw four quarter ellipses using cubic Bezier curves
 
             // First quarter: left to top
-            page.CurveTo(
+            drawable.CurveTo(
                 x - xRadius, y + yRadius * KAPPA,    // control point 1
                 x - xRadius * KAPPA, y + yRadius,    // control point 2
                 x, y + yRadius                       // end point
             );
 
             // Second quarter: top to right
-            page.CurveTo(
+            drawable.CurveTo(
                 x + xRadius * KAPPA, y + yRadius,    // control point 1
                 x + xRadius, y + yRadius * KAPPA,    // control point 2
                 x + xRadius, y                       // end point
             );
 
             // Third quarter: right to bottom
-            page.CurveTo(
+            drawable.CurveTo(
                 x + xRadius, y - yRadius * KAPPA,    // control point 1
                 x + xRadius * KAPPA, y - yRadius,    // control point 2
                 x, y - yRadius                       // end point
             );
 
             // Fourth quarter: bottom to left
-            page.CurveTo(
+            drawable.CurveTo(
                 x - xRadius * KAPPA, y - yRadius,    // control point 1
                 x - xRadius, y - yRadius * KAPPA,    // control point 2
                 x - xRadius, y                       // end point (back to start)
@@ -116,7 +117,7 @@ namespace Haru.Doc
         /// Draws an arc centered at (x, y) with the given radius from angle1 to angle2 (in degrees).
         /// Angles are measured counterclockwise from the positive x-axis.
         /// </summary>
-        public static void Arc(this HpdfPage page, float x, float y, float radius, float angle1, float angle2)
+        public static void Arc(this IDrawable drawable, float x, float y, float radius, float angle1, float angle2)
         {
             if (radius <= 0)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "Radius must be positive");
@@ -138,13 +139,13 @@ namespace Haru.Doc
             {
                 if (Math.Abs(angle2 - angle1) <= 90)
                 {
-                    DrawArcSegment(page, x, y, radius, angle1, angle2, continueArc);
+                    DrawArcSegment(drawable, x, y, radius, angle1, angle2, continueArc);
                     break;
                 }
                 else
                 {
                     float tmpAngle = angle2 > angle1 ? angle1 + 90 : angle1 - 90;
-                    DrawArcSegment(page, x, y, radius, angle1, tmpAngle, continueArc);
+                    DrawArcSegment(drawable, x, y, radius, angle1, tmpAngle, continueArc);
                     angle1 = tmpAngle;
                 }
 
@@ -155,7 +156,7 @@ namespace Haru.Doc
             }
         }
 
-        private static void DrawArcSegment(HpdfPage page, float x, float y, float radius, float angle1, float angle2, bool continueArc)
+        private static void DrawArcSegment(IDrawable drawable, float x, float y, float radius, float angle1, float angle2, bool continueArc)
         {
             const float PI = (float)Math.PI;
 
@@ -189,11 +190,11 @@ namespace Haru.Doc
             if (!continueArc)
             {
                 // Start new arc segment
-                page.MoveTo((float)x0, (float)y0);
+                drawable.MoveTo((float)x0, (float)y0);
             }
 
             // Draw the arc segment using a cubic Bezier curve
-            page.CurveTo((float)x1, (float)y1, (float)x2, (float)y2, (float)x3, (float)y3);
+            drawable.CurveTo((float)x1, (float)y1, (float)x2, (float)y2, (float)x3, (float)y3);
         }
     }
 }

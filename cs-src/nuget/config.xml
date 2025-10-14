@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<nuget xmlns="http://www.gehtsoft.com/build/nuget">
+ <!-- versions. the FIRST version is the current -->
+ <versions>
+  <version id="1.0.0.1">Initial version for PDF.Fow.</version>
+ </versions>
+ <properties>
+  <owner>Gehtsoft</owner>
+  <projectUrl>https://github.com/nikolaygekht/haru-net-by-claude</projectUrl>
+  <license type="expression">LGPL-2.1-or-later</license>
+  <copyright>Gehtsoft USA LLC 2016-2025</copyright>
+  <custom-property id="readme">docs/readme.md</custom-property>
+ </properties>
+ <projects>
+   <project id="Haru">
+    <description>Haru PDF Generation Library</description>
+    <!-- <additional-file file="../doc/Haru.xml" target="*" /> -->
+    <additional-file file="../nuget/readme.md" target="docs/" />
+   </project>
+ </projects>
+</nuget>

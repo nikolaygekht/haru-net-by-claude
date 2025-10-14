@@ -21,6 +21,7 @@ using Haru.Types;
 using Haru.Font;
 using Haru.Annotations;
 using Haru.Forms;
+using Haru.Streams;
 using System.Collections.Generic;
 
 namespace Haru.Doc
@@ -28,7 +29,7 @@ namespace Haru.Doc
     /// <summary>
     /// Represents a single page in a PDF document.
     /// </summary>
-    public class HpdfPage
+    public class HpdfPage : IDrawable
     {
         private readonly HpdfDict _dict;
         private readonly HpdfXref _xref;
@@ -68,6 +69,12 @@ namespace Haru.Doc
         public HpdfStreamObject Contents => _contents;
 
         /// <summary>
+        /// Gets the underlying stream to write PDF operators to.
+        /// Implementation of IDrawable interface.
+        /// </summary>
+        public HpdfMemoryStream Stream => _contents.Stream;
+
+        /// <summary>
         /// Gets the current graphics state.
         /// </summary>
         public HpdfGraphicsState GraphicsState => _graphicsState;
@@ -78,7 +85,7 @@ namespace Haru.Doc
         public HpdfPoint CurrentPos
         {
             get => _currentPos;
-            internal set => _currentPos = value;
+            set => _currentPos = value;
         }
 
         /// <summary>
@@ -186,17 +193,19 @@ namespace Haru.Doc
         }
 
         /// <summary>
-        /// Pushes the current graphics state onto the stack
+        /// Pushes the current graphics state onto the stack.
+        /// Implementation of IDrawable interface.
         /// </summary>
-        internal void PushGraphicsState()
+        public void PushGraphicsState()
         {
             _graphicsState = _graphicsState.Clone();
         }
 
         /// <summary>
-        /// Pops the graphics state from the stack
+        /// Pops the graphics state from the stack.
+        /// Implementation of IDrawable interface.
         /// </summary>
-        internal void PopGraphicsState()
+        public void PopGraphicsState()
         {
             if (_graphicsState.Previous != null)
             {

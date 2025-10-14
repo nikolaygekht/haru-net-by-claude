@@ -138,7 +138,7 @@ namespace Haru.Forms
 
         /// <summary>
         /// Creates appearance dictionary for button widgets (checkbox/radio) with actual drawing commands.
-        /// Generates PDF content streams that draw the appropriate appearance for each state.
+        /// Uses the IDrawable interface to generate PDF content streams for each state.
         /// </summary>
         /// <param name="elementType">The type of button element (checkbox or radio button).</param>
         /// <param name="onStateName">The "on" state name (e.g., "Yes" for checkbox, "Male" for radio).</param>
@@ -164,11 +164,11 @@ namespace Haru.Forms
             onStream.Add("Subtype", new HpdfName("Form"));
             onStream.Add("BBox", CreateBBoxArray(0, 0, width, height));
             onStream.Add("Resources", new HpdfDict()); // Empty resources dictionary
-
-            string onContent = appearanceGenerator.GenerateOnStateAppearance(width, height);
-            byte[] onBytes = System.Text.Encoding.ASCII.GetBytes(onContent);
-            onStream.WriteToStream(onBytes);
             _xref.Add(onStream);
+
+            // Use HpdfAppearanceCanvas to draw using primitives
+            var onCanvas = new Graphics.HpdfAppearanceCanvas(onStream);
+            appearanceGenerator.GenerateOnStateAppearance(onCanvas, width, height);
 
             // Create "off" state stream with minimal content
             var offStream = new HpdfStreamObject();
@@ -176,11 +176,11 @@ namespace Haru.Forms
             offStream.Add("Subtype", new HpdfName("Form"));
             offStream.Add("BBox", CreateBBoxArray(0, 0, width, height));
             offStream.Add("Resources", new HpdfDict()); // Empty resources dictionary
-
-            string offContent = appearanceGenerator.GenerateOffStateAppearance(width, height);
-            byte[] offBytes = System.Text.Encoding.ASCII.GetBytes(offContent);
-            offStream.WriteToStream(offBytes);
             _xref.Add(offStream);
+
+            // Use HpdfAppearanceCanvas to draw using primitives
+            var offCanvas = new Graphics.HpdfAppearanceCanvas(offStream);
+            appearanceGenerator.GenerateOffStateAppearance(offCanvas, width, height);
 
             // Add states to normal appearance
             normal.Add(onStateName, onStream);

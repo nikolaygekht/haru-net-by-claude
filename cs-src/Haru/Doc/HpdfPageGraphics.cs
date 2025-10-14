@@ -21,7 +21,7 @@ using Haru.Streams;
 namespace Haru.Doc
 {
     /// <summary>
-    /// Graphics operations for HpdfPage
+    /// Graphics operations for IDrawable objects (pages, appearance streams, etc.)
     /// </summary>
     public static class HpdfPageGraphics
     {
@@ -30,25 +30,25 @@ namespace Haru.Doc
         /// <summary>
         /// Saves the current graphics state (q operator)
         /// </summary>
-        public static void GSave(this HpdfPage page)
+        public static void GSave(this IDrawable drawable)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteString("q\n");
 
             // Push graphics state onto stack
-            page.PushGraphicsState();
+            drawable.PushGraphicsState();
         }
 
         /// <summary>
         /// Restores the previous graphics state (Q operator)
         /// </summary>
-        public static void GRestore(this HpdfPage page)
+        public static void GRestore(this IDrawable drawable)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteString("Q\n");
 
             // Pop graphics state from stack
-            page.PopGraphicsState();
+            drawable.PopGraphicsState();
         }
 
         // Line Attributes
@@ -56,68 +56,68 @@ namespace Haru.Doc
         /// <summary>
         /// Sets the line width (w operator)
         /// </summary>
-        public static void SetLineWidth(this HpdfPage page, float width)
+        public static void SetLineWidth(this IDrawable drawable, float width)
         {
             if (width < 0)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "Line width must be non-negative");
 
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(width);
             stream.WriteString(" w\n");
 
-            page.GraphicsState.LineWidth = width;
+            drawable.GraphicsState.LineWidth = width;
         }
 
         /// <summary>
         /// Sets the line cap style (J operator)
         /// </summary>
-        public static void SetLineCap(this HpdfPage page, HpdfLineCap lineCap)
+        public static void SetLineCap(this IDrawable drawable, HpdfLineCap lineCap)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteInt((int)lineCap);
             stream.WriteString(" J\n");
 
-            page.GraphicsState.LineCap = lineCap;
+            drawable.GraphicsState.LineCap = lineCap;
         }
 
         /// <summary>
         /// Sets the line join style (j operator)
         /// </summary>
-        public static void SetLineJoin(this HpdfPage page, HpdfLineJoin lineJoin)
+        public static void SetLineJoin(this IDrawable drawable, HpdfLineJoin lineJoin)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteInt((int)lineJoin);
             stream.WriteString(" j\n");
 
-            page.GraphicsState.LineJoin = lineJoin;
+            drawable.GraphicsState.LineJoin = lineJoin;
         }
 
         /// <summary>
         /// Sets the miter limit (M operator)
         /// </summary>
-        public static void SetMiterLimit(this HpdfPage page, float miterLimit)
+        public static void SetMiterLimit(this IDrawable drawable, float miterLimit)
         {
             if (miterLimit < 1)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "Miter limit must be >= 1");
 
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(miterLimit);
             stream.WriteString(" M\n");
 
-            page.GraphicsState.MiterLimit = miterLimit;
+            drawable.GraphicsState.MiterLimit = miterLimit;
         }
 
         /// <summary>
         /// Sets the dash pattern (d operator)
         /// </summary>
-        public static void SetDash(this HpdfPage page, ushort[] pattern, uint phase)
+        public static void SetDash(this IDrawable drawable, ushort[] pattern, uint phase)
         {
             if (pattern == null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Pattern cannot be null");
             if (pattern.Length > HpdfDashMode.MaxPatternLength)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Pattern too long");
 
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteChar('[');
             for (int i = 0; i < pattern.Length; i++)
             {
@@ -128,7 +128,7 @@ namespace Haru.Doc
             stream.WriteInt((int)phase);
             stream.WriteString(" d\n");
 
-            page.GraphicsState.DashMode = new HpdfDashMode(pattern, phase);
+            drawable.GraphicsState.DashMode = new HpdfDashMode(pattern, phase);
         }
 
         // Path Construction
@@ -136,37 +136,37 @@ namespace Haru.Doc
         /// <summary>
         /// Begins a new subpath at (x, y) (m operator)
         /// </summary>
-        public static void MoveTo(this HpdfPage page, float x, float y)
+        public static void MoveTo(this IDrawable drawable, float x, float y)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(x);
             stream.WriteChar(' ');
             stream.WriteReal(y);
             stream.WriteString(" m\n");
 
-            page.CurrentPos = new HpdfPoint(x, y);
+            drawable.CurrentPos = new HpdfPoint(x, y);
         }
 
         /// <summary>
         /// Appends a straight line segment from current point to (x, y) (l operator)
         /// </summary>
-        public static void LineTo(this HpdfPage page, float x, float y)
+        public static void LineTo(this IDrawable drawable, float x, float y)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(x);
             stream.WriteChar(' ');
             stream.WriteReal(y);
             stream.WriteString(" l\n");
 
-            page.CurrentPos = new HpdfPoint(x, y);
+            drawable.CurrentPos = new HpdfPoint(x, y);
         }
 
         /// <summary>
         /// Appends a rectangle to the current path (re operator)
         /// </summary>
-        public static void Rectangle(this HpdfPage page, float x, float y, float width, float height)
+        public static void Rectangle(this IDrawable drawable, float x, float y, float width, float height)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(x);
             stream.WriteChar(' ');
             stream.WriteReal(y);
@@ -180,9 +180,9 @@ namespace Haru.Doc
         /// <summary>
         /// Closes the current subpath (h operator)
         /// </summary>
-        public static void ClosePath(this HpdfPage page)
+        public static void ClosePath(this IDrawable drawable)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteString("h\n");
         }
 
@@ -191,63 +191,63 @@ namespace Haru.Doc
         /// <summary>
         /// Strokes the current path (S operator)
         /// </summary>
-        public static void Stroke(this HpdfPage page)
+        public static void Stroke(this IDrawable drawable)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteString("S\n");
         }
 
         /// <summary>
         /// Closes and strokes the current path (s operator)
         /// </summary>
-        public static void ClosePathStroke(this HpdfPage page)
+        public static void ClosePathStroke(this IDrawable drawable)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteString("s\n");
         }
 
         /// <summary>
         /// Fills the current path using nonzero winding rule (f operator)
         /// </summary>
-        public static void Fill(this HpdfPage page)
+        public static void Fill(this IDrawable drawable)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteString("f\n");
         }
 
         /// <summary>
         /// Fills the current path using even-odd rule (f* operator)
         /// </summary>
-        public static void EoFill(this HpdfPage page)
+        public static void EoFill(this IDrawable drawable)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteString("f*\n");
         }
 
         /// <summary>
         /// Fills and then strokes the current path (B operator)
         /// </summary>
-        public static void FillStroke(this HpdfPage page)
+        public static void FillStroke(this IDrawable drawable)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteString("B\n");
         }
 
         /// <summary>
         /// Closes, fills, and strokes the current path (b operator)
         /// </summary>
-        public static void ClosePathFillStroke(this HpdfPage page)
+        public static void ClosePathFillStroke(this IDrawable drawable)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteString("b\n");
         }
 
         /// <summary>
         /// Ends the path without filling or stroking (n operator)
         /// </summary>
-        public static void EndPath(this HpdfPage page)
+        public static void EndPath(this IDrawable drawable)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteString("n\n");
         }
 
@@ -256,44 +256,44 @@ namespace Haru.Doc
         /// <summary>
         /// Sets the grayscale fill color (g operator)
         /// </summary>
-        public static void SetGrayFill(this HpdfPage page, float gray)
+        public static void SetGrayFill(this IDrawable drawable, float gray)
         {
             if (gray < 0 || gray > 1)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "Gray value must be 0-1");
 
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(gray);
             stream.WriteString(" g\n");
 
-            page.GraphicsState.GrayFill = gray;
-            page.GraphicsState.FillColorSpace = HpdfColorSpace.DeviceGray;
+            drawable.GraphicsState.GrayFill = gray;
+            drawable.GraphicsState.FillColorSpace = HpdfColorSpace.DeviceGray;
         }
 
         /// <summary>
         /// Sets the grayscale stroke color (G operator)
         /// </summary>
-        public static void SetGrayStroke(this HpdfPage page, float gray)
+        public static void SetGrayStroke(this IDrawable drawable, float gray)
         {
             if (gray < 0 || gray > 1)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "Gray value must be 0-1");
 
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(gray);
             stream.WriteString(" G\n");
 
-            page.GraphicsState.GrayStroke = gray;
-            page.GraphicsState.StrokeColorSpace = HpdfColorSpace.DeviceGray;
+            drawable.GraphicsState.GrayStroke = gray;
+            drawable.GraphicsState.StrokeColorSpace = HpdfColorSpace.DeviceGray;
         }
 
         /// <summary>
         /// Sets the RGB fill color (rg operator)
         /// </summary>
-        public static void SetRgbFill(this HpdfPage page, float r, float g, float b)
+        public static void SetRgbFill(this IDrawable drawable, float r, float g, float b)
         {
             if (r < 0 || r > 1 || g < 0 || g > 1 || b < 0 || b > 1)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "RGB values must be 0-1");
 
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(r);
             stream.WriteChar(' ');
             stream.WriteReal(g);
@@ -301,19 +301,19 @@ namespace Haru.Doc
             stream.WriteReal(b);
             stream.WriteString(" rg\n");
 
-            page.GraphicsState.RgbFill = new HpdfRgbColor(r, g, b);
-            page.GraphicsState.FillColorSpace = HpdfColorSpace.DeviceRgb;
+            drawable.GraphicsState.RgbFill = new HpdfRgbColor(r, g, b);
+            drawable.GraphicsState.FillColorSpace = HpdfColorSpace.DeviceRgb;
         }
 
         /// <summary>
         /// Sets the RGB stroke color (RG operator)
         /// </summary>
-        public static void SetRgbStroke(this HpdfPage page, float r, float g, float b)
+        public static void SetRgbStroke(this IDrawable drawable, float r, float g, float b)
         {
             if (r < 0 || r > 1 || g < 0 || g > 1 || b < 0 || b > 1)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "RGB values must be 0-1");
 
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(r);
             stream.WriteChar(' ');
             stream.WriteReal(g);
@@ -321,19 +321,19 @@ namespace Haru.Doc
             stream.WriteReal(b);
             stream.WriteString(" RG\n");
 
-            page.GraphicsState.RgbStroke = new HpdfRgbColor(r, g, b);
-            page.GraphicsState.StrokeColorSpace = HpdfColorSpace.DeviceRgb;
+            drawable.GraphicsState.RgbStroke = new HpdfRgbColor(r, g, b);
+            drawable.GraphicsState.StrokeColorSpace = HpdfColorSpace.DeviceRgb;
         }
 
         /// <summary>
         /// Sets the CMYK fill color (k operator)
         /// </summary>
-        public static void SetCmykFill(this HpdfPage page, float c, float m, float y, float k)
+        public static void SetCmykFill(this IDrawable drawable, float c, float m, float y, float k)
         {
             if (c < 0 || c > 1 || m < 0 || m > 1 || y < 0 || y > 1 || k < 0 || k > 1)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "CMYK values must be 0-1");
 
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(c);
             stream.WriteChar(' ');
             stream.WriteReal(m);
@@ -343,19 +343,19 @@ namespace Haru.Doc
             stream.WriteReal(k);
             stream.WriteString(" k\n");
 
-            page.GraphicsState.CmykFill = new HpdfCmykColor(c, m, y, k);
-            page.GraphicsState.FillColorSpace = HpdfColorSpace.DeviceCmyk;
+            drawable.GraphicsState.CmykFill = new HpdfCmykColor(c, m, y, k);
+            drawable.GraphicsState.FillColorSpace = HpdfColorSpace.DeviceCmyk;
         }
 
         /// <summary>
         /// Sets the CMYK stroke color (K operator)
         /// </summary>
-        public static void SetCmykStroke(this HpdfPage page, float c, float m, float y, float k)
+        public static void SetCmykStroke(this IDrawable drawable, float c, float m, float y, float k)
         {
             if (c < 0 || c > 1 || m < 0 || m > 1 || y < 0 || y > 1 || k < 0 || k > 1)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "CMYK values must be 0-1");
 
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(c);
             stream.WriteChar(' ');
             stream.WriteReal(m);
@@ -365,8 +365,8 @@ namespace Haru.Doc
             stream.WriteReal(k);
             stream.WriteString(" K\n");
 
-            page.GraphicsState.CmykStroke = new HpdfCmykColor(c, m, y, k);
-            page.GraphicsState.StrokeColorSpace = HpdfColorSpace.DeviceCmyk;
+            drawable.GraphicsState.CmykStroke = new HpdfCmykColor(c, m, y, k);
+            drawable.GraphicsState.StrokeColorSpace = HpdfColorSpace.DeviceCmyk;
         }
 
         // Advanced Path Construction - Bezier Curves
@@ -375,9 +375,9 @@ namespace Haru.Doc
         /// Appends a cubic Bezier curve to the current path (c operator).
         /// The curve extends from the current point to (x3, y3) using (x1, y1) and (x2, y2) as control points.
         /// </summary>
-        public static void CurveTo(this HpdfPage page, float x1, float y1, float x2, float y2, float x3, float y3)
+        public static void CurveTo(this IDrawable drawable, float x1, float y1, float x2, float y2, float x3, float y3)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(x1);
             stream.WriteChar(' ');
             stream.WriteReal(y1);
@@ -391,16 +391,16 @@ namespace Haru.Doc
             stream.WriteReal(y3);
             stream.WriteString(" c\n");
 
-            page.CurrentPos = new HpdfPoint(x3, y3);
+            drawable.CurrentPos = new HpdfPoint(x3, y3);
         }
 
         /// <summary>
         /// Appends a cubic Bezier curve to the current path (v operator).
         /// The curve extends from the current point to (x3, y3) using the current point and (x2, y2) as control points.
         /// </summary>
-        public static void CurveTo2(this HpdfPage page, float x2, float y2, float x3, float y3)
+        public static void CurveTo2(this IDrawable drawable, float x2, float y2, float x3, float y3)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(x2);
             stream.WriteChar(' ');
             stream.WriteReal(y2);
@@ -410,16 +410,16 @@ namespace Haru.Doc
             stream.WriteReal(y3);
             stream.WriteString(" v\n");
 
-            page.CurrentPos = new HpdfPoint(x3, y3);
+            drawable.CurrentPos = new HpdfPoint(x3, y3);
         }
 
         /// <summary>
         /// Appends a cubic Bezier curve to the current path (y operator).
         /// The curve extends from the current point to (x3, y3) using (x1, y1) and (x3, y3) as control points.
         /// </summary>
-        public static void CurveTo3(this HpdfPage page, float x1, float y1, float x3, float y3)
+        public static void CurveTo3(this IDrawable drawable, float x1, float y1, float x3, float y3)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(x1);
             stream.WriteChar(' ');
             stream.WriteReal(y1);
@@ -429,7 +429,7 @@ namespace Haru.Doc
             stream.WriteReal(y3);
             stream.WriteString(" y\n");
 
-            page.CurrentPos = new HpdfPoint(x3, y3);
+            drawable.CurrentPos = new HpdfPoint(x3, y3);
         }
 
         // Transformation Matrix
@@ -437,9 +437,9 @@ namespace Haru.Doc
         /// <summary>
         /// Concatenates a transformation matrix to the current transformation matrix (cm operator).
         /// </summary>
-        public static void Concat(this HpdfPage page, float a, float b, float c, float d, float x, float y)
+        public static void Concat(this IDrawable drawable, float a, float b, float c, float d, float x, float y)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteReal(a);
             stream.WriteChar(' ');
             stream.WriteReal(b);
@@ -457,9 +457,9 @@ namespace Haru.Doc
         /// <summary>
         /// Concatenates a transformation matrix to the current transformation matrix (cm operator).
         /// </summary>
-        public static void Concat(this HpdfPage page, HpdfTransMatrix matrix)
+        public static void Concat(this IDrawable drawable, HpdfTransMatrix matrix)
         {
-            page.Concat(matrix.A, matrix.B, matrix.C, matrix.D, matrix.X, matrix.Y);
+            drawable.Concat(matrix.A, matrix.B, matrix.C, matrix.D, matrix.X, matrix.Y);
         }
 
         // Clipping Paths
@@ -467,18 +467,18 @@ namespace Haru.Doc
         /// <summary>
         /// Modifies the current clipping path using the nonzero winding number rule (W operator).
         /// </summary>
-        public static void Clip(this HpdfPage page)
+        public static void Clip(this IDrawable drawable)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteString("W\n");
         }
 
         /// <summary>
         /// Modifies the current clipping path using the even-odd rule (W* operator).
         /// </summary>
-        public static void EoClip(this HpdfPage page)
+        public static void EoClip(this IDrawable drawable)
         {
-            var stream = page.Contents.Stream;
+            var stream = drawable.Stream;
             stream.WriteString("W*\n");
         }
 
@@ -495,7 +495,7 @@ namespace Haru.Doc
             // Add to page resources
             page.AddExtGStateResource(extGState);
 
-            var stream = page.Contents.Stream;
+            var stream = page.Stream;
             stream.WriteEscapedName(extGState.LocalName);
             stream.WriteString(" gs\n");
         }
@@ -530,7 +530,7 @@ namespace Haru.Doc
             page.Concat(width, 0, 0, height, x, y);
 
             // Execute the XObject (Do operator)
-            var stream = page.Contents.Stream;
+            var stream = page.Stream;
             stream.WriteEscapedName(image.LocalName);
             stream.WriteString(" Do\n");
 

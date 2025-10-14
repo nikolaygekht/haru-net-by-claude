@@ -14,7 +14,8 @@
  *
  */
 
-using System.Text;
+using Haru.Doc;
+using Haru.Graphics;
 
 namespace Haru.Forms.Appearance
 {
@@ -25,71 +26,59 @@ namespace Haru.Forms.Appearance
     public class HpdfCheckboxAppearance : IElementAppearance
     {
         /// <summary>
-        /// Generates the PDF content stream for a checked checkbox (checkmark appearance).
-        /// Uses normalized coordinates with transformation matrix for scaling.
+        /// Draws the checked checkbox appearance (checkmark) using drawing primitives.
+        /// The checkmark is drawn in normalized coordinates and then scaled to fit the widget size.
         /// </summary>
+        /// <param name="drawable">The drawable canvas to draw on.</param>
         /// <param name="width">Width of the annotation rectangle in points.</param>
         /// <param name="height">Height of the annotation rectangle in points.</param>
-        /// <returns>PDF content stream commands drawing a checkmark.</returns>
-        public string GenerateOnStateAppearance(float width, float height)
+        public void GenerateOnStateAppearance(IDrawable drawable, float width, float height)
         {
-            // Checkmark path in normalized coordinates (0-1 range)
-            // This creates a stylized checkmark using line and Bezier curve commands
-            const string checkPath =
-                "0 0 m\n" +                                          // Move to origin
-                "0.066 -0.026 l\n" +                                 // Line to
-                "0.137 -0.15 l\n" +                                  // Line to
-                "0.259 0.081 0.46 0.391 0.553 0.461 c\n" +          // Bezier curve (cp1_x cp1_y cp2_x cp2_y end_x end_y)
-                "0.604 0.489 l\n" +                                  // Line to
-                "0.703 0.492 l\n" +                                  // Line to
-                "0.543 0.312 0.255 -0.205 0.154 -0.439 c\n" +       // Bezier curve
-                "0.069 -0.399 l\n" +                                 // Line to
-                "0.035 -0.293 -0.039 -0.136 -0.091 -0.057 c\n" +   // Bezier curve
-                "h\n" +                                               // Close path
-                "f\n";                                                // Fill path
-
-            var sb = new StringBuilder();
-
             // Save graphics state
-            sb.Append("q\n");
+            drawable.GSave();
 
             // Set fill color to black (RGB: 0, 0, 0)
-            sb.Append("0 0 0 rg\n");
+            drawable.SetRgbFill(0, 0, 0);
 
             // Apply transformation matrix to scale and position the checkmark
-            // Matrix format: a b c d e f cm
-            // where: a=scaleX, b=0, c=0, d=scaleY, e=translateX, f=translateY
-            // Scale to 80% of widget size and center it
+            // Scale to 80% of widget size and position it centered
             float scaleX = width * 0.8f;
             float scaleY = height * 0.8f;
             float translateX = width * 0.3f;
             float translateY = height * 0.5f;
+            drawable.Concat(scaleX, 0, 0, scaleY, translateX, translateY);
 
-            sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
-                "{0:0.####} 0 0 {1:0.####} {2:0.####} {3:0.####} cm\n",
-                scaleX, scaleY, translateX, translateY);
-
-            // Append the checkmark path
-            sb.Append(checkPath);
+            // Draw checkmark path in normalized coordinates (0-1 range)
+            // This creates a stylized checkmark using line and Bezier curve commands
+            drawable.MoveTo(0, 0);
+            drawable.LineTo(0.066f, -0.026f);
+            drawable.LineTo(0.137f, -0.15f);
+            drawable.CurveTo(0.259f, 0.081f, 0.46f, 0.391f, 0.553f, 0.461f);
+            drawable.LineTo(0.604f, 0.489f);
+            drawable.LineTo(0.703f, 0.492f);
+            drawable.CurveTo(0.543f, 0.312f, 0.255f, -0.205f, 0.154f, -0.439f);
+            drawable.LineTo(0.069f, -0.399f);
+            drawable.CurveTo(0.035f, -0.293f, -0.039f, -0.136f, -0.091f, -0.057f);
+            drawable.ClosePath();
+            drawable.Fill();
 
             // Restore graphics state
-            sb.Append("Q\n");
-
-            return sb.ToString();
+            drawable.GRestore();
         }
 
         /// <summary>
-        /// Generates the PDF content stream for an unchecked checkbox (empty appearance).
-        /// Returns minimal valid PDF content stream.
+        /// Draws the unchecked checkbox appearance (empty) using drawing primitives.
+        /// This creates a minimal valid appearance stream (empty box).
         /// </summary>
+        /// <param name="drawable">The drawable canvas to draw on.</param>
         /// <param name="width">Width of the annotation rectangle in points.</param>
         /// <param name="height">Height of the annotation rectangle in points.</param>
-        /// <returns>PDF content stream commands (empty appearance).</returns>
-        public string GenerateOffStateAppearance(float width, float height)
+        public void GenerateOffStateAppearance(IDrawable drawable, float width, float height)
         {
             // For "Off" state, we just need minimal valid PDF content
             // The border will be drawn by the annotation's border properties
-            return "q\nQ\n";
+            drawable.GSave();
+            drawable.GRestore();
         }
     }
 }

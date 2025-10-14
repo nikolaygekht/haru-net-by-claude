@@ -15,7 +15,8 @@
  */
 
 using System;
-using System.Text;
+using Haru.Doc;
+using Haru.Graphics;
 
 namespace Haru.Forms.Appearance
 {
@@ -43,88 +44,45 @@ namespace Haru.Forms.Appearance
         }
 
         /// <summary>
-        /// Generates the PDF content stream for a selected radio button (filled circle).
-        /// Uses four Bezier curves to approximate a perfect circle.
+        /// Draws the selected radio button appearance (filled circle) using drawing primitives.
         /// </summary>
+        /// <param name="drawable">The drawable canvas to draw on.</param>
         /// <param name="width">Width of the annotation rectangle in points.</param>
         /// <param name="height">Height of the annotation rectangle in points.</param>
-        /// <returns>PDF content stream commands drawing a filled circle.</returns>
-        public string GenerateOnStateAppearance(float width, float height)
+        public void GenerateOnStateAppearance(IDrawable drawable, float width, float height)
         {
-            var sb = new StringBuilder();
-
             // Save graphics state
-            sb.Append("q\n");
+            drawable.GSave();
 
             // Set fill color to black (RGB: 0, 0, 0)
-            sb.Append("0 0 0 rg\n");
+            drawable.SetRgbFill(0, 0, 0);
 
             // Calculate circle center and radius
             float centerX = width / 2f;
             float centerY = height / 2f;
             float radius = Math.Min(width, height) / 2f * _fillRatio;
 
-            // Draw circle using 4 Bezier curves (standard technique)
-            // Magic constant for circle approximation with cubic Bezier curves:
-            // kappa = 4/3 * tan(π/8) ≈ 0.5522847498
-            // This value ensures the Bezier curve closely approximates a circular arc
-            const float kappa = 0.5522847498f;
-            float controlDist = radius * kappa;
-
-            // Move to the rightmost point of the circle (3 o'clock position)
-            sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
-                "{0:0.####} {1:0.####} m\n",
-                centerX + radius, centerY);
-
-            // Draw top-right quarter (3 o'clock to 12 o'clock)
-            sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
-                "{0:0.####} {1:0.####} {2:0.####} {3:0.####} {4:0.####} {5:0.####} c\n",
-                centerX + radius, centerY + controlDist,        // Control point 1
-                centerX + controlDist, centerY + radius,        // Control point 2
-                centerX, centerY + radius);                      // End point (12 o'clock)
-
-            // Draw top-left quarter (12 o'clock to 9 o'clock)
-            sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
-                "{0:0.####} {1:0.####} {2:0.####} {3:0.####} {4:0.####} {5:0.####} c\n",
-                centerX - controlDist, centerY + radius,        // Control point 1
-                centerX - radius, centerY + controlDist,        // Control point 2
-                centerX - radius, centerY);                      // End point (9 o'clock)
-
-            // Draw bottom-left quarter (9 o'clock to 6 o'clock)
-            sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
-                "{0:0.####} {1:0.####} {2:0.####} {3:0.####} {4:0.####} {5:0.####} c\n",
-                centerX - radius, centerY - controlDist,        // Control point 1
-                centerX - controlDist, centerY - radius,        // Control point 2
-                centerX, centerY - radius);                      // End point (6 o'clock)
-
-            // Draw bottom-right quarter (6 o'clock to 3 o'clock)
-            sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
-                "{0:0.####} {1:0.####} {2:0.####} {3:0.####} {4:0.####} {5:0.####} c\n",
-                centerX + controlDist, centerY - radius,        // Control point 1
-                centerX + radius, centerY - controlDist,        // Control point 2
-                centerX + radius, centerY);                      // End point (3 o'clock, back to start)
-
-            // Fill the path
-            sb.Append("f\n");
+            // Draw filled circle using the built-in Circle primitive
+            drawable.Circle(centerX, centerY, radius);
+            drawable.Fill();
 
             // Restore graphics state
-            sb.Append("Q\n");
-
-            return sb.ToString();
+            drawable.GRestore();
         }
 
         /// <summary>
-        /// Generates the PDF content stream for an unselected radio button (empty appearance).
-        /// Returns minimal valid PDF content stream.
+        /// Draws the unselected radio button appearance (empty) using drawing primitives.
+        /// This creates a minimal valid appearance stream (empty circle).
         /// </summary>
+        /// <param name="drawable">The drawable canvas to draw on.</param>
         /// <param name="width">Width of the annotation rectangle in points.</param>
         /// <param name="height">Height of the annotation rectangle in points.</param>
-        /// <returns>PDF content stream commands (empty appearance).</returns>
-        public string GenerateOffStateAppearance(float width, float height)
+        public void GenerateOffStateAppearance(IDrawable drawable, float width, float height)
         {
             // For "Off" state, we just need minimal valid PDF content
             // The circular border will be drawn by the annotation's border properties
-            return "q\nQ\n";
+            drawable.GSave();
+            drawable.GRestore();
         }
     }
 }
