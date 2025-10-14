@@ -24,7 +24,7 @@ namespace Haru.Font.CID
     /// Represents a CID (Character Identifier) font for multi-byte character sets (CJK).
     /// Uses CIDFontType2 (TrueType-based) with Identity-H encoding.
     /// </summary>
-    public class HpdfCIDFont
+    public class HpdfCIDFont : IHpdfFontImplementation
     {
         private readonly HpdfDict _dict;               // Type 0 (composite) font dictionary
         private readonly HpdfDict _cidFontDict;        // CIDFontType2 descendant font dictionary
@@ -70,7 +70,68 @@ namespace Haru.Font.CID
         /// <summary>
         /// Gets the code page used for text encoding.
         /// </summary>
-        public int CodePage => _codePage;
+        public int? CodePage => _codePage;
+
+        /// <summary>
+        /// Gets the font ascent in 1000-unit glyph space (scaled from font units).
+        /// </summary>
+        public int Ascent
+        {
+            get
+            {
+                if (_hhea != null && _head != null)
+                    return (int)Math.Round(_hhea.Ascender * 1000.0 / _head.UnitsPerEm);
+                return 750;
+            }
+        }
+
+        /// <summary>
+        /// Gets the font descent in 1000-unit glyph space (scaled from font units).
+        /// </summary>
+        public int Descent
+        {
+            get
+            {
+                if (_hhea != null && _head != null)
+                    return (int)Math.Round(_hhea.Descender * 1000.0 / _head.UnitsPerEm);
+                return -250;
+            }
+        }
+
+        /// <summary>
+        /// Gets the x-height in 1000-unit glyph space (scaled from font units).
+        /// </summary>
+        public int XHeight
+        {
+            get
+            {
+                if (_os2 != null && _head != null)
+                    return (int)Math.Round(_os2.STypoAscender * 1000.0 / _head.UnitsPerEm);
+                if (_head != null)
+                    return (int)Math.Round(_head.YMax * 1000.0 / _head.UnitsPerEm);
+                return 500;
+            }
+        }
+
+        /// <summary>
+        /// Gets the font bounding box in 1000-unit glyph space (scaled from font units).
+        /// </summary>
+        public HpdfBox FontBBox
+        {
+            get
+            {
+                if (_head != null)
+                {
+                    float scale = 1000.0f / _head.UnitsPerEm;
+                    return new HpdfBox(
+                        _head.XMin * scale,
+                        _head.YMin * scale,
+                        _head.XMax * scale,
+                        _head.YMax * scale);
+                }
+                return new HpdfBox(0, -250, 1000, 750);
+            }
+        }
 
         /// <summary>
         /// Gets an HpdfFont wrapper for this CID font that can be used with page operations.
@@ -975,6 +1036,26 @@ namespace Haru.Font.CID
                 return CalculateDefaultWidth();
 
             return _hMetrics[glyphId].AdvanceWidth;
+        }
+
+        /// <summary>
+        /// Gets the width of a character in 1000-unit glyph space.
+        /// For CID fonts, this converts the character to a glyph ID and returns its width.
+        /// </summary>
+        /// <param name="charCode">The character code (treated as Unicode).</param>
+        /// <returns>The character width in 1000-unit glyph space.</returns>
+        public float GetCharWidth(byte charCode)
+        {
+            // For CID fonts, treat byte as ASCII/Unicode character
+            ushort unicode = charCode;
+            ushort glyphId = GetGlyphId(unicode);
+            int widthInFontUnits = GetGlyphWidth(glyphId);
+
+            // Scale from font units to 1000-unit glyph space
+            if (_head != null)
+                return (float)Math.Round(widthInFontUnits * 1000.0 / _head.UnitsPerEm);
+
+            return 1000; // Default 1em width
         }
 
         /// <summary>

@@ -88,14 +88,16 @@ namespace Haru.Objects
             // Before writing, update the Filter array if filters are set
             UpdateFilterArray();
 
-            // If there's stream data, prepare it and update Length BEFORE writing dictionary
+            // Prepare stream data (even if empty) and update Length BEFORE writing dictionary
             byte[] streamDataToWrite = null;
             if (_stream != null && _stream.Size > 0)
             {
                 streamDataToWrite = PrepareStreamData(stream);
-                // Update the Length entry with the actual size
-                this["Length"] = new HpdfNumber(streamDataToWrite.Length);
             }
+
+            // Update the Length entry with the actual size (0 for empty streams)
+            int streamLength = streamDataToWrite?.Length ?? 0;
+            this["Length"] = new HpdfNumber(streamLength);
 
             // Write the dictionary part
             stream.WriteString("<<");
@@ -123,19 +125,20 @@ namespace Haru.Objects
 
             stream.WriteString(">>");
 
-            // If there's stream data, write the stream section
-            if (streamDataToWrite != null)
+            // ALWAYS write the stream section for stream objects (even if empty)
+            // This ensures the object is recognized as a StreamToken, not an ObjectToken
+            stream.WriteLine();
+            stream.WriteString("stream");
+            stream.WriteLine();
+
+            // Write the prepared stream data (if any)
+            if (streamDataToWrite != null && streamDataToWrite.Length > 0)
             {
-                stream.WriteLine();
-                stream.WriteString("stream");
-                stream.WriteLine();
-
-                // Write the prepared stream data
                 stream.Write(streamDataToWrite);
-
-                stream.WriteLine();
-                stream.WriteString("endstream");
             }
+
+            stream.WriteLine();
+            stream.WriteString("endstream");
         }
 
         /// <summary>

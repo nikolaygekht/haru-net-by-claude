@@ -76,6 +76,14 @@ namespace BasicDemos
             AcroFormsDemo.Run();
             Console.WriteLine("AcroFormsDemo completed.\n");
 
+            Console.WriteLine("Running FontMetricsDemo...");
+            FontMetricsDemo.Run();
+            Console.WriteLine("FontMetricsDemo completed.\n");
+
+            Console.WriteLine("Running TextWrappingDemo...");
+            TextWrappingDemo.Run();
+            Console.WriteLine("TextWrappingDemo completed.\n");
+
             Console.WriteLine("All demos completed successfully!");
             Console.WriteLine("PDF files have been generated in the current directory.");
         }

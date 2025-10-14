@@ -392,5 +392,211 @@ namespace Haru.Test.Doc
             act.Should().Throw<HpdfException>()
                 .WithMessage("*Image dimensions must be positive*");
         }
+
+        // PNG from memory tests
+
+        [Fact]
+        public void LoadPngImageFromMem_ValidData_CreatesImage()
+        {
+            // Arrange
+            var xref = new HpdfXref(0);
+            byte[] pngData;
+            using (var stream = GetResourceStream("test_rgb_2x2.png"))
+            using (var memStream = new MemoryStream())
+            {
+                stream.CopyTo(memStream);
+                pngData = memStream.ToArray();
+            }
+
+            // Act
+            var image = HpdfImage.LoadPngImageFromMem(xref, "Im1", pngData);
+
+            // Assert
+            image.Should().NotBeNull();
+            image.Width.Should().Be(2);
+            image.Height.Should().Be(2);
+            (image.Dict["ColorSpace"] as HpdfName)?.Value.Should().Be("DeviceRGB");
+        }
+
+        [Fact]
+        public void LoadPngImageFromMem_NullData_ThrowsException()
+        {
+            // Arrange
+            var xref = new HpdfXref(0);
+
+            // Act
+            Action act = () => HpdfImage.LoadPngImageFromMem(xref, "Im1", null);
+
+            // Assert
+            act.Should().Throw<HpdfException>()
+                .WithMessage("*PNG data cannot be null or empty*");
+        }
+
+        [Fact]
+        public void LoadPngImageFromMem_EmptyData_ThrowsException()
+        {
+            // Arrange
+            var xref = new HpdfXref(0);
+
+            // Act
+            Action act = () => HpdfImage.LoadPngImageFromMem(xref, "Im1", new byte[0]);
+
+            // Assert
+            act.Should().Throw<HpdfException>()
+                .WithMessage("*PNG data cannot be null or empty*");
+        }
+
+        // Raw image loading tests
+
+        [Fact]
+        public void LoadRawImageFromMem_Grayscale_CreatesValidImage()
+        {
+            // Arrange
+            var xref = new HpdfXref(0);
+            var width = 2u;
+            var height = 2u;
+            // 2x2 grayscale image (4 pixels, 1 byte each)
+            var data = new byte[] { 0, 128, 128, 255 };
+
+            // Act
+            var image = HpdfImage.LoadRawImageFromMem(xref, "Im1", data, width, height,
+                HpdfColorSpace.DeviceGray, 8);
+
+            // Assert
+            image.Should().NotBeNull();
+            image.Width.Should().Be(2);
+            image.Height.Should().Be(2);
+            (image.Dict["ColorSpace"] as HpdfName)?.Value.Should().Be("DeviceGray");
+            (image.Dict["BitsPerComponent"] as HpdfNumber)?.Value.Should().Be(8);
+            image.StreamObject.Filter.Should().Be(HpdfStreamFilter.FlateDecode);
+        }
+
+        [Fact]
+        public void LoadRawImageFromMem_RGB_CreatesValidImage()
+        {
+            // Arrange
+            var xref = new HpdfXref(0);
+            var width = 2u;
+            var height = 2u;
+            // 2x2 RGB image (4 pixels, 3 bytes each = 12 bytes)
+            var data = new byte[] {
+                255, 0, 0,    // Red
+                0, 255, 0,    // Green
+                0, 0, 255,    // Blue
+                255, 255, 0   // Yellow
+            };
+
+            // Act
+            var image = HpdfImage.LoadRawImageFromMem(xref, "Im1", data, width, height,
+                HpdfColorSpace.DeviceRgb, 8);
+
+            // Assert
+            image.Should().NotBeNull();
+            image.Width.Should().Be(2);
+            image.Height.Should().Be(2);
+            (image.Dict["ColorSpace"] as HpdfName)?.Value.Should().Be("DeviceRGB");
+            (image.Dict["BitsPerComponent"] as HpdfNumber)?.Value.Should().Be(8);
+        }
+
+        [Fact]
+        public void LoadRawImageFromMem_CMYK_CreatesValidImage()
+        {
+            // Arrange
+            var xref = new HpdfXref(0);
+            var width = 1u;
+            var height = 1u;
+            // 1x1 CMYK image (1 pixel, 4 bytes)
+            var data = new byte[] { 0, 100, 100, 0 };
+
+            // Act
+            var image = HpdfImage.LoadRawImageFromMem(xref, "Im1", data, width, height,
+                HpdfColorSpace.DeviceCmyk, 8);
+
+            // Assert
+            image.Should().NotBeNull();
+            image.Width.Should().Be(1);
+            image.Height.Should().Be(1);
+            (image.Dict["ColorSpace"] as HpdfName)?.Value.Should().Be("DeviceCMYK");
+        }
+
+        [Fact]
+        public void LoadRawImageFromMem_NullData_ThrowsException()
+        {
+            // Arrange
+            var xref = new HpdfXref(0);
+
+            // Act
+            Action act = () => HpdfImage.LoadRawImageFromMem(xref, "Im1", null, 2, 2,
+                HpdfColorSpace.DeviceGray, 8);
+
+            // Assert
+            act.Should().Throw<HpdfException>()
+                .WithMessage("*Image data cannot be null or empty*");
+        }
+
+        [Fact]
+        public void LoadRawImageFromMem_ZeroWidth_ThrowsException()
+        {
+            // Arrange
+            var xref = new HpdfXref(0);
+            var data = new byte[4];
+
+            // Act
+            Action act = () => HpdfImage.LoadRawImageFromMem(xref, "Im1", data, 0, 2,
+                HpdfColorSpace.DeviceGray, 8);
+
+            // Assert
+            act.Should().Throw<HpdfException>()
+                .WithMessage("*Image dimensions must be greater than zero*");
+        }
+
+        [Fact]
+        public void LoadRawImageFromMem_ZeroHeight_ThrowsException()
+        {
+            // Arrange
+            var xref = new HpdfXref(0);
+            var data = new byte[4];
+
+            // Act
+            Action act = () => HpdfImage.LoadRawImageFromMem(xref, "Im1", data, 2, 0,
+                HpdfColorSpace.DeviceGray, 8);
+
+            // Assert
+            act.Should().Throw<HpdfException>()
+                .WithMessage("*Image dimensions must be greater than zero*");
+        }
+
+        [Fact]
+        public void LoadRawImageFromMem_InsufficientData_ThrowsException()
+        {
+            // Arrange
+            var xref = new HpdfXref(0);
+            var data = new byte[2]; // Too small for 2x2 grayscale image (needs 4 bytes)
+
+            // Act
+            Action act = () => HpdfImage.LoadRawImageFromMem(xref, "Im1", data, 2, 2,
+                HpdfColorSpace.DeviceGray, 8);
+
+            // Assert
+            act.Should().Throw<HpdfException>()
+                .WithMessage("*Image data size mismatch*");
+        }
+
+        [Fact]
+        public void LoadRawImageFromMem_AddedToXref()
+        {
+            // Arrange
+            var xref = new HpdfXref(0);
+            var initialCount = xref.Entries.Count;
+            var data = new byte[] { 0, 128, 128, 255 };
+
+            // Act
+            var image = HpdfImage.LoadRawImageFromMem(xref, "Im1", data, 2, 2,
+                HpdfColorSpace.DeviceGray, 8);
+
+            // Assert
+            xref.Entries.Count.Should().BeGreaterThan(initialCount);
+            image.Dict.IsIndirect.Should().BeTrue();
+        }
     }
 }

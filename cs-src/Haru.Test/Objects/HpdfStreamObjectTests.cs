@@ -19,7 +19,7 @@ namespace Haru.Test.Objects
         }
 
         [Fact]
-        public void StreamObject_EmptyStream_WritesOnlyDictionary()
+        public void StreamObject_EmptyStream_WritesStreamSection()
         {
             var obj = new HpdfStreamObject();
 
@@ -28,8 +28,10 @@ namespace Haru.Test.Objects
             result.Should().Contain("<<");
             result.Should().Contain("/Length 0");
             result.Should().Contain(">>");
-            result.Should().NotContain("stream");
-            result.Should().NotContain("endstream");
+            // Empty streams still write stream/endstream for PDF spec compliance
+            // This ensures the object is recognized as a StreamToken by PDF parsers
+            result.Should().Contain("stream");
+            result.Should().Contain("endstream");
         }
 
         [Fact]

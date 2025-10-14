@@ -276,5 +276,51 @@ namespace Haru.Test.Doc
             page.Width.Should().BeApproximately(expectedWidth, 0.01f);
             page.Height.Should().BeApproximately(expectedHeight, 0.01f);
         }
+
+        // Extension method tests for API compatibility
+
+        [Fact]
+        public void SetHeight_ExtensionMethod_UpdatesHeight()
+        {
+            // Arrange
+            var xref = new HpdfXref(0);
+            var page = new HpdfPage(xref);
+
+            // Act
+            page.SetHeight(800);
+
+            // Assert
+            page.Height.Should().Be(800);
+        }
+
+        [Fact]
+        public void SetWidth_ExtensionMethod_UpdatesWidth()
+        {
+            // Arrange
+            var xref = new HpdfXref(0);
+            var page = new HpdfPage(xref);
+
+            // Act
+            page.SetWidth(600);
+
+            // Assert
+            page.Width.Should().Be(600);
+        }
+
+        [Fact]
+        public void SetWidthAndHeight_ExtensionMethods_UpdatesBoth()
+        {
+            // Arrange
+            var xref = new HpdfXref(0);
+            var page = new HpdfPage(xref);
+
+            // Act
+            page.SetWidth(500);
+            page.SetHeight(750);
+
+            // Assert
+            page.Width.Should().Be(500);
+            page.Height.Should().Be(750);
+        }
     }
 }

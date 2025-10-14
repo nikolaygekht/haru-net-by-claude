@@ -28,7 +28,7 @@ namespace Haru.Font
     /// <summary>
     /// Represents a TrueType font that can be embedded in a PDF.
     /// </summary>
-    public class HpdfTrueTypeFont
+    public class HpdfTrueTypeFont : IHpdfFontImplementation
     {
         private readonly HpdfDict _dict;
         private string _baseFont;
@@ -73,12 +73,73 @@ namespace Haru.Font
         /// <summary>
         /// Gets the code page used for encoding this font.
         /// </summary>
-        public int CodePage => _codePage;
+        public int? CodePage => _codePage;
 
         /// <summary>
         /// Gets the font descriptor dictionary.
         /// </summary>
         public HpdfDict Descriptor => _descriptor;
+
+        /// <summary>
+        /// Gets the font ascent in 1000-unit glyph space (scaled from font units).
+        /// </summary>
+        public int Ascent
+        {
+            get
+            {
+                if (_hhea != null && _head != null)
+                    return (int)Math.Round(_hhea.Ascender * 1000.0 / _head.UnitsPerEm);
+                return 750;
+            }
+        }
+
+        /// <summary>
+        /// Gets the font descent in 1000-unit glyph space (scaled from font units).
+        /// </summary>
+        public int Descent
+        {
+            get
+            {
+                if (_hhea != null && _head != null)
+                    return (int)Math.Round(_hhea.Descender * 1000.0 / _head.UnitsPerEm);
+                return -250;
+            }
+        }
+
+        /// <summary>
+        /// Gets the x-height in 1000-unit glyph space (scaled from font units).
+        /// </summary>
+        public int XHeight
+        {
+            get
+            {
+                if (_os2 != null && _head != null)
+                    return (int)Math.Round(_os2.STypoAscender * 1000.0 / _head.UnitsPerEm);
+                if (_head != null)
+                    return (int)Math.Round(_head.YMax * 1000.0 / _head.UnitsPerEm);
+                return 500;
+            }
+        }
+
+        /// <summary>
+        /// Gets the font bounding box in 1000-unit glyph space (scaled from font units).
+        /// </summary>
+        public HpdfBox FontBBox
+        {
+            get
+            {
+                if (_head != null)
+                {
+                    float scale = 1000.0f / _head.UnitsPerEm;
+                    return new HpdfBox(
+                        _head.XMin * scale,
+                        _head.YMin * scale,
+                        _head.XMax * scale,
+                        _head.YMax * scale);
+                }
+                return new HpdfBox(0, -250, 1000, 750);
+            }
+        }
 
         /// <summary>
         /// Gets an HpdfFont wrapper for this TrueType font that can be used with page operations.

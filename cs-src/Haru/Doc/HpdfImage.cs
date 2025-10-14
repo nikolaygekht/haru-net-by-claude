@@ -117,6 +117,83 @@ namespace Haru.Doc
         }
 
         /// <summary>
+        /// Loads a PNG image from memory (byte array).
+        /// </summary>
+        public static HpdfImage LoadPngImageFromMem(HpdfXref xref, string localName, byte[] data)
+        {
+            if (data == null || data.Length == 0)
+                throw new HpdfException(HpdfErrorCode.InvalidParameter, "PNG data cannot be null or empty");
+
+            using (var memoryStream = new MemoryStream(data))
+            {
+                return LoadPngImage(xref, localName, memoryStream);
+            }
+        }
+
+        /// <summary>
+        /// Loads raw image data from memory.
+        /// This is used for grayscale or RGB images where pixel data is already decoded.
+        /// </summary>
+        /// <param name="xref">The cross-reference table.</param>
+        /// <param name="localName">The local resource name for the image.</param>
+        /// <param name="data">Raw pixel data.</param>
+        /// <param name="width">Image width in pixels.</param>
+        /// <param name="height">Image height in pixels.</param>
+        /// <param name="colorSpace">Color space (DeviceGray, DeviceRGB, or DeviceCMYK).</param>
+        /// <param name="bitsPerComponent">Bits per color component (typically 8).</param>
+        /// <returns>The loaded image.</returns>
+        public static HpdfImage LoadRawImageFromMem(HpdfXref xref, string localName, byte[] data,
+            uint width, uint height, HpdfColorSpace colorSpace, byte bitsPerComponent)
+        {
+            if (data == null || data.Length == 0)
+                throw new HpdfException(HpdfErrorCode.InvalidParameter, "Image data cannot be null or empty");
+
+            if (width == 0 || height == 0)
+                throw new HpdfException(HpdfErrorCode.InvalidParameter, "Image dimensions must be greater than zero");
+
+            // Calculate expected data size
+            int componentsPerPixel = colorSpace switch
+            {
+                HpdfColorSpace.DeviceGray => 1,
+                HpdfColorSpace.DeviceRgb => 3,
+                HpdfColorSpace.DeviceCmyk => 4,
+                _ => throw new HpdfException(HpdfErrorCode.InvalidParameter, $"Unsupported color space: {colorSpace}")
+            };
+
+            int bytesPerComponent = (bitsPerComponent + 7) / 8;
+            int expectedSize = (int)(width * height * componentsPerPixel * bytesPerComponent);
+
+            if (data.Length < expectedSize)
+                throw new HpdfException(HpdfErrorCode.InvalidParameter,
+                    $"Image data size mismatch: expected at least {expectedSize} bytes, got {data.Length}");
+
+            var image = new HpdfImage(xref, localName);
+
+            // Set image properties
+            image.Dict.Add("Width", new HpdfNumber((int)width));
+            image.Dict.Add("Height", new HpdfNumber((int)height));
+            image.Dict.Add("BitsPerComponent", new HpdfNumber(bitsPerComponent));
+
+            // Set color space
+            string colorSpaceName = colorSpace switch
+            {
+                HpdfColorSpace.DeviceGray => "DeviceGray",
+                HpdfColorSpace.DeviceRgb => "DeviceRGB",
+                HpdfColorSpace.DeviceCmyk => "DeviceCMYK",
+                _ => throw new HpdfException(HpdfErrorCode.InvalidParameter, $"Unsupported color space: {colorSpace}")
+            };
+            image.Dict.Add("ColorSpace", new HpdfName(colorSpaceName));
+
+            // Write raw pixel data to stream
+            image._streamObject.Stream.Write(data, 0, data.Length);
+
+            // Apply compression
+            image._streamObject.Filter = HpdfStreamFilter.FlateDecode;
+
+            return image;
+        }
+
+        /// <summary>
         /// Loads a PNG image from a stream.
         /// </summary>
         public static HpdfImage LoadPngImage(HpdfXref xref, string localName, Stream stream)

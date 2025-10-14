@@ -110,5 +110,25 @@ namespace Haru.Doc
             stream.WriteEscapedName(image.LocalName);
             stream.WriteString(" Do\n");
         }
+
+        /// <summary>
+        /// Sets the page height (convenience method for API compatibility).
+        /// </summary>
+        /// <param name="page">The page.</param>
+        /// <param name="height">The height in points.</param>
+        public static void SetHeight(this HpdfPage page, float height)
+        {
+            page.Height = height;
+        }
+
+        /// <summary>
+        /// Sets the page width (convenience method for API compatibility).
+        /// </summary>
+        /// <param name="page">The page.</param>
+        /// <param name="width">The width in points.</param>
+        public static void SetWidth(this HpdfPage page, float width)
+        {
+            page.Width = width;
+        }
     }
 }

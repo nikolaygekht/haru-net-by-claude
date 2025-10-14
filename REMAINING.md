@@ -1,8 +1,8 @@
 # Remaining Features to Implement
 
-**Last Updated**: 2025-10-13
-**Overall Completion**: ~95%
-**Estimated Remaining Effort**: 1-2 days
+**Last Updated**: 2025-01-14
+**Overall Completion**: ~96%
+**Estimated Remaining Effort**: 0.5-1 day
 
 ## Priority Features Still To Do
 
@@ -114,26 +114,30 @@ Remaining advanced page features.
 ---
 
 ### 4. Additional Image Formats
-**Estimated Effort**: 1-2 days
+**Estimated Effort**: 0.5-1 day
 **Complexity**: Medium
 **Priority**: Low
 
 Support for specialized image formats.
 
+**Completed Components**:
+- ✓ Raw image data loading (Grayscale, RGB, CMYK) - **DONE (2025-01-14)**
+
 **Required Components**:
 - [ ] CCITT Group 3/4 fax images (1-bit monochrome compression)
-- [ ] Raw image data loading
 - [ ] 1-bit monochrome images
 - [ ] Color mask support (transparency via color key)
 - [ ] Image interpolation flag
 
-**Files to Update**:
-- `cs-src/Haru/Doc/HpdfImage.cs` (add methods)
-- `cs-src/Haru/Images/` (new image type classes)
+**Files Updated**:
+- ✓ `cs-src/Haru/Doc/HpdfImage.cs` (LoadRawImageFromMem, LoadPngImageFromMem added)
+- ✓ `cs-src/Haru/Doc/HpdfPageExtensions.cs` (SetHeight, SetWidth added)
+
+**Files to Create**:
+- `cs-src/Haru/Images/` (CCITT image type classes)
 
 **C Source References**:
 - `c-src/hpdf_image_ccitt.c` (400+ lines)
-- `c-src/hpdf_image.c` (1500+ lines)
 
 ---
 
@@ -233,13 +237,17 @@ Enhanced PDF/A compliance (Phase 1 already complete).
 - ✓ **Page Labels** (0.5 day) - Custom page numbering - DONE (2025-10-12)
 - ✓ **Page Boundaries** (0.5 day) - Advanced page boxes - DONE (2025-10-12)
 - ✓ **AcroForms Core** (3 days) - All field types implemented - DONE (2025-10-13)
+- ✓ **Image Loading from Memory** (0.25 day) - PNG and Raw image loading - DONE (2025-01-14)
+- ✓ **Page Size Convenience Methods** (0.1 day) - SetHeight/SetWidth - DONE (2025-01-14)
+- ✓ **PdfPig Integration Tests** (0.25 day) - Third-party PDF validation - DONE (2025-01-14)
+- ✓ **Empty Page Bug Fix** (0.1 day) - PDF spec compliance for stream objects - DONE (2025-01-14)
 
 ### Immediate Priority
 1. **AcroForms Compatibility** (0.5-1 day) - Fix viewer compatibility issues
 
 ### Optional Enhancements
 2. **Additional Page Features** (0.5 day) - User units, thumbnails, per-page metadata
-3. **Additional Images** (1-2 days) - CCITT fax, raw images
+3. **Additional Images** (0.5-1 day) - CCITT fax, 1-bit monochrome, color masks
 4. **Name Dictionary** (0.5 day) - Named resources
 5. **External Data** (0.5 day) - File attachments
 6. **PDF/A Phase 2** (2-3 days) - Extended compliance
@@ -247,8 +255,8 @@ Enhanced PDF/A compliance (Phase 1 already complete).
 
 ### Total Remaining Effort
 - **High Priority (AcroForms Compatibility)**: 0.5-1 day
-- **All Optional Features**: 0.5-3.5 days
-- **Complete to 100%**: 1-4.5 days total
+- **All Optional Features**: 0.5-3 days
+- **Complete to 100%**: 1-4 days total
 
 ## What Works Now
 

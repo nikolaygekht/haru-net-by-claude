@@ -22,6 +22,7 @@ using Haru.Objects;
 using Haru.Xref;
 using Haru.Font.Type1;
 using Haru.Streams;
+using Haru.Types;
 
 namespace Haru.Font
 {
@@ -29,7 +30,7 @@ namespace Haru.Font
     /// Represents a Type 1 font that can be embedded in a PDF.
     /// Supports custom code pages for multi-language rendering (similar to TrueType fonts).
     /// </summary>
-    public class HpdfType1Font
+    public class HpdfType1Font : IHpdfFontImplementation
     {
         private readonly HpdfDict _dict;
         private string _baseFont;
@@ -63,12 +64,43 @@ namespace Haru.Font
         /// <summary>
         /// Gets the code page used for encoding this font.
         /// </summary>
-        public int CodePage => _codePage;
+        public int? CodePage => _codePage;
 
         /// <summary>
         /// Gets the font descriptor dictionary.
         /// </summary>
         public HpdfDict Descriptor => _descriptor;
+
+        /// <summary>
+        /// Gets the font ascent in 1000-unit glyph space.
+        /// </summary>
+        public int Ascent => _afmData?.Ascender ?? 750;
+
+        /// <summary>
+        /// Gets the font descent in 1000-unit glyph space.
+        /// </summary>
+        public int Descent => _afmData?.Descender ?? -250;
+
+        /// <summary>
+        /// Gets the x-height in 1000-unit glyph space.
+        /// </summary>
+        public int XHeight => _afmData?.XHeight ?? 500;
+
+        /// <summary>
+        /// Gets the font bounding box.
+        /// </summary>
+        public HpdfBox FontBBox
+        {
+            get
+            {
+                if (_afmData?.FontBBox != null)
+                {
+                    var r = _afmData.FontBBox;
+                    return new HpdfBox(r.Left, r.Bottom, r.Right, r.Top);
+                }
+                return new HpdfBox(0, -250, 1000, 750);
+            }
+        }
 
         /// <summary>
         /// Gets an HpdfFont wrapper for this Type 1 font that can be used with page operations.
