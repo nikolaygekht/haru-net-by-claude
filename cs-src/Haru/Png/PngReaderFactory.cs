@@ -11,7 +11,7 @@ namespace Haru.Png
         /// <returns>A new IPngReader instance</returns>
         public static IPngReader Create()
         {
-            return new ImageSharpPngReader();
+            return new StbImageReader();
         }
 
         /// <summary>

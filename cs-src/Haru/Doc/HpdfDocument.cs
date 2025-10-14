@@ -557,5 +557,49 @@ namespace Haru.Doc
         {
             return _acroForm;
         }
+
+        /// <summary>
+        /// Loads a PNG image from a file.
+        /// </summary>
+        /// <param name="filePath">The path to the PNG file.</param>
+        /// <returns>The loaded image object.</returns>
+        public HpdfImage LoadPngImageFromFile(string filePath)
+        {
+            string localName = $"Im{_xref.Entries.Count + 1}";
+            return HpdfImage.LoadPngImage(_xref, localName, filePath);
+        }
+
+        /// <summary>
+        /// Loads a PNG image from a stream.
+        /// </summary>
+        /// <param name="stream">The stream containing PNG data.</param>
+        /// <returns>The loaded image object.</returns>
+        public HpdfImage LoadPngImage(Stream stream)
+        {
+            string localName = $"Im{_xref.Entries.Count + 1}";
+            return HpdfImage.LoadPngImage(_xref, localName, stream);
+        }
+
+        /// <summary>
+        /// Loads a JPEG image from a file.
+        /// </summary>
+        /// <param name="filePath">The path to the JPEG file.</param>
+        /// <returns>The loaded image object.</returns>
+        public HpdfImage LoadJpegImageFromFile(string filePath)
+        {
+            string localName = $"Im{_xref.Entries.Count + 1}";
+            return HpdfImage.LoadJpegImage(_xref, localName, filePath);
+        }
+
+        /// <summary>
+        /// Loads a JPEG image from a stream.
+        /// </summary>
+        /// <param name="stream">The stream containing JPEG data.</param>
+        /// <returns>The loaded image object.</returns>
+        public HpdfImage LoadJpegImage(Stream stream)
+        {
+            string localName = $"Im{_xref.Entries.Count + 1}";
+            return HpdfImage.LoadJpegImage(_xref, localName, stream);
+        }
     }
 }

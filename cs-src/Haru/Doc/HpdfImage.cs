@@ -261,7 +261,7 @@ namespace Haru.Doc
                 image.Dict.Add("Decode", decodeArray);
             }
 
-            // Copy JPEG data directly to stream (no re-compression needed)
+            // Copy JPEG data directly to stream (already DCT-compressed)
             stream.Position = 0;
             byte[] buffer = new byte[4096];
             int bytesRead;
@@ -270,8 +270,9 @@ namespace Haru.Doc
                 image._streamObject.Stream.Write(buffer, 0, bytesRead);
             }
 
-            // Add DCTDecode filter for JPEG compression
-            image.Dict.Add("Filter", new HpdfName("DCTDecode"));
+            // Set DCTDecode filter - PrepareStreamData will pass the data through unchanged
+            // since JPEG files are already DCT-compressed
+            image._streamObject.Filter = HpdfStreamFilter.DctDecode;
 
             return image;
         }

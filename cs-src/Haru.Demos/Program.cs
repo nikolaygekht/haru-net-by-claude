@@ -40,6 +40,10 @@ namespace BasicDemos
             ImageDemo.Run();
             Console.WriteLine("ImageDemo completed.\n");
 
+            Console.WriteLine("Running JpegDemo...");
+            JpegDemo.Run();
+            Console.WriteLine("JpegDemo completed.\n");
+
             Console.WriteLine("Running OutlineDemo...");
             OutlineDemo.Run();
             Console.WriteLine("OutlineDemo completed.\n");

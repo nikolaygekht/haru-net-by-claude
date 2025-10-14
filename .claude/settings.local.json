@@ -8,7 +8,8 @@
       "Bash(dotnet clean:*)",
       "Bash(dotnet run:*)",
       "Bash(dotnet build:*)",
-      "Bash(./BasicDemos)"
+      "Bash(./BasicDemos)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

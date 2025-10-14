@@ -194,8 +194,15 @@ namespace Haru.Objects
             byte[] data = _stream.ToArray();
             byte[] filteredData = data;
 
-            // Apply filters
-            if ((_filter & HpdfStreamFilter.FlateDecode) != 0)
+            // Apply filters based on type
+            // DCTDecode: Data is already JPEG-compressed, pass through as-is
+            if ((_filter & HpdfStreamFilter.DctDecode) != 0)
+            {
+                // No encoding needed - JPEG data is pre-encoded
+                filteredData = data;
+            }
+            // FlateDecode: Apply zlib compression to raw data
+            else if ((_filter & HpdfStreamFilter.FlateDecode) != 0)
             {
                 filteredData = ApplyFlateFilter(filteredData);
             }
