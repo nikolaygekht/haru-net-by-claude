@@ -12,4 +12,8 @@
     <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.9" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Font\CID\Data\*.json" />
+  </ItemGroup>
+
 </Project>

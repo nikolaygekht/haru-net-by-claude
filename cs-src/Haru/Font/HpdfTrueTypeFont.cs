@@ -841,5 +841,13 @@ namespace Haru.Font
             float scale = fontSize / _head.UnitsPerEm;
             return totalWidth * scale;
         }
+
+        /// <summary>
+        /// Converts text to glyph IDs. Not applicable for TrueType fonts.
+        /// </summary>
+        public byte[] ConvertTextToGlyphIDs(string text)
+        {
+            throw new InvalidOperationException("The method is available for CID fonts only");
+        }
     }
 }

@@ -1,7 +1,7 @@
 # Current Implementation Status
 
-**Last Updated**: 2025-01-14
-**Overall Progress**: ~96% Complete
+**Last Updated**: 2025-01-15
+**Overall Progress**: ~97% Complete
 
 ## Summary
 
@@ -55,16 +55,24 @@ Haru.NET is a complete port of the Haru PDF library from C to .NET 8.0. The libr
   - Code page support (CP1251-1258)
   - PostScript glyph name mapping (including Cyrillic afii names)
   - Custom encoding with AFM glyph names
-- ✓ **CID fonts for CJK languages** (.ttf files with multi-byte encodings)
-  - Type 0 (Composite) fonts with CIDFontType2
-  - Identity-H encoding (CID = Glyph ID)
-  - Code page support (CP932 Japanese, CP936 Simplified Chinese, CP949 Korean, CP950 Traditional Chinese)
-  - Glyph ID conversion using TrueType cmap tables
-  - Complete width arrays (W) for proper spacing
-  - Adobe Acrobat compatibility (auto-upgrade to PDF 1.4)
-  - ToUnicode CMap generation
-  - PostScript name extraction from font name table
-  - Adobe compatibility fields (FontFamily, FontStretch, FontWeight, Lang)
+- ✓ **CID fonts for CJK languages**
+  - **CIDFontType2** (.ttf files with multi-byte encodings, font embedding)
+    - Type 0 (Composite) fonts with CIDFontType2
+    - Identity-H encoding (CID = Glyph ID)
+    - Code page support (CP932 Japanese, CP936 Simplified Chinese, CP949 Korean, CP950 Traditional Chinese)
+    - Glyph ID conversion using TrueType cmap tables
+    - Complete width arrays (W) for proper spacing
+    - Adobe Acrobat compatibility (auto-upgrade to PDF 1.4)
+    - ToUnicode CMap generation
+    - PostScript name extraction from font name table
+    - Adobe compatibility fields (FontFamily, FontStretch, FontWeight, Lang)
+  - **CIDFontType0** (predefined CJK fonts, no embedding)
+    - 11 predefined fonts: SimSun, SimHei, MingLiU, MS-Gothic, MS-Mincho, MS-PGothic, MS-PMincho, DotumChe, BatangChe, Dotum, Batang
+    - 7 fixed-width fonts, 4 proportional fonts
+    - 5 encoders: GBK-EUC-H, ETen-B5-H, 90ms-RKSJ-H, EUC-H, KSCms-UHC-H
+    - JSON-based font metrics (embedded resources)
+    - Adobe CMap references (built into PDF viewers)
+    - Code page support: CP936, CP950, CP932, CP20932, CP949
 
 ### Images (100%)
 - ✓ PNG images (all color types, transparency with SMask)
@@ -141,7 +149,8 @@ cs-src/
 - **BasicDemo** - Core graphics and text
 - **InternationalDemo** - Multi-language text (Western, Cyrillic, Greek, Turkish)
 - **Type1FontDemo** - PostScript fonts with Russian text
-- **CJKDemo** - Chinese (Traditional/Simplified), Japanese, Korean
+- **CJKDemo** - Chinese (Traditional/Simplified), Japanese, Korean (CIDFontType2 embedded fonts)
+- **CJKFontsDemo** - All 11 predefined CJK fonts (CIDFontType0)
 - **SlideShowDemo** - Page transitions
 - **EncryptionDemo** - Password-protected PDFs
 - **PageLabelAndBoundaryDemo** - Custom page numbering and page boundaries
@@ -151,13 +160,15 @@ cs-src/
 
 ## Test Coverage
 
-- **766 unit tests** passing across all components
+- **797 unit tests** passing across all components
 - **14 PdfPig integration tests** (third-party validation of generated PDFs)
   - Text extraction from PDFs
   - PNG image extraction (including transparency)
   - Page size validation
   - Compression validation (compressed vs uncompressed)
-- **21 CID font tests** (loading, code pages, glyph conversion, integration)
+- **52 CID font tests** (21 CIDFontType2 + 31 CIDFontType0)
+  - CIDFontType2: Loading, code pages, glyph conversion, integration
+  - CIDFontType0: All 11 predefined fonts, encoders, text conversion, metrics validation
 - **40 encryption tests** (16 unit + 24 integration)
 - **20 AcroForms tests** (text fields, checkboxes, radio buttons, choice fields, signatures)
 - **16 document info tests**

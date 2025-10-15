@@ -1,7 +1,7 @@
 # Remaining Features to Implement
 
-**Last Updated**: 2025-01-14
-**Overall Completion**: ~96%
+**Last Updated**: 2025-01-15
+**Overall Completion**: ~97%
 **Estimated Remaining Effort**: 0.5-1 day
 
 ## Priority Features Still To Do
@@ -52,6 +52,39 @@ PDF forms with interactive fields for data entry.
 ---
 
 ## Completed Features
+
+### ✓ CIDFontType0 (Predefined CJK Fonts) - COMPLETED
+**Status**: Fully implemented and tested
+**Completion Date**: 2025-01-15
+
+Predefined CJK fonts that reference system fonts without embedding.
+
+**Implemented Components**:
+- ✓ 11 predefined fonts with JSON-based metrics
+  - Chinese Simplified: SimSun, SimHei (GBK-EUC-H, CP936)
+  - Chinese Traditional: MingLiU (ETen-B5-H, CP950)
+  - Japanese: MS-Gothic, MS-Mincho, MS-PGothic, MS-PMincho (90ms-RKSJ-H/EUC-H, CP932/CP20932)
+  - Korean: DotumChe, BatangChe, Dotum, Batang (KSCms-UHC-H, CP949)
+- ✓ 5 CID encoders inheriting from CIDEncoder base class
+- ✓ Fixed-width fonts (7 fonts) and proportional fonts (4 fonts)
+- ✓ Binary search for width lookup (O(log n))
+- ✓ Adobe CMap references (built into PDF viewers)
+- ✓ Lazy loading with caching
+
+**Files Created**:
+- `cs-src/Haru/Font/CID/HpdfCIDFontType0.cs` - Main implementation
+- `cs-src/Haru/Font/CID/CIDEncoder.cs` - Base encoder class
+- `cs-src/Haru/Font/CID/GBKEucHEncoder.cs` - Chinese Simplified (CP936)
+- `cs-src/Haru/Font/CID/ETenB5HEncoder.cs` - Chinese Traditional (CP950)
+- `cs-src/Haru/Font/CID/Ms90RKSJHEncoder.cs` - Japanese Shift-JIS (CP932)
+- `cs-src/Haru/Font/CID/EucHEncoder.cs` - Japanese EUC (CP20932)
+- `cs-src/Haru/Font/CID/KSCmsUHCHEncoder.cs` - Korean (CP949)
+- `cs-src/Haru/Font/CID/Data/*.json` - 11 font definition files (embedded resources)
+- `cs-src/Haru.Test/Font/HpdfCIDFontType0Tests.cs` - 31 comprehensive tests
+
+**Demo**: CJKFontsDemo (shows all 11 fonts on 2 pages)
+
+---
 
 ### ✓ Page Labels (COMPLETED)
 **Status**: Implemented and tested
@@ -234,6 +267,7 @@ Enhanced PDF/A compliance (Phase 1 already complete).
 ## Summary
 
 ### Recently Completed
+- ✓ **CIDFontType0** (2 days) - All predefined CJK fonts (11 fonts, 5 encoders) - DONE (2025-01-15)
 - ✓ **Page Labels** (0.5 day) - Custom page numbering - DONE (2025-10-12)
 - ✓ **Page Boundaries** (0.5 day) - Advanced page boxes - DONE (2025-10-12)
 - ✓ **AcroForms Core** (3 days) - All field types implemented - DONE (2025-10-13)
@@ -262,6 +296,8 @@ Enhanced PDF/A compliance (Phase 1 already complete).
 
 The library is already **production-ready** for:
 - ✓ International documents (CJK languages: Chinese, Japanese, Korean)
+  - CIDFontType2 (embedded TrueType fonts)
+  - CIDFontType0 (predefined fonts: 11 fonts, 7 fixed-width + 4 proportional)
 - ✓ Multi-language content (Western, Cyrillic, Greek, Turkish)
 - ✓ Secure PDFs (password protection, permissions)
 - ✓ Interactive documents (links, bookmarks, annotations)

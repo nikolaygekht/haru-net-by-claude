@@ -84,6 +84,10 @@ namespace BasicDemos
             TextWrappingDemo.Run();
             Console.WriteLine("TextWrappingDemo completed.\n");
 
+            Console.WriteLine("Running CJKFontsDemo (All CJK Fonts)...");
+            Haru.Demos.CJKFontsDemo.Run("pdfs/cjk_fonts_all.pdf");
+            Console.WriteLine("CJKFontsDemo completed.\n");
+
             Console.WriteLine("All demos completed successfully!");
             Console.WriteLine("PDF files have been generated in the current directory.");
         }

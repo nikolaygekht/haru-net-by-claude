@@ -60,13 +60,11 @@ namespace Haru.Font
         /// <summary>
         /// Converts text to glyph IDs for CID fonts.
         /// For CID fonts with CIDToGIDMap=Identity, text must be converted to glyph IDs.
+        /// For CIDFontType0 with predefined encodings, returns encoded bytes.
         /// </summary>
         public byte[] ConvertTextToGlyphIDs(string text)
         {
-            if (_isCIDFont && _implementation is HpdfCIDFont cidFont)
-                return cidFont.ConvertTextToGlyphIDs(text);
-
-            return Array.Empty<byte>();
+            return _implementation.ConvertTextToGlyphIDs(text);
         }
 
         /// <summary>
@@ -102,12 +100,22 @@ namespace Haru.Font
         }
 
         /// <summary>
-        /// Creates a font wrapper for a CID font.
+        /// Creates a font wrapper for a CID font (CIDFontType2 - embedded TrueType).
         /// </summary>
         /// <param name="cidFont">The CID font to wrap.</param>
         internal HpdfFont(HpdfCIDFont cidFont)
         {
             _implementation = cidFont ?? throw new HpdfException(HpdfErrorCode.InvalidParameter, "CID font cannot be null");
+            _isCIDFont = true;
+        }
+
+        /// <summary>
+        /// Creates a font wrapper for a CIDFontType0 (predefined CJK font).
+        /// </summary>
+        /// <param name="cidFontType0">The CIDFontType0 to wrap.</param>
+        internal HpdfFont(CID.HpdfCIDFontType0 cidFontType0)
+        {
+            _implementation = cidFontType0 ?? throw new HpdfException(HpdfErrorCode.InvalidParameter, "CIDFontType0 cannot be null");
             _isCIDFont = true;
         }
 

@@ -482,5 +482,13 @@ namespace Haru.Font
             // Type 1 fonts are in 1000-unit space by default
             return totalWidth * fontSize / 1000.0f;
         }
+
+        /// <summary>
+        /// Converts text to glyph IDs. Type 1 fonts use code page encoding, handled by page text writer.
+        /// </summary>
+        public byte[] ConvertTextToGlyphIDs(string text)
+        {
+            throw new InvalidOperationException("The method is available for CID fonts only");
+        }
     }
 }

@@ -98,5 +98,10 @@ namespace Haru.Font
             // Convert from 1000-unit glyph space to user space
             return totalWidth * fontSize / 1000.0f;
         }
+
+        public byte[] ConvertTextToGlyphIDs(string text)
+        {
+            throw new System.InvalidOperationException("The method is available for CID fonts only");
+        }
     }
 }

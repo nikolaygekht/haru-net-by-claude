@@ -4,6 +4,18 @@
 
 **Major Features Completed:**
 
+0. ✅ **CIDFontType0 (Predefined CJK Fonts)** - Complete implementation
+   - 11 predefined CJK fonts with JSON-based metrics
+   - 7 fixed-width fonts: SimSun, SimHei, MingLiU, MS-Gothic, MS-Mincho, DotumChe, BatangChe
+   - 4 proportional fonts: MS-PGothic, MS-PMincho, Dotum, Batang
+   - 5 CID encoders: GBK-EUC-H, ETen-B5-H, 90ms-RKSJ-H, EUC-H, KSCms-UHC-H
+   - Code page support: CP936, CP950, CP932, CP20932, CP949
+   - Adobe CMap references (built into PDF viewers)
+   - Binary search for width lookup (O(log n))
+   - 31 comprehensive unit tests covering all scenarios
+
+
+
 1. ✅ **JPEG Image Support** - Full implementation
    - Direct JPEG embedding with DCTDecode filter
    - Supports RGB, Grayscale, and CMYK color spaces
@@ -65,6 +77,17 @@
     - Fixed HpdfStreamObject to always write stream/endstream section
     - Empty streams now correctly recognized as StreamToken (not ObjectToken)
     - Ensures compatibility with strict PDF parsers like PdfPig
+
+11. ✅ **CIDFontType0 (Predefined CJK Fonts)** - Complete implementation (2025-01-15)
+    - 11 predefined fonts without embedding (reference system fonts)
+    - SimSun, SimHei (Chinese Simplified), MingLiU (Chinese Traditional)
+    - MS-Gothic, MS-Mincho, MS-PGothic, MS-PMincho (Japanese)
+    - DotumChe, BatangChe, Dotum, Batang (Korean)
+    - 5 CID encoders for all CJK languages
+    - JSON-based font metrics as embedded resources
+    - Lazy loading with caching for performance
+    - 31 comprehensive unit tests
+    - CJKFontsDemo showing all 11 fonts
 
 **Overall Progress: ~97% Complete** (up from ~95%)
 
@@ -384,20 +407,26 @@ The `LibharuGraphics` class uses extensive HPdf APIs:
    - **Demo**: TextWrappingDemo.cs shows word wrapping vs character breaking
    - **Usage**: LibharuGraphics lines 445-481
 
-8. **CID Font Support (Asian Languages)**
-   - **Required**: Document-level API compatibility layer for `UseCNS/CNT/JP/KR` methods
-   - **Current**: **CID font infrastructure is COMPLETE** - `HpdfCIDFont.cs` fully implemented (1056 lines)
-   - **Priority**: LOW (infrastructure exists, only needs API compatibility methods)
+8. **CID Font Support (Asian Languages)** - ✅ **COMPLETE**
+   - **Status**: **FULLY IMPLEMENTED** - Both CIDFontType2 and CIDFontType0
+   - **Priority**: COMPLETE
    - **Usage**: LibharuGraphics lines 183-229, 809-821
    - **Implementation Status**:
-     - ✅ CID font loading from TrueType files
-     - ✅ Support for code pages: 932 (Japanese), 936 (Chinese Simplified), 949 (Korean), 950 (Chinese Traditional)
-     - ✅ Identity-H encoding with CIDToGIDMap
-     - ✅ ToUnicode CMap generation
-     - ✅ Font embedding and subsetting
-     - ✅ Text measurement for multibyte characters
-     - ✅ Glyph ID conversion for content streams
-   - **What's Missing**: Only compatibility extension methods needed (see Section 6.1 below)
+     - ✅ **CIDFontType2**: TrueType font embedding with CID support (`HpdfCIDFont.cs`, 1056 lines)
+       - CID font loading from TrueType files
+       - Support for code pages: 932 (Japanese), 936 (Chinese Simplified), 949 (Korean), 950 (Chinese Traditional)
+       - Identity-H encoding with CIDToGIDMap
+       - ToUnicode CMap generation
+       - Font embedding and subsetting
+       - Text measurement for multibyte characters
+       - Glyph ID conversion for content streams
+     - ✅ **CIDFontType0**: Predefined CJK fonts without embedding (`HpdfCIDFontType0.cs`, 447 lines)
+       - 11 predefined fonts (SimSun, SimHei, MingLiU, MS-Gothic, MS-Mincho, MS-PGothic, MS-PMincho, DotumChe, BatangChe, Dotum, Batang)
+       - 5 CID encoders (GBK-EUC-H, ETen-B5-H, 90ms-RKSJ-H, EUC-H, KSCms-UHC-H)
+       - JSON-based font metrics with lazy loading
+       - Adobe CMap references
+       - Binary search for width lookup
+   - **What's Missing**: Only API compatibility wrappers for `UseCNS/CNT/JP/KR` methods (see Section 6.1 below)
 
 ### Nice to Have (Compatibility)
 
@@ -566,7 +595,8 @@ public static void SetCurrentEncoder(this HpdfDocument document, string encoding
 #### 6.1 CID Font Implementation Status
 
 The C# port includes full support for:
-- **CIDFontType2** (TrueType-based CID fonts)
+
+**CIDFontType2** (TrueType-based CID fonts with embedding):
 - **Identity-H encoding** for horizontal writing
 - **ToUnicode CMap** generation for text extraction
 - **Code pages**: 932 (Japanese Shift-JIS), 936 (Chinese Simplified GBK), 949 (Korean EUC-KR), 950 (Chinese Traditional Big5)
@@ -574,27 +604,52 @@ The C# port includes full support for:
 - **Glyph ID mapping** for content streams
 - **Multibyte text measurement**
 
+**CIDFontType0** (Predefined CJK fonts without embedding):
+- **11 predefined fonts**: SimSun, SimHei (CN-S), MingLiU (CN-T), MS-Gothic, MS-Mincho, MS-PGothic, MS-PMincho (JP), DotumChe, BatangChe, Dotum, Batang (KR)
+- **5 CID encoders**: GBK-EUC-H (CP936), ETen-B5-H (CP950), 90ms-RKSJ-H (CP932), EUC-H (CP20932), KSCms-UHC-H (CP949)
+- **JSON-based font metrics** as embedded resources
+- **Adobe CMap references** (built into PDF viewers)
+- **Binary search** for width lookup (O(log n))
+- **Lazy loading** with caching
+
 #### 6.2 How CJK Fonts Work in C# Port
 
-Unlike the p/invoke version which uses `UseCNSFonts()/UseCNSEncodings()` to enable built-in fonts:
+The C# port supports two types of CJK fonts:
 
-1. **Load a TrueType font with CID support**:
-   ```csharp
-   var cidFont = HpdfCIDFont.LoadFromTrueTypeFile(document, "CJK1", "path/to/font.ttf", 936);
-   var font = cidFont.AsFont();
-   ```
+**Option 1: CIDFontType2 (Embedded TrueType fonts)**
+```csharp
+// Load a TrueType font with CID support (embeds the font)
+var cidFont = HpdfCIDFont.LoadFromTrueTypeFile(document, "CJK1", "path/to/font.ttf", 936);
+var font = cidFont.AsFont();
 
-2. **Use the font normally**:
-   ```csharp
-   page.SetFontAndSize(font, 12);
-   page.ShowText("中文文本"); // Chinese text
-   ```
+// Use the font normally
+page.SetFontAndSize(font, 12);
+page.ShowText("中文文本"); // Chinese text
 
-3. **The CID font automatically**:
-   - Maps Unicode characters to glyph IDs
-   - Generates proper PDF Type 0 font structure
-   - Creates ToUnicode CMap for text extraction
-   - Embeds font with proper CID tables
+// The CID font automatically:
+// - Maps Unicode characters to glyph IDs
+// - Generates proper PDF Type 0 font structure
+// - Creates ToUnicode CMap for text extraction
+// - Embeds font with proper CID tables
+```
+
+**Option 2: CIDFontType0 (Predefined fonts, no embedding)**
+```csharp
+// Create predefined font (references system font)
+var encoder = new GBKEucHEncoder(); // CP936
+var cidFont = HpdfCIDFontType0.Create(document, "SimSun", "F1", 936, "GBK-EUC-H", encoder);
+var font = cidFont.AsFont();
+
+// Use the font normally
+page.SetFontAndSize(font, 12);
+page.ShowText("中文文本"); // Chinese text
+
+// The predefined font:
+// - References system font by name (no embedding)
+// - Uses Adobe CMap built into PDF viewers
+// - Requires font installed on viewer's system
+// - Smaller file size (no font data)
+```
 
 #### 6.3 Compatibility Wrapper Methods Needed
 
@@ -726,18 +781,26 @@ private static string GetCJKFontPath(string fontName)
 
 #### 6.4 Migration Impact for CJK Support
 
-**Low Impact** - The CID font infrastructure is complete. Migration only requires:
+**Very Low Impact** - Both CIDFontType2 and CIDFontType0 are fully implemented. Migration options:
 
-1. **Configuration**: Users need to configure paths to CJK TrueType fonts
-   ```csharp
-   HpdfDocumentExtensions.ConfigureCJKFontPath("SimSun", "/path/to/simsun.ttf");
-   ```
+**Option 1: Use CIDFontType0 (Predefined Fonts) - Recommended**
+- ✅ No font file distribution needed
+- ✅ Smaller PDF file size (no embedding)
+- ✅ 11 predefined fonts available
+- ⚠️ Requires fonts on viewer's system (standard on most systems)
+- ⚠️ Substitute fonts used if unavailable
 
-2. **Font files**: Unlike p/invoke version which relied on built-in fonts in libharu, users must provide TrueType font files
-   - **Advantage**: More control, better embedding, cross-platform
-   - **Disadvantage**: Requires font files to be distributed or installed
+**Option 2: Use CIDFontType2 (Embedded Fonts)**
+- ✅ Guaranteed rendering (font embedded)
+- ✅ Works on any system
+- ⚠️ Larger PDF file size
+- ⚠️ Requires font file distribution
 
-3. **API remains the same**: Existing code using `EnableMultibyteEncodingAndCIDFont()` continues to work
+**Migration Steps**:
+1. **Choose font type** based on requirements
+2. **For CIDFontType0**: Use predefined font names (SimSun, MS-Gothic, etc.) with appropriate encoders
+3. **For CIDFontType2**: Provide TrueType font files and use `HpdfCIDFont.LoadFromTrueTypeFile()`
+4. **API compatibility**: Existing code using `EnableMultibyteEncodingAndCIDFont()` continues to work
 
 ## Migration Strategy
 
@@ -1108,7 +1171,8 @@ Migration is successful when:
 | Standard Fonts | 100% | 100% | ✅ None (metrics complete) |
 | TrueType Fonts | 100% | 98% | API wrapper only |
 | Type 1 Fonts | 100% | 98% | API wrapper only |
-| CID Fonts | 100% | 98% | API compatibility wrappers |
+| CID Fonts (Type2) | 100% | 100% | ✅ None |
+| CID Fonts (Type0) | 100% | 100% | ✅ None (11 fonts complete) |
 | PNG Images | 100% | 100% | ✅ None (memory loading complete) |
 | JPEG Images | 100% | 100% | ✅ None (fully implemented) |
 | Raw Images | 100% | 100% | ✅ None (memory loading complete) |
@@ -1118,9 +1182,9 @@ Migration is successful when:
 | Transformations | 100% | 100% | ✅ None |
 | Links/Annotations | 100% | 100% | ✅ None |
 | Outlines/Bookmarks | 100% | 100% | ✅ None |
-| Encoding Support | 100% | 80% | CID encodings |
+| Encoding Support | 100% | 100% | ✅ None (5 CID encoders complete) |
 
-**Overall Completion**: ~97% (increased due to image loading from memory and page convenience methods)
+**Overall Completion**: ~97% (increased due to CIDFontType0, image loading from memory, and page convenience methods)
 
 ## Appendix B: File Structure Changes
 
@@ -1135,8 +1199,28 @@ Haru.Net/cs-src/Haru/
 │   ├── HpdfStandardFontWidths.cs ✅ EXISTS (character width tables)
 │   ├── HpdfTrueTypeFont.cs ✅ EXISTS (implements IHpdfFontImplementation)
 │   ├── HpdfType1Font.cs ✅ EXISTS (implements IHpdfFontImplementation)
-│   ├── HpdfCIDFont.cs ✅ EXISTS (implements IHpdfFontImplementation)
-│   └── HpdfFontExtensions.cs ✅ CREATED (text wrapping support)
+│   ├── HpdfCIDFont.cs ✅ EXISTS (CIDFontType2 - embedded fonts)
+│   ├── HpdfFontExtensions.cs ✅ CREATED (text wrapping support)
+│   └── CID/
+│       ├── HpdfCIDFontType0.cs ✅ CREATED (predefined CJK fonts)
+│       ├── CIDEncoder.cs ✅ CREATED (base encoder class)
+│       ├── GBKEucHEncoder.cs ✅ CREATED (Chinese Simplified)
+│       ├── ETenB5HEncoder.cs ✅ CREATED (Chinese Traditional)
+│       ├── Ms90RKSJHEncoder.cs ✅ CREATED (Japanese Shift-JIS)
+│       ├── EucHEncoder.cs ✅ CREATED (Japanese EUC)
+│       ├── KSCmsUHCHEncoder.cs ✅ CREATED (Korean)
+│       └── Data/
+│           ├── SimSun.json ✅ CREATED
+│           ├── SimHei.json ✅ CREATED
+│           ├── MingLiU.json ✅ CREATED
+│           ├── MS-Gothic.json ✅ CREATED
+│           ├── MS-Mincho.json ✅ CREATED
+│           ├── MS-PGothic.json ✅ CREATED
+│           ├── MS-PMincho.json ✅ CREATED
+│           ├── DotumChe.json ✅ CREATED
+│           ├── BatangChe.json ✅ CREATED
+│           ├── Dotum.json ✅ CREATED
+│           └── Batang.json ✅ CREATED
 ├── Doc/
 │   ├── HpdfImage.cs ✅ EXISTS (with JPEG support)
 │   └── HpdfDocumentExtensions.cs (needs enhancement for API wrappers)
@@ -1145,10 +1229,13 @@ Haru.Net/cs-src/Haru/
 
 Haru.Net/cs-src/Haru.Test/
 └── Font/
-    └── HpdfFontExtensionsTests.cs ✅ CREATED (12 comprehensive tests for text wrapping)
+    ├── HpdfFontExtensionsTests.cs ✅ CREATED (12 comprehensive tests for text wrapping)
+    └── HpdfCIDFontType0Tests.cs ✅ CREATED (31 tests for CIDFontType0)
 
 Haru.Net/cs-src/Haru.Demos/
-└── TextWrappingDemo.cs ✅ CREATED (visual demonstration of word wrapping)
+├── TextWrappingDemo.cs ✅ CREATED (visual demonstration of word wrapping)
+├── CIDFontType0Demo.cs ✅ CREATED (POC for predefined CJK fonts)
+└── CJKFontsDemo.cs ✅ CREATED (all 11 predefined fonts on 2 pages)
 
 Gehtsoft.PDFFlow/Gehtsoft.PDFFlow/
 ├── Core/
@@ -1165,7 +1252,9 @@ Haru.Net/cs-src/Haru/
 │   ├── HpdfFont.cs ✅ REFACTORED (now uses IHpdfFontImplementation)
 │   ├── HpdfTrueTypeFont.cs ✅ UPDATED (implements interface)
 │   ├── HpdfType1Font.cs ✅ UPDATED (implements interface)
-│   └── HpdfCIDFont.cs ✅ UPDATED (implements interface)
+│   ├── HpdfCIDFont.cs ✅ UPDATED (CIDFontType2)
+│   └── CID/
+│       └── HpdfCIDFontType0.cs ✅ CREATED (CIDFontType0 implementation)
 ├── Doc/
 │   ├── HpdfPage.cs (no changes needed)
 │   ├── HpdfPageExtensions.cs (no changes needed)
@@ -1174,14 +1263,79 @@ Haru.Net/cs-src/Haru/
 
 ---
 
-**Document Version**: 1.2
-**Last Updated**: 2025-01-14
+**Document Version**: 1.3
+**Last Updated**: 2025-01-15
 **Author**: Migration Analysis Tool
 **Status**: Draft
 
-## Recent Architecture Improvements (2025-01-14)
+## Recent Architecture Improvements (2025-01-14 to 2025-01-15)
 
-### Font System Refactoring - Interface-Based Design
+### CIDFontType0 Implementation - Predefined CJK Fonts (2025-01-15)
+
+**Completed**: Full implementation of CIDFontType0 for predefined CJK fonts without embedding
+
+**Implementation Details**:
+
+1. **HpdfCIDFontType0.cs** (447 lines)
+   - Main implementation class for predefined CJK fonts
+   - Implements `IHpdfFontImplementation` interface
+   - 11 predefined fonts with JSON-based metrics
+   - Binary search for width lookup (O(log n))
+   - Lazy loading with caching
+   - `Create()` factory method with encoder support
+
+2. **CID Encoders** (5 classes)
+   - `CIDEncoder.cs` - Base class with common functionality
+   - `GBKEucHEncoder.cs` - Chinese Simplified (CP936, GBK-EUC-H)
+   - `ETenB5HEncoder.cs` - Chinese Traditional (CP950, ETen-B5-H)
+   - `Ms90RKSJHEncoder.cs` - Japanese Shift-JIS (CP932, 90ms-RKSJ-H)
+   - `EucHEncoder.cs` - Japanese EUC (CP20932, EUC-H)
+   - `KSCmsUHCHEncoder.cs` - Korean (CP949, KSCms-UHC-H)
+
+3. **JSON Font Definitions** (11 files as embedded resources)
+   - Fixed-width fonts (7): SimSun, SimHei, MingLiU, MS-Gothic, MS-Mincho, DotumChe, BatangChe
+   - Proportional fonts (4): MS-PGothic, MS-PMincho, Dotum, Batang
+   - Metrics: ascent, descent, capHeight, fontBBox, flags, italicAngle, stemV, defaultWidth
+   - Width arrays with CID and width values
+   - System info: registry, ordering, supplement
+
+4. **Comprehensive Testing**
+   - 31 unit tests in `HpdfCIDFontType0Tests.cs`
+   - Tests for all 11 fonts
+   - Encoder integration tests
+   - Text conversion tests
+   - Metrics validation
+   - Error handling
+   - Integration tests with PDF generation
+
+5. **Demo Application**
+   - `CJKFontsDemo.cs` - Shows all 11 fonts on 2 pages
+   - Demonstrates fixed-width and proportional fonts
+   - Includes font information footer
+
+**Benefits**:
+- ✅ No font file distribution needed
+- ✅ Smaller PDF file size (no embedding)
+- ✅ Fast rendering (references system fonts)
+- ✅ All CJK languages covered
+- ✅ Compatible with PDF viewers that have Adobe CMaps
+
+**PDF Structure Generated**:
+```
+/Type /Font
+/Subtype /Type0
+/BaseFont /SimSun
+/Encoding /GBK-EUC-H
+/DescendantFonts [<< /Type /Font /Subtype /CIDFontType0 /BaseFont /SimSun
+  /CIDSystemInfo << /Registry (Adobe) /Ordering (GB1) /Supplement 2 >>
+  /FontDescriptor <font descriptor with metrics>
+  /W [1 [width1] 2 [width2] ...]  % Width array
+>>]
+```
+
+---
+
+### Font System Refactoring - Interface-Based Design (2025-01-14)
 
 **Completed**: Complete refactoring of font architecture using polymorphic design
 

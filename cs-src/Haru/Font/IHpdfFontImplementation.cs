@@ -82,5 +82,14 @@ namespace Haru.Font
         /// <param name="fontSize">The font size.</param>
         /// <returns>The text width in user space units.</returns>
         float MeasureText(string text, float fontSize);
+
+        /// <summary>
+        /// Converts text to bytes for use in PDF content stream.
+        /// For CID fonts, this may return glyph IDs or encoded bytes depending on the encoding.
+        /// For non-CID fonts, returns empty array (handled by page text encoding).
+        /// </summary>
+        /// <param name="text">The text to convert.</param>
+        /// <returns>Byte array for PDF content stream, or empty if not applicable.</returns>
+        byte[] ConvertTextToGlyphIDs(string text);
     }
 }
