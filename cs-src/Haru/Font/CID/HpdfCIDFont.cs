@@ -10,7 +10,6 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
 using Haru.Objects;
 using Haru.Xref;
 using Haru.Types;

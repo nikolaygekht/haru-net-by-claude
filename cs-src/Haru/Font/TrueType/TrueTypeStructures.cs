@@ -14,8 +14,6 @@
  *
  */
 
-using System;
-
 namespace Haru.Font.TrueType
 {
     /// <summary>

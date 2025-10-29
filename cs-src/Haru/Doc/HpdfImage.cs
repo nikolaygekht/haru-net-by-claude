@@ -14,7 +14,6 @@
  *
  */
 
-using System;
 using System.IO;
 using Haru.Objects;
 using Haru.Xref;

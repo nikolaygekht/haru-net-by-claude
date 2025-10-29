@@ -1,10 +1,7 @@
-using System;
 using Xunit;
 using FluentAssertions;
 using Haru.Doc;
 using Haru.Font;
-using Haru.Types;
-using Haru.Xref;
 
 namespace Haru.Test.Font
 {

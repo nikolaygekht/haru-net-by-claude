@@ -6,16 +6,13 @@
  * Copyright (c) 1999-2025 Haru Free PDF Library
  */
 
-using System;
 using System.IO;
 using System.Linq;
 using Xunit;
 using FluentAssertions;
 using Haru.Doc;
-using Haru.Xref;
 using Haru.Types;
 using UglyToad.PdfPig;
-using UglyToad.PdfPig.Content;
 
 namespace Haru.Test.Doc
 {

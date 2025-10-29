@@ -4,8 +4,6 @@
  * POC Demo for CIDFontType0 (predefined CJK fonts)
  */
 
-using System;
-using System.IO;
 using Haru.Doc;
 using Haru.Font;
 using Haru.Font.CID;

@@ -5,7 +5,6 @@ using FluentAssertions;
 using Haru.Doc;
 using Haru.Font;
 using Haru.Font.CID;
-using Haru.Xref;
 
 namespace Haru.Test.Font
 {

@@ -14,8 +14,6 @@
  *
  */
 
-using System;
-using System.Text;
 using Haru.Objects;
 using Haru.Xref;
 using Haru.Font.CID;

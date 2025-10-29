@@ -1,4 +1,3 @@
-using System;
 using Haru.Streams;
 
 namespace Haru.Objects

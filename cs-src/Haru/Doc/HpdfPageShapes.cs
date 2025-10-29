@@ -16,7 +16,6 @@
 
 using System;
 using Haru.Graphics;
-using Haru.Types;
 
 namespace Haru.Doc
 {

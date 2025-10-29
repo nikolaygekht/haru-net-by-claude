@@ -16,7 +16,6 @@
 
 using System;
 using Haru.Objects;
-using Haru.Types;
 using Haru.Xref;
 
 namespace Haru.Doc

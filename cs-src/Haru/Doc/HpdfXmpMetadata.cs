@@ -14,10 +14,8 @@
  *
  */
 
-using System;
 using System.Text;
 using Haru.Objects;
-using Haru.Streams;
 using Haru.Xref;
 
 namespace Haru.Doc

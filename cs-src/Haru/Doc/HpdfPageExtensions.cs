@@ -6,9 +6,7 @@
  * Copyright (c) 1999-2025 Haru Free PDF Library
  */
 
-using System;
 using Haru.Font;
-using Haru.Graphics;
 using Haru.Streams;
 using Haru.Types;
 

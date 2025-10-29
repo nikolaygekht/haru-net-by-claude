@@ -4,8 +4,6 @@
  * Comprehensive demo for all CJK CIDFontType0 fonts
  */
 
-using System;
-using System.IO;
 using Haru.Doc;
 using Haru.Font;
 using Haru.Font.CID;

@@ -10,8 +10,6 @@
  * and its documentation for any purpose is hereby granted without fee,
  */
 
-using System;
-using System.IO;
 using Haru.Doc;
 using Haru.Font;
 using Haru.Font.CID;

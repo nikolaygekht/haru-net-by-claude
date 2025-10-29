@@ -4,7 +4,6 @@ using Xunit;
 using FluentAssertions;
 using Haru.Doc;
 using Haru.Xref;
-using Haru.Types;
 
 namespace Haru.Test.Doc
 {

@@ -1,8 +1,6 @@
-using System;
 using Xunit;
 using FluentAssertions;
 using Haru.Doc;
-using Haru.Objects;
 
 namespace Haru.Test.Doc
 {

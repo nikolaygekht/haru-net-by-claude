@@ -2,7 +2,6 @@ using System.Text;
 using Xunit;
 using FluentAssertions;
 using Haru.Doc;
-using Haru.Graphics;
 using Haru.Types;
 using Haru.Xref;
 

@@ -16,9 +16,7 @@
 
 using Haru.Font;
 using Haru.Types;
-using Haru.Objects;
 using Haru.Streams;
-using System.Text;
 
 namespace Haru.Doc
 {
