@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Haru.Font;
 using Haru.Forms;
 using Haru.Objects;
 using Haru.Streams;
@@ -135,6 +136,11 @@ namespace Haru.Doc
         /// Gets the document information dictionary.
         /// </summary>
         public HpdfInfo Info => _info;
+
+        /// <summary>
+        /// Gets the font registry for tracking loaded fonts.
+        /// </summary>
+        internal Dictionary<string, HpdfFont> FontRegistry { get; } = new();
 
         /// <summary>
         /// Gets the cross-reference table.

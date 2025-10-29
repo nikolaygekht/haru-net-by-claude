@@ -50,6 +50,11 @@ namespace Haru.Doc
         {
             string localName = $"F{doc.Xref.Entries.Count + 1}";
             var ttFont = HpdfTrueTypeFont.LoadFromFile(doc.Xref, localName, file, embedding);
+            var hpdfFont = new HpdfFont(ttFont);
+
+            // Register the font so it can be retrieved later
+            doc.FontRegistry[ttFont.BaseFont] = hpdfFont;
+
             return ttFont.BaseFont;
         }
 
@@ -60,6 +65,11 @@ namespace Haru.Doc
         {
             string localName = $"F{doc.Xref.Entries.Count + 1}";
             var type1Font = HpdfType1Font.LoadFromFile(doc.Xref, localName, afmFile, pfbFile);
+            var hpdfFont = new HpdfFont(type1Font);
+
+            // Register the font so it can be retrieved later
+            doc.FontRegistry[type1Font.BaseFont] = hpdfFont;
+
             return type1Font.BaseFont;
         }
 

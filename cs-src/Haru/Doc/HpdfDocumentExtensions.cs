@@ -31,6 +31,12 @@ namespace Haru.Doc
             if (string.IsNullOrEmpty(fontName))
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Font name cannot be null or empty");
 
+            // Check if this font was previously loaded (custom TrueType or Type1 font)
+            if (document.FontRegistry.TryGetValue(fontName, out var cachedFont))
+            {
+                return cachedFont;
+            }
+
             // Map font names to standard fonts
             var standardFont = MapFontName(fontName);
 

@@ -128,6 +128,11 @@ namespace Haru.Doc
             }
             set
             {
+                // PDF spec typically limits page dimensions to 14,400 points (200 inches)
+                // Use a generous limit of 100,000 points to reject clearly invalid values
+                if (value <= 0 || value > 100000 || float.IsNaN(value) || float.IsInfinity(value))
+                    throw new HpdfException(HpdfErrorCode.InvalidParameter, $"Invalid page width: {value}");
+
                 var mediaBox = GetMediaBox();
                 SetMediaBox(mediaBox[0], mediaBox[1], mediaBox[0] + value, mediaBox[3]);
             }
@@ -145,6 +150,11 @@ namespace Haru.Doc
             }
             set
             {
+                // PDF spec typically limits page dimensions to 14,400 points (200 inches)
+                // Use a generous limit of 100,000 points to reject clearly invalid values
+                if (value <= 0 || value > 100000 || float.IsNaN(value) || float.IsInfinity(value))
+                    throw new HpdfException(HpdfErrorCode.InvalidParameter, $"Invalid page height: {value}");
+
                 var mediaBox = GetMediaBox();
                 SetMediaBox(mediaBox[0], mediaBox[1], mediaBox[2], mediaBox[1] + value);
             }
