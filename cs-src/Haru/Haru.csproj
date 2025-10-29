@@ -5,6 +5,18 @@
     <RootNamespace>Haru</RootNamespace>
     <AssemblyName>Haru</AssemblyName>
     <LangVersion>latest</LangVersion>
+
+    <PackageId>Haru.Net</PackageId>
+    <Version>2.0.0</Version>
+    <Authors>Gehtsoft USA LLC</Authors>
+    <Company>Gehtsoft USA LLC</Company>
+    <Product>Haru PDF Library - Pure C# Port</Product>
+    <Description>Pure C# port of libharu PDF generation library. No native dependencies required.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/nikolaygekht/haru-net-by-claude</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/nikolaygekht/haru-net-by-claude</RepositoryUrl>
+    <Copyright>Gehtsoft USA LLC 2016-2025</Copyright>
+    <PackageTags>pdf;haru;libharu;pdf-generation</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
