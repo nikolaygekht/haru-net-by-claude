@@ -2,6 +2,8 @@ using System;
 using FluentAssertions;
 using Xunit;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test
 {
     public class HpdfExceptionTests
@@ -87,7 +89,7 @@ namespace Haru.Test
         [Fact]
         public void Exception_CanBeCaught()
         {
-            HpdfException caughtException = null;
+            HpdfException? caughtException = null;
 
             try
             {
@@ -99,7 +101,7 @@ namespace Haru.Test
             }
 
             caughtException.Should().NotBeNull();
-            caughtException.ErrorCode.Should().Be(HpdfErrorCode.FileOpenError);
+            caughtException!.ErrorCode.Should().Be(HpdfErrorCode.FileOpenError);
             caughtException.DetailCode.Should().Be(0x999);
         }
 

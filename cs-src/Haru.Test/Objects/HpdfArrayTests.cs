@@ -5,6 +5,8 @@ using Haru.Streams;
 using Haru.Types;
 using Xunit;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Objects
 {
     public class HpdfArrayTests

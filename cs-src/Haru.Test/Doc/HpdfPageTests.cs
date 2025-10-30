@@ -4,6 +4,8 @@ using Haru.Doc;
 using Haru.Objects;
 using Haru.Xref;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Doc
 {
     public class HpdfPageTests
@@ -35,7 +37,7 @@ namespace Haru.Test.Doc
             page.Dict.TryGetValue("Type", out var typeObj);
             var type = typeObj as HpdfName;
             type.Should().NotBeNull();
-            type.Value.Should().Be("Page");
+            type!.Value.Should().Be("Page");
         }
 
         [Fact]
@@ -87,7 +89,7 @@ namespace Haru.Test.Doc
         public void Constructor_ThrowsWhenXrefIsNull()
         {
             // Act
-            var act = () => new HpdfPage(null);
+            var act = () => new HpdfPage(null!);
 
             // Assert
             act.Should().Throw<HpdfException>()
@@ -164,11 +166,11 @@ namespace Haru.Test.Doc
             page.Dict.TryGetValue("MediaBox", out var mediaBoxObj);
             var mediaBox = mediaBoxObj as HpdfArray;
             mediaBox.Should().NotBeNull();
-            mediaBox.Count.Should().Be(4);
-            (mediaBox[0] as HpdfReal).Value.Should().Be(10);
-            (mediaBox[1] as HpdfReal).Value.Should().Be(20);
-            (mediaBox[2] as HpdfReal).Value.Should().Be(610);
-            (mediaBox[3] as HpdfReal).Value.Should().Be(820);
+            mediaBox!.Count.Should().Be(4);
+            (mediaBox[0] as HpdfReal)!.Value.Should().Be(10);
+            (mediaBox[1] as HpdfReal)!.Value.Should().Be(20);
+            (mediaBox[2] as HpdfReal)!.Value.Should().Be(610);
+            (mediaBox[3] as HpdfReal)!.Value.Should().Be(820);
         }
 
         [Fact]

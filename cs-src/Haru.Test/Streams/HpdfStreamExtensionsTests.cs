@@ -5,6 +5,8 @@ using FluentAssertions;
 using Haru.Streams;
 using Xunit;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Streams
 {
     public class HpdfStreamExtensionsTests
@@ -250,7 +252,7 @@ namespace Haru.Test.Streams
             stream.WriteString("Hello World\n");
             stream.Seek(0, SeekOrigin.Begin);
 
-            string line = stream.ReadLine();
+            string? line = stream.ReadLine();
 
             line.Should().Be("Hello World");
         }
@@ -262,8 +264,8 @@ namespace Haru.Test.Streams
             stream.WriteString("Line1\rLine2\n");
             stream.Seek(0, SeekOrigin.Begin);
 
-            string line1 = stream.ReadLine();
-            string line2 = stream.ReadLine();
+            string? line1 = stream.ReadLine();
+            string? line2 = stream.ReadLine();
 
             line1.Should().Be("Line1");
             line2.Should().Be("Line2");
@@ -276,8 +278,8 @@ namespace Haru.Test.Streams
             stream.WriteString("Line1\r\nLine2\n");
             stream.Seek(0, SeekOrigin.Begin);
 
-            string line1 = stream.ReadLine();
-            string line2 = stream.ReadLine();
+            string? line1 = stream.ReadLine();
+            string? line2 = stream.ReadLine();
 
             line1.Should().Be("Line1");
             line2.Should().Be("Line2");
@@ -291,7 +293,7 @@ namespace Haru.Test.Streams
             stream.Seek(0, SeekOrigin.Begin);
             stream.ReadLine();
 
-            string line = stream.ReadLine();
+            string? line = stream.ReadLine();
 
             line.Should().BeNull();
         }
@@ -303,7 +305,7 @@ namespace Haru.Test.Streams
             stream.WriteString("Incomplete");
             stream.Seek(0, SeekOrigin.Begin);
 
-            string line = stream.ReadLine();
+            string? line = stream.ReadLine();
 
             line.Should().Be("Incomplete");
         }
@@ -311,13 +313,13 @@ namespace Haru.Test.Streams
         [Fact]
         public void ReadLine_RespectsMaxLength()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             stream.WriteString("Very long line that exceeds maximum length\n");
             stream.Seek(0, SeekOrigin.Begin);
 
-            string line = stream.ReadLine(10);
+            string? line = stream.ReadLine(10);
 
-            line.Length.Should().Be(10);
+            line!.Length.Should().Be(10);
         }
 
         [Theory]

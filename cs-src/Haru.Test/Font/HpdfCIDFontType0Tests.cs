@@ -6,6 +6,8 @@ using Haru.Doc;
 using Haru.Font;
 using Haru.Font.CID;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Font
 {
     /// <summary>
@@ -373,7 +375,7 @@ namespace Haru.Test.Font
         public void CIDFontType0_NullDocument_ThrowsException()
         {
             // Act
-            Action act = () => HpdfCIDFontType0.Create(null, "SimSun", "F1", 936, "GBK-EUC-H");
+            Action act = () => HpdfCIDFontType0.Create(null!, "SimSun", "F1", 936, "GBK-EUC-H");
 
             // Assert
             act.Should().Throw<ArgumentNullException>()
@@ -433,7 +435,7 @@ namespace Haru.Test.Font
             var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
 
             // Act
-            var bytes = cidFont.ConvertTextToBytes(null);
+            var bytes = cidFont.ConvertTextToBytes(null!);
 
             // Assert
             bytes.Should().NotBeNull();

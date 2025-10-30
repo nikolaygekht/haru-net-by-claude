@@ -4,6 +4,8 @@ using Haru.Objects;
 using Haru.Streams;
 using Xunit;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Objects
 {
     public class HpdfDictTests
@@ -81,7 +83,7 @@ namespace Haru.Test.Objects
             bool found = dict.TryGetValue("Key", out var value);
 
             found.Should().BeTrue();
-            ((HpdfNumber)value).Value.Should().Be(42);
+            ((HpdfNumber)value!).Value.Should().Be(42);
         }
 
         [Fact]

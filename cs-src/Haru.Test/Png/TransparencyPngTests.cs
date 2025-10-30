@@ -2,6 +2,8 @@ using FluentAssertions;
 using Haru.Png;
 using Xunit;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Png
 {
     /// <summary>
@@ -296,13 +298,13 @@ namespace Haru.Test.Png
                 if (info.ColorType == PngColorType.Palette && info.Transparency != null)
                 {
                     var trans = info.Transparency;
-                    trans.TransparentColorCount.Should().BeGreaterThanOrEqualTo(4);
+                    trans!.TransparentColorCount.Should().BeGreaterThanOrEqualTo(4);
 
                     // Check alpha values for palette entries 0-3
-                    trans.PaletteAlpha[0].Should().Be(255, "Index 0 is opaque");
-                    trans.PaletteAlpha[1].Should().Be(170, "Index 1 is semi-transparent");
-                    trans.PaletteAlpha[2].Should().Be(85, "Index 2 is more transparent");
-                    trans.PaletteAlpha[3].Should().Be(0, "Index 3 is fully transparent");
+                    trans.PaletteAlpha![0].Should().Be(255, "Index 0 is opaque");
+                    trans.PaletteAlpha![1].Should().Be(170, "Index 1 is semi-transparent");
+                    trans.PaletteAlpha![2].Should().Be(85, "Index 2 is more transparent");
+                    trans.PaletteAlpha![3].Should().Be(0, "Index 3 is fully transparent");
                 }
             }
         }

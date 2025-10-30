@@ -7,6 +7,8 @@ using Haru.Objects;
 using Haru.Streams;
 using Xunit;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Objects
 {
     /// <summary>
@@ -21,7 +23,7 @@ namespace Haru.Test.Objects
 
             using (var stream = assembly.GetManifestResourceStream(fullResourceName))
             {
-                if (stream == null)
+                if (stream is null)
                 {
                     throw new FileNotFoundException($"Embedded resource '{fullResourceName}' not found");
                 }
@@ -69,7 +71,7 @@ namespace Haru.Test.Objects
             // Length should match the stream content length
             obj.TryGetValue("Length", out var lengthObj).Should().BeTrue();
             var length = lengthObj as HpdfNumber;
-            length.Value.Should().Be(streamContent.Length);
+            length!.Value.Should().Be(streamContent.Length);
         }
 
         [Fact]
@@ -161,7 +163,7 @@ namespace Haru.Test.Objects
             // The compressed size should be less than the original decompressed size
             obj.TryGetValue("Length", out var lengthObj).Should().BeTrue();
             var length = lengthObj as HpdfNumber;
-            length.Value.Should().BeLessThan(decompressed.Length);
+            length!.Value.Should().BeLessThan(decompressed.Length);
         }
 
         [Fact]

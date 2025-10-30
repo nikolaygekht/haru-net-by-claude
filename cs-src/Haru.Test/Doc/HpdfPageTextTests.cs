@@ -7,6 +7,8 @@ using Haru.Font;
 using Haru.Xref;
 using Haru.Types;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Doc
 {
     public class HpdfPageTextTests
@@ -185,7 +187,7 @@ namespace Haru.Test.Doc
             var page = CreateTestPage();
 
             // Act
-            Action act = () => page.SetFontAndSize(null, 12f);
+            Action act = () => page.SetFontAndSize(null!, 12f);
 
             // Assert
             act.Should().Throw<HpdfException>()

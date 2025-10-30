@@ -5,6 +5,8 @@ using Haru.Doc;
 using Haru.Types;
 using Haru.Xref;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Graphics
 {
     public class HpdfPageGraphicsTests

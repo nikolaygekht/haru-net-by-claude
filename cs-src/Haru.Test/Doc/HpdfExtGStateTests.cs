@@ -6,6 +6,8 @@ using Haru.Xref;
 using Haru.Types;
 using Haru.Objects;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Doc
 {
     public class HpdfExtGStateTests
@@ -43,7 +45,7 @@ namespace Haru.Test.Doc
         public void Constructor_ThrowsWhenXrefIsNull()
         {
             // Act
-            Action act = () => new HpdfExtGState(null, "GS1");
+            Action act = () => new HpdfExtGState(null!, "GS1");
 
             // Assert
             act.Should().Throw<HpdfException>()
@@ -57,7 +59,7 @@ namespace Haru.Test.Doc
             var xref = new HpdfXref(0);
 
             // Act
-            Action act = () => new HpdfExtGState(xref, null);
+            Action act = () => new HpdfExtGState(xref, null!);
 
             // Assert
             act.Should().Throw<HpdfException>()

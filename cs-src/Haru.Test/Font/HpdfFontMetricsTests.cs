@@ -3,6 +3,8 @@ using FluentAssertions;
 using Haru.Doc;
 using Haru.Font;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Font
 {
     /// <summary>
@@ -217,7 +219,7 @@ namespace Haru.Test.Font
             var font = new HpdfFont(doc.Xref, HpdfStandardFont.Helvetica, "F1");
 
             // Act
-            var width = font.MeasureText(null, 12);
+            var width = font.MeasureText(null!, 12);
 
             // Assert
             width.Should().Be(0);

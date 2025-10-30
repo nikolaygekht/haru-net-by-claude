@@ -4,6 +4,8 @@ using FluentAssertions;
 using Haru.Streams;
 using Xunit;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Streams
 {
     public class HpdfMemoryStreamTests

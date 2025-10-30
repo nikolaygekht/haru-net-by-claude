@@ -5,6 +5,8 @@ using Haru.Xref;
 using Haru.Objects;
 using Haru.Streams;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Xref
 {
     public class HpdfXrefTests
@@ -98,7 +100,7 @@ namespace Haru.Test.Xref
             var xref = new HpdfXref(0);
 
             // Act & Assert
-            Action act = () => xref.Add(null);
+            Action act = () => xref.Add(null!);
             act.Should().Throw<ArgumentNullException>();
         }
 

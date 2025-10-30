@@ -6,6 +6,8 @@ using Haru.Doc;
 using Haru.Font;
 using Haru.Font.CID;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Font
 {
     public class HpdfCIDFontTests
@@ -100,7 +102,7 @@ namespace Haru.Test.Font
         {
             // Act
             Action act = () => HpdfCIDFont.LoadFromTrueTypeFile(
-                null,
+                null!,
                 "TestFont",
                 TestFontPath,
                 JapaneseCodePage);
@@ -274,7 +276,7 @@ namespace Haru.Test.Font
                 JapaneseCodePage);
 
             // Act
-            var glyphBytes = cidFont.ConvertTextToGlyphIDs(null);
+            var glyphBytes = cidFont.ConvertTextToGlyphIDs(null!);
 
             // Assert
             glyphBytes.Should().NotBeNull();

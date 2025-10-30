@@ -7,6 +7,8 @@ using Haru.Xref;
 using Haru.Objects;
 using Haru.Streams;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Xref
 {
     /// <summary>

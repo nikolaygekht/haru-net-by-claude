@@ -5,6 +5,8 @@ using Haru.Xref;
 using Haru.Streams;
 using System.Text;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Objects
 {
     public class HpdfIndirectTests

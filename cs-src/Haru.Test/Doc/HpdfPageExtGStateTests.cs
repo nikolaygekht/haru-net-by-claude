@@ -6,6 +6,8 @@ using Haru.Doc;
 using Haru.Xref;
 using Haru.Types;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Doc
 {
     public class HpdfPageExtGStateTests
@@ -60,7 +62,7 @@ namespace Haru.Test.Doc
             var page = CreateTestPage();
 
             // Act
-            Action act = () => page.SetExtGState(null);
+            Action act = () => page.SetExtGState(null!);
 
             // Assert
             act.Should().Throw<HpdfException>()

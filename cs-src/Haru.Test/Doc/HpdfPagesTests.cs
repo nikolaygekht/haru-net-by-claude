@@ -4,6 +4,8 @@ using Haru.Doc;
 using Haru.Objects;
 using Haru.Xref;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Doc
 {
     public class HpdfPagesTests
@@ -71,7 +73,7 @@ namespace Haru.Test.Doc
         public void Constructor_ThrowsWhenXrefIsNull()
         {
             // Act
-            var act = () => new HpdfPages(null);
+            var act = () => new HpdfPages(null!);
 
             // Assert
             act.Should().Throw<HpdfException>()
@@ -200,7 +202,7 @@ namespace Haru.Test.Doc
             var pages = new HpdfPages(xref);
 
             // Act
-            var act = () => pages.AddKid(null);
+            var act = () => pages.AddKid(null!);
 
             // Assert
             act.Should().Throw<HpdfException>()

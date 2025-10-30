@@ -14,6 +14,8 @@ using Haru.Doc;
 using Haru.Types;
 using UglyToad.PdfPig;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test.Doc
 {
     /// <summary>
@@ -24,7 +26,7 @@ namespace Haru.Test.Doc
     {
         private const string TestResourcePath = "Haru.Test.Resources.";
 
-        private Stream GetResourceStream(string resourceName)
+        private Stream? GetResourceStream(string resourceName)
         {
             var assembly = typeof(HpdfPdfPigIntegrationTests).Assembly;
             var fullName = TestResourcePath + resourceName;
@@ -145,7 +147,7 @@ namespace Haru.Test.Doc
             var doc = new HpdfDocument();
             var page = doc.AddPage();
 
-            using var imageStream = GetResourceStream("test_rgb_2x2.png");
+            using var imageStream = GetResourceStream("test_rgb_2x2.png")!;
             var image = HpdfImage.LoadPngImage(doc.Xref, "Im1", imageStream);
 
             // Act - Draw image
@@ -174,8 +176,8 @@ namespace Haru.Test.Doc
             var doc = new HpdfDocument();
             var page = doc.AddPage();
 
-            using var imageStream1 = GetResourceStream("test_rgb_2x2.png");
-            using var imageStream2 = GetResourceStream("test_grayscale_2x2.png");
+            using var imageStream1 = GetResourceStream("test_rgb_2x2.png")!;
+            using var imageStream2 = GetResourceStream("test_grayscale_2x2.png")!;
             var image1 = HpdfImage.LoadPngImage(doc.Xref, "Im1", imageStream1);
             var image2 = HpdfImage.LoadPngImage(doc.Xref, "Im2", imageStream2);
 
@@ -204,7 +206,7 @@ namespace Haru.Test.Doc
             var doc = new HpdfDocument();
             var page = doc.AddPage();
 
-            using var imageStream = GetResourceStream("test_rgba_2x2.png");
+            using var imageStream = GetResourceStream("test_rgba_2x2.png")!;
             var image = HpdfImage.LoadPngImage(doc.Xref, "Im1", imageStream);
 
             // Act - Draw image with transparency
@@ -465,7 +467,7 @@ namespace Haru.Test.Doc
             page.EndText();
 
             // Add image
-            using var imageStream = GetResourceStream("test_rgb_2x2.png");
+            using var imageStream = GetResourceStream("test_rgb_2x2.png")!;
             var image = HpdfImage.LoadPngImage(doc.Xref, "Im1", imageStream);
             page.DrawImage(image, 100, 500, 100, 100);
 

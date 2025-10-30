@@ -1,6 +1,8 @@
 using System.IO;
 using System.Reflection;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
+
 namespace Haru.Test
 {
     /// <summary>
@@ -20,7 +22,7 @@ namespace Haru.Test
 
             var stream = assembly.GetManifestResourceStream(fullResourceName);
 
-            if (stream == null)
+            if (stream is null)
             {
                 throw new FileNotFoundException(
                     $"Embedded resource '{fullResourceName}' not found. " +
