@@ -53,7 +53,7 @@ namespace Haru.Doc
         /// <summary>
         /// Gets or sets the document title.
         /// </summary>
-        public string Title
+        public string? Title
         {
             get => GetStringValue("Title");
             set => SetStringValue("Title", value);
@@ -62,7 +62,7 @@ namespace Haru.Doc
         /// <summary>
         /// Gets or sets the document author.
         /// </summary>
-        public string Author
+        public string? Author
         {
             get => GetStringValue("Author");
             set => SetStringValue("Author", value);
@@ -71,7 +71,7 @@ namespace Haru.Doc
         /// <summary>
         /// Gets or sets the document subject.
         /// </summary>
-        public string Subject
+        public string? Subject
         {
             get => GetStringValue("Subject");
             set => SetStringValue("Subject", value);
@@ -80,7 +80,7 @@ namespace Haru.Doc
         /// <summary>
         /// Gets or sets the document keywords.
         /// </summary>
-        public string Keywords
+        public string? Keywords
         {
             get => GetStringValue("Keywords");
             set => SetStringValue("Keywords", value);
@@ -89,7 +89,7 @@ namespace Haru.Doc
         /// <summary>
         /// Gets or sets the application that created the document.
         /// </summary>
-        public string Creator
+        public string? Creator
         {
             get => GetStringValue("Creator");
             set => SetStringValue("Creator", value);
@@ -98,7 +98,7 @@ namespace Haru.Doc
         /// <summary>
         /// Gets or sets the PDF producer (the application that converted to PDF).
         /// </summary>
-        public string Producer
+        public string? Producer
         {
             get => GetStringValue("Producer");
             set => SetStringValue("Producer", value);
@@ -108,7 +108,7 @@ namespace Haru.Doc
         /// Gets or sets the trapped status.
         /// Valid values: "True", "False", or "Unknown".
         /// </summary>
-        public string Trapped
+        public string? Trapped
         {
             get => GetNameValue("Trapped");
             set
@@ -141,7 +141,7 @@ namespace Haru.Doc
         /// <summary>
         /// Gets the creation date string.
         /// </summary>
-        public string GetCreationDate()
+        public string? GetCreationDate()
         {
             return GetStringValue("CreationDate");
         }
@@ -149,7 +149,7 @@ namespace Haru.Doc
         /// <summary>
         /// Gets the modification date string.
         /// </summary>
-        public string GetModificationDate()
+        public string? GetModificationDate()
         {
             return GetStringValue("ModDate");
         }
@@ -172,17 +172,17 @@ namespace Haru.Doc
         /// </summary>
         /// <param name="key">The metadata key.</param>
         /// <returns>The metadata value, or null if not found.</returns>
-        public string GetCustomMetadata(string key)
+        public string? GetCustomMetadata(string key)
         {
             if (string.IsNullOrEmpty(key))
-                return null;
+                return (string?)null;
 
             return GetStringValue(key);
         }
 
-        private void SetStringValue(string key, string value)
+        private void SetStringValue(string key, string? value)
         {
-            if (value == null)
+            if (value is null)
             {
                 _dict.Remove(key);
                 return;
@@ -192,16 +192,16 @@ namespace Haru.Doc
             _dict[key] = stringObj;
         }
 
-        private string GetStringValue(string key)
+        private string? GetStringValue(string key)
         {
             if (_dict.TryGetValue(key, out var obj) && obj is HpdfString str)
                 return System.Text.Encoding.UTF8.GetString(str.Value);
-            return null;
+            return (string?)null;
         }
 
-        private void SetNameValue(string key, string value)
+        private void SetNameValue(string key, string? value)
         {
-            if (value == null)
+            if (value is null)
             {
                 _dict.Remove(key);
                 return;
@@ -211,11 +211,11 @@ namespace Haru.Doc
             _dict[key] = nameObj;
         }
 
-        private string GetNameValue(string key)
+        private string? GetNameValue(string key)
         {
             if (_dict.TryGetValue(key, out var obj) && obj is HpdfName name)
                 return name.Value;
-            return null;
+            return (string?)null;
         }
 
         private void SetDateValue(string key, DateTime date)

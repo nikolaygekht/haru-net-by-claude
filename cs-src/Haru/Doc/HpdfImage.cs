@@ -14,6 +14,7 @@
  *
  */
 
+using System;
 using System.IO;
 using Haru.Objects;
 using Haru.Xref;
@@ -27,11 +28,12 @@ namespace Haru.Doc
     /// Represents a PDF image XObject.
     /// Images are external objects that can be drawn on pages using the Do operator.
     /// </summary>
-    public class HpdfImage
+    public class HpdfImage : IDisposable
     {
         private readonly HpdfStreamObject _streamObject;
         private readonly HpdfXref _xref;
         private readonly string _localName;
+        private bool _disposed = false;
 
         /// <summary>
         /// Gets the underlying stream object.
@@ -76,7 +78,7 @@ namespace Haru.Doc
 
         private HpdfImage(HpdfXref xref, string localName)
         {
-            if (xref == null)
+            if (xref is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Xref cannot be null");
             if (string.IsNullOrEmpty(localName))
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Local name cannot be null or empty");
@@ -197,6 +199,7 @@ namespace Haru.Doc
         /// </summary>
         public static HpdfImage LoadPngImage(HpdfXref xref, string localName, Stream stream)
         {
+            ArgumentNullException.ThrowIfNull(stream);
             var image = new HpdfImage(xref, localName);
 
             using (var pngReader = PngReaderFactory.Create())
@@ -314,6 +317,7 @@ namespace Haru.Doc
         /// </summary>
         public static HpdfImage LoadJpegImage(HpdfXref xref, string localName, Stream stream)
         {
+            ArgumentNullException.ThrowIfNull(stream);
             var image = new HpdfImage(xref, localName);
 
             // Parse JPEG header to get dimensions and color space
@@ -516,7 +520,7 @@ namespace Haru.Doc
         /// <param name="maskImage">The mask image (must be grayscale).</param>
         public void SetMaskImage(HpdfImage maskImage)
         {
-            if (maskImage == null)
+            if (maskImage is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Mask image cannot be null");
 
             // Verify mask image is grayscale
@@ -601,7 +605,33 @@ namespace Haru.Doc
             public ushort Height { get; set; }
             public byte BitsPerComponent { get; set; }
             public byte Components { get; set; }
-            public string ColorSpace { get; set; }
+            public string ColorSpace { get; set; } = string.Empty;
+        }
+
+        /// <summary>
+        /// Disposes the image and releases resources
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Disposes the image
+        /// </summary>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _streamObject?.Dispose();
+                }
+
+                _disposed = true;
+            }
         }
     }
 }

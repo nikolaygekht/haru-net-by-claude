@@ -59,11 +59,10 @@ namespace Haru.Font.Type1
         private static AfmData Parse(TextReader reader)
         {
             var data = new AfmData();
-            string line;
 
             // Check header
-            line = reader.ReadLine();
-            if (line == null || !line.StartsWith("StartFontMetrics"))
+            string? line = reader.ReadLine();
+            if (line is null || !line.StartsWith("StartFontMetrics"))
             {
                 throw new HpdfException(HpdfErrorCode.InvalidAfmHeader, "Invalid AFM file: Missing StartFontMetrics header");
             }
@@ -207,7 +206,7 @@ namespace Haru.Font.Type1
         private static AfmCharMetric[] ParseCharMetrics(TextReader reader, int count)
         {
             var metrics = new List<AfmCharMetric>();
-            string line;
+            string? line;
 
             while ((line = reader.ReadLine()) != null && metrics.Count < count)
             {

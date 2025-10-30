@@ -6,6 +6,7 @@
  * Copyright (c) 1999-2025 Haru Free PDF Library
  */
 
+using System;
 using Haru.Font;
 using Haru.Streams;
 using Haru.Types;
@@ -44,7 +45,8 @@ namespace Haru.Doc
         /// </summary>
         public static float TextWidth(this HpdfPage page, string text)
         {
-            if (page.CurrentFont == null)
+            ArgumentNullException.ThrowIfNull(page);
+            if (page.CurrentFont is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "No font has been set");
 
             return page.CurrentFont.MeasureText(text, page.GraphicsState.FontSize);
@@ -55,6 +57,7 @@ namespace Haru.Doc
         /// </summary>
         public static float GetCurrentFontSize(this HpdfPage page)
         {
+            ArgumentNullException.ThrowIfNull(page);
             return page.GraphicsState.FontSize;
         }
 
@@ -63,6 +66,7 @@ namespace Haru.Doc
         /// </summary>
         public static HpdfRgbColor GetRGBFill(this HpdfPage page)
         {
+            ArgumentNullException.ThrowIfNull(page);
             return page.GraphicsState.RgbFill;
         }
 
@@ -71,14 +75,16 @@ namespace Haru.Doc
         /// </summary>
         public static HpdfRgbColor GetRGBStroke(this HpdfPage page)
         {
+            ArgumentNullException.ThrowIfNull(page);
             return page.GraphicsState.RgbStroke;
         }
 
         /// <summary>
         /// Gets the current font.
         /// </summary>
-        public static HpdfFont GetCurrentFont(this HpdfPage page)
+        public static HpdfFont? GetCurrentFont(this HpdfPage page)
         {
+            ArgumentNullException.ThrowIfNull(page);
             return page.CurrentFont;
         }
 
@@ -97,7 +103,8 @@ namespace Haru.Doc
         /// </summary>
         public static void ExecuteXObject(this HpdfPage page, HpdfImage image)
         {
-            if (image == null)
+            ArgumentNullException.ThrowIfNull(page);
+            if (image is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Image cannot be null");
 
             // Add image to page resources
@@ -116,6 +123,7 @@ namespace Haru.Doc
         /// <param name="height">The height in points.</param>
         public static void SetHeight(this HpdfPage page, float height)
         {
+            ArgumentNullException.ThrowIfNull(page);
             page.Height = height;
         }
 
@@ -126,6 +134,7 @@ namespace Haru.Doc
         /// <param name="width">The width in points.</param>
         public static void SetWidth(this HpdfPage page, float width)
         {
+            ArgumentNullException.ThrowIfNull(page);
             page.Width = width;
         }
     }

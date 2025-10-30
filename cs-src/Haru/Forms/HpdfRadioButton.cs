@@ -59,7 +59,7 @@ namespace Haru.Forms
             if (string.IsNullOrEmpty(stateName))
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "State name cannot be null or empty");
 
-            if (widget == null)
+            if (widget is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Widget cannot be null");
 
             if (stateName == UncheckedState)
@@ -111,7 +111,7 @@ namespace Haru.Forms
         public override void SetValue(string value)
         {
             // Allow null to mean no selection
-            if (value == null)
+            if (value is null)
                 value = UncheckedState;
 
             // Validate that the value is either Off or one of the registered options
@@ -129,7 +129,7 @@ namespace Haru.Forms
         /// <param name="stateName">The state name of the default option, or "Off" for none.</param>
         public void SetDefaultSelected(string stateName)
         {
-            if (stateName == null)
+            if (stateName is null)
                 stateName = UncheckedState;
 
             if (stateName != UncheckedState && !_optionWidgets.ContainsKey(stateName))

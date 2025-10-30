@@ -139,7 +139,7 @@ namespace Haru.Graphics
         /// <summary>
         /// Previous graphics state (for state stack)
         /// </summary>
-        public HpdfGraphicsState Previous { get; set; }
+        public HpdfGraphicsState? Previous { get; set; }
 
         /// <summary>
         /// Depth in the graphics state stack
@@ -177,7 +177,7 @@ namespace Haru.Graphics
             GrayStroke = 0;
 
             FontSize = 0;
-            Previous = null;
+            Previous = (HpdfGraphicsState?)null;
             Depth = 0;
         }
 

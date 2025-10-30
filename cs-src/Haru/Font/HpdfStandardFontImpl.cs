@@ -49,7 +49,7 @@ namespace Haru.Font
         /// <param name="localName">Local resource name (e.g., "F1").</param>
         public HpdfStandardFontImpl(HpdfXref xref, HpdfStandardFont standardFont, string localName)
         {
-            if (xref == null)
+            if (xref is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Xref cannot be null");
             if (string.IsNullOrEmpty(localName))
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Local name cannot be null or empty");

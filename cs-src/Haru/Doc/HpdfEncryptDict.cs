@@ -33,6 +33,7 @@ namespace Haru.Doc
         /// <param name="xref">The cross-reference table.</param>
         public HpdfEncryptDict(HpdfXref xref)
         {
+            ArgumentNullException.ThrowIfNull(xref);
             _dict = new HpdfDict();
             _encrypt = new HpdfEncrypt();
 
@@ -49,7 +50,7 @@ namespace Haru.Doc
         /// </summary>
         /// <param name="encryptId">The document encryption ID (file identifier).</param>
         /// <param name="info">Optional document info dictionary for ID generation.</param>
-        public void Prepare(byte[] encryptId, HpdfInfo info = null)
+        public void Prepare(byte[] encryptId, HpdfInfo? info = null)
         {
             // If no encryption ID provided, generate one
             if (encryptId == null || encryptId.Length < 16)
@@ -71,7 +72,7 @@ namespace Haru.Doc
         /// <summary>
         /// Generates a file encryption ID based on document metadata.
         /// </summary>
-        private byte[] GenerateEncryptId(HpdfInfo info)
+        private byte[] GenerateEncryptId(HpdfInfo? info)
         {
             using (var md5 = MD5.Create())
             {
@@ -93,14 +94,14 @@ namespace Haru.Doc
                 byte[] guidBytes = Guid.NewGuid().ToByteArray();
                 md5.TransformFinalBlock(guidBytes, 0, guidBytes.Length);
 
-                return md5.Hash;
+                return md5.Hash ?? throw new HpdfException(HpdfErrorCode.InvalidDocument, "Failed to generate encryption ID");
             }
         }
 
         /// <summary>
         /// Adds a string to the MD5 hash if it's not null or empty.
         /// </summary>
-        private void AddStringToHash(MD5 md5, string value)
+        private void AddStringToHash(MD5 md5, string? value)
         {
             if (!string.IsNullOrEmpty(value))
             {

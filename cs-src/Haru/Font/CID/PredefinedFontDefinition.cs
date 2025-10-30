@@ -24,22 +24,22 @@ namespace Haru.Font.CID
         /// <summary>
         /// Gets or sets the font name (e.g., "SimSun", "SimHei", "MingLiU").
         /// </summary>
-        public string FontName { get; set; }
+        public string FontName { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the font metrics (ascent, descent, bbox, flags, etc.).
         /// </summary>
-        public FontMetrics Metrics { get; set; }
+        public FontMetrics Metrics { get; set; } = new FontMetrics();
 
         /// <summary>
         /// Gets or sets the CID system info (registry, ordering, supplement).
         /// </summary>
-        public CIDSystemInfo SystemInfo { get; set; }
+        public CIDSystemInfo SystemInfo { get; set; } = new CIDSystemInfo();
 
         /// <summary>
         /// Gets or sets the array of CID width mappings (sorted by CID for binary search).
         /// </summary>
-        public CIDWidth[] Widths { get; set; }
+        public CIDWidth[] Widths { get; set; } = Array.Empty<CIDWidth>();
 
         /// <summary>
         /// Gets the width of a CID in 1000-unit glyph space.
@@ -49,7 +49,7 @@ namespace Haru.Font.CID
         /// <returns>The width in 1000-unit glyph space, or DefaultWidth if not found.</returns>
         public short GetCIDWidth(ushort cid)
         {
-            if (Widths == null || Widths.Length == 0)
+            if (Widths is null || Widths.Length == 0)
                 return (short)Metrics.DefaultWidth;
 
             // Binary search in sorted width array
@@ -82,7 +82,7 @@ namespace Haru.Font.CID
 
             using (var stream = assembly.GetManifestResourceStream(resourceName))
             {
-                if (stream == null)
+                if (stream is null)
                     throw new InvalidOperationException($"Font definition resource not found: {resourceName}");
 
                 using (var reader = new StreamReader(stream))
@@ -91,7 +91,7 @@ namespace Haru.Font.CID
                     var fontDef = JsonSerializer.Deserialize<PredefinedFontDefinition>(json,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                    if (fontDef == null)
+                    if (fontDef is null)
                         throw new InvalidOperationException($"Failed to deserialize font definition: {fontName}");
 
                     // Ensure widths are sorted by CID for binary search

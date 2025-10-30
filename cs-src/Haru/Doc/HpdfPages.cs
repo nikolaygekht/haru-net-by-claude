@@ -39,7 +39,7 @@ namespace Haru.Doc
         /// <summary>
         /// Gets the parent pages object, or null if this is the root.
         /// </summary>
-        public HpdfPages Parent { get; private set; }
+        public HpdfPages? Parent { get; private set; }
 
         /// <summary>
         /// Gets the number of pages in this node and all descendants.
@@ -59,7 +59,7 @@ namespace Haru.Doc
         /// </summary>
         /// <param name="xref">The cross-reference table.</param>
         /// <param name="parent">The parent pages object, or null for the root.</param>
-        public HpdfPages(HpdfXref xref, HpdfPages parent = null)
+        public HpdfPages(HpdfXref xref, HpdfPages? parent = null)
         {
             _xref = xref ?? throw new HpdfException(HpdfErrorCode.InvalidParameter, "Xref cannot be null");
             Parent = parent;
@@ -88,10 +88,10 @@ namespace Haru.Doc
         /// <param name="kid">The child to add (HpdfPages or HpdfPage).</param>
         public void AddKid(object kid)
         {
-            if (kid == null)
+            if (kid is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Kid cannot be null");
 
-            HpdfDict kidDict = null;
+            HpdfDict? kidDict = null;
             int pageCount = 0;
 
             if (kid is HpdfPages pages)

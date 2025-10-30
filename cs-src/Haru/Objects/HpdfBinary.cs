@@ -8,7 +8,7 @@ namespace Haru.Objects
     /// </summary>
     public class HpdfBinary : HpdfObject
     {
-        private byte[] _value;
+        private byte[] _value = Array.Empty<byte>();
 
         /// <summary>
         /// Gets or sets the binary data
@@ -41,6 +41,7 @@ namespace Haru.Objects
         /// <inheritdoc/>
         public override void WriteValue(HpdfStream stream)
         {
+            ArgumentNullException.ThrowIfNull(stream);
             byte[] dataToWrite = Value;
 
             // Encrypt if encryption context is set

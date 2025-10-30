@@ -14,6 +14,8 @@
  *
  */
 
+using System;
+using System.Collections.Generic;
 using Haru.Objects;
 using Haru.Xref;
 using Haru.Graphics;
@@ -22,24 +24,24 @@ using Haru.Font;
 using Haru.Annotations;
 using Haru.Forms;
 using Haru.Streams;
-using System.Collections.Generic;
 
 namespace Haru.Doc
 {
     /// <summary>
     /// Represents a single page in a PDF document.
     /// </summary>
-    public class HpdfPage : IDrawable
+    public class HpdfPage : IDrawable, IDisposable
     {
         private readonly HpdfDict _dict;
         private readonly HpdfXref _xref;
         private readonly HpdfStreamObject _contents;
         private HpdfCompressionMode _compressionMode;
-        private HpdfGraphicsState _graphicsState;
+        private HpdfGraphicsState _graphicsState = null!;
+        private bool _disposed = false;
         private HpdfPoint _currentPos;
         private HpdfTransMatrix _textMatrix;
         private HpdfTransMatrix _textLineMatrix;
-        private HpdfFont _currentFont;
+        private HpdfFont? _currentFont;
         private readonly Dictionary<string, HpdfFont> _fontResources;
         private readonly Dictionary<string, HpdfExtGState> _extGStateResources;
         private readonly Dictionary<string, HpdfImage> _imageResources;
@@ -62,7 +64,7 @@ namespace Haru.Doc
         /// <summary>
         /// Gets the parent pages object.
         /// </summary>
-        public HpdfPages Parent { get; internal set; }
+        public HpdfPages? Parent { get; internal set; }
 
         /// <summary>
         /// Gets the contents stream for this page.
@@ -110,7 +112,7 @@ namespace Haru.Doc
         /// <summary>
         /// Gets or sets the current font.
         /// </summary>
-        public HpdfFont CurrentFont
+        public HpdfFont? CurrentFont
         {
             get => _currentFont;
             internal set => _currentFont = value;
@@ -300,10 +302,10 @@ namespace Haru.Doc
         /// <returns>The resources dictionary.</returns>
         public HpdfDict GetResources()
         {
-            HpdfDict resources = null;
+            HpdfDict? resources = null;
             if (_dict.TryGetValue("Resources", out var resourcesObj))
                 resources = resourcesObj as HpdfDict;
-            if (resources == null)
+            if (resources is null)
             {
                 resources = new HpdfDict();
                 _dict.Add("Resources", resources);
@@ -317,7 +319,7 @@ namespace Haru.Doc
         /// <param name="font">The font to add.</param>
         internal void AddFontResource(HpdfFont font)
         {
-            if (font == null)
+            if (font is null)
                 return;
 
             // Check if already added
@@ -328,7 +330,7 @@ namespace Haru.Doc
 
             // Add to Resources/Font dictionary
             var resources = GetResources();
-            HpdfDict fontDict;
+            HpdfDict? fontDict;
             if (resources.TryGetValue("Font", out var fontObj))
             {
                 fontDict = fontObj as HpdfDict;
@@ -339,7 +341,16 @@ namespace Haru.Doc
                 resources["Font"] = fontDict;
             }
 
-            fontDict[font.LocalName] = font.Dict;
+            if (fontDict != null)
+            {
+                fontDict[font.LocalName] = font.Dict;
+            }
+            else
+            {
+                fontDict = new HpdfDict();
+                fontDict[font.LocalName] = font.Dict;
+                resources["Font"] = fontDict;
+            }
         }
 
         /// <summary>
@@ -348,7 +359,7 @@ namespace Haru.Doc
         /// <param name="extGState">The extended graphics state to add.</param>
         internal void AddExtGStateResource(HpdfExtGState extGState)
         {
-            if (extGState == null)
+            if (extGState is null)
                 return;
 
             // Check if already added
@@ -359,7 +370,7 @@ namespace Haru.Doc
 
             // Add to Resources/ExtGState dictionary
             var resources = GetResources();
-            HpdfDict extGStateDict;
+            HpdfDict? extGStateDict;
             if (resources.TryGetValue("ExtGState", out var extGStateObj))
             {
                 extGStateDict = extGStateObj as HpdfDict;
@@ -370,7 +381,16 @@ namespace Haru.Doc
                 resources["ExtGState"] = extGStateDict;
             }
 
-            extGStateDict[extGState.LocalName] = extGState.Dict;
+            if (extGStateDict != null)
+            {
+                extGStateDict[extGState.LocalName] = extGState.Dict;
+            }
+            else
+            {
+                extGStateDict = new HpdfDict();
+                extGStateDict[extGState.LocalName] = extGState.Dict;
+                resources["ExtGState"] = extGStateDict;
+            }
         }
 
         /// <summary>
@@ -379,7 +399,7 @@ namespace Haru.Doc
         /// <param name="image">The image to add.</param>
         internal void AddImageResource(HpdfImage image)
         {
-            if (image == null)
+            if (image is null)
                 return;
 
             // Check if already added
@@ -390,7 +410,7 @@ namespace Haru.Doc
 
             // Add to Resources/XObject dictionary
             var resources = GetResources();
-            HpdfDict xobjectDict;
+            HpdfDict? xobjectDict;
             if (resources.TryGetValue("XObject", out var xobjectObj))
             {
                 xobjectDict = xobjectObj as HpdfDict;
@@ -401,7 +421,16 @@ namespace Haru.Doc
                 resources["XObject"] = xobjectDict;
             }
 
-            xobjectDict[image.LocalName] = image.Dict;
+            if (xobjectDict != null)
+            {
+                xobjectDict[image.LocalName] = image.Dict;
+            }
+            else
+            {
+                xobjectDict = new HpdfDict();
+                xobjectDict[image.LocalName] = image.Dict;
+                resources["XObject"] = xobjectDict;
+            }
         }
 
         /// <summary>
@@ -452,7 +481,7 @@ namespace Haru.Doc
         /// <param name="widget">The widget annotation to add.</param>
         public void AddWidgetAnnotation(HpdfWidgetAnnotation widget)
         {
-            if (widget == null)
+            if (widget is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Widget cannot be null");
 
             // Set page reference in widget
@@ -469,11 +498,11 @@ namespace Haru.Doc
         private void AddAnnotation(HpdfAnnotation annot)
         {
             // Find or create the Annots array
-            HpdfArray annotsArray;
+            HpdfArray? annotsArray;
             if (_dict.TryGetValue("Annots", out var annotsObj))
             {
                 annotsArray = annotsObj as HpdfArray;
-                if (annotsArray == null)
+                if (annotsArray is null)
                     throw new HpdfException(HpdfErrorCode.InvalidObject, "Annots is not an array");
             }
             else
@@ -798,6 +827,32 @@ namespace Haru.Doc
             // Set page duration (display time)
             if (displayTime > 0)
                 _dict.Add("Dur", new HpdfReal(displayTime));
+        }
+
+        /// <summary>
+        /// Disposes the page and releases resources
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Disposes the page
+        /// </summary>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _contents?.Dispose();
+                }
+
+                _disposed = true;
+            }
         }
     }
 }

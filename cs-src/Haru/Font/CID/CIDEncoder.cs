@@ -23,17 +23,17 @@ namespace Haru.Font.CID
         /// Gets the encoder name (e.g., "GBK-EUC-H", "ETen-B5-H").
         /// This is the predefined Adobe CMap name.
         /// </summary>
-        public string Name { get; protected set; }
+        public string Name { get; protected set; } = string.Empty;
 
         /// <summary>
         /// Gets the CID system info registry (typically "Adobe").
         /// </summary>
-        public string Registry { get; protected set; }
+        public string Registry { get; protected set; } = string.Empty;
 
         /// <summary>
         /// Gets the CID system info ordering (e.g., "GB1", "CNS1", "Japan1", "Korea1").
         /// </summary>
-        public string Ordering { get; protected set; }
+        public string Ordering { get; protected set; } = string.Empty;
 
         /// <summary>
         /// Gets the CID system info supplement number.
@@ -48,7 +48,7 @@ namespace Haru.Font.CID
         /// <summary>
         /// Gets the .NET encoding for this code page.
         /// </summary>
-        protected Encoding Encoding { get; private set; }
+        protected Encoding Encoding { get; private set; } = System.Text.Encoding.UTF8;
 
         protected CIDEncoder()
         {

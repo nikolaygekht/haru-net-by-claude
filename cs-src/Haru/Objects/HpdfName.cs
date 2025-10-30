@@ -9,7 +9,7 @@ namespace Haru.Objects
     /// </summary>
     public class HpdfName : HpdfObject
     {
-        private string _value;
+        private string _value = string.Empty;
 
         /// <summary>
         /// Gets or sets the name value (without the leading slash)
@@ -19,7 +19,7 @@ namespace Haru.Objects
             get => _value;
             set
             {
-                if (value == null)
+                if (value is null)
                     throw new ArgumentNullException(nameof(value));
                 if (value.Length == 0)
                     throw new HpdfException(HpdfErrorCode.NameInvalidValue, "Name cannot be empty");

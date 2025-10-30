@@ -73,10 +73,10 @@ namespace Haru.Types
             if (NumPattern != other.NumPattern || Phase != other.Phase)
                 return false;
 
-            if (Pattern == null && other.Pattern == null)
+            if (Pattern is null && other.Pattern is null)
                 return true;
 
-            if (Pattern == null || other.Pattern == null)
+            if (Pattern is null || other.Pattern is null)
                 return false;
 
             for (int i = 0; i < NumPattern; i++)

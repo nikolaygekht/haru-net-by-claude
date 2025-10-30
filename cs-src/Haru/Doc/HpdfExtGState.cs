@@ -34,7 +34,7 @@ namespace Haru.Doc
         /// </summary>
         public HpdfExtGState(HpdfXref xref, string localName)
         {
-            if (xref == null)
+            if (xref is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Xref cannot be null");
             if (string.IsNullOrEmpty(localName))
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Local name cannot be null or empty");

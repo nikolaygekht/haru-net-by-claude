@@ -6,6 +6,7 @@
  * Copyright (c) 1999-2025 Haru Free PDF Library
  */
 
+using System;
 using System.IO;
 using Haru.Annotations;
 using Haru.Font;
@@ -26,6 +27,7 @@ namespace Haru.Doc
         /// </summary>
         public static void SaveToStream(this HpdfDocument doc, Stream stream)
         {
+            ArgumentNullException.ThrowIfNull(doc);
             doc.Save(stream);
         }
 
@@ -48,6 +50,7 @@ namespace Haru.Doc
         /// </summary>
         public static string LoadTTFontFromFile(this HpdfDocument doc, string file, bool embedding)
         {
+            ArgumentNullException.ThrowIfNull(doc);
             string localName = $"F{doc.Xref.Entries.Count + 1}";
             var ttFont = HpdfTrueTypeFont.LoadFromFile(doc.Xref, localName, file, embedding);
             var hpdfFont = new HpdfFont(ttFont);
@@ -63,6 +66,7 @@ namespace Haru.Doc
         /// </summary>
         public static string LoadType1FontFromFile(this HpdfDocument doc, string afmFile, string pfbFile)
         {
+            ArgumentNullException.ThrowIfNull(doc);
             string localName = $"F{doc.Xref.Entries.Count + 1}";
             var type1Font = HpdfType1Font.LoadFromFile(doc.Xref, localName, afmFile, pfbFile);
             var hpdfFont = new HpdfFont(type1Font);
@@ -189,6 +193,7 @@ namespace Haru.Doc
         /// </summary>
         public static HpdfImage LoadPngImageFromMem(this HpdfDocument doc, byte[] data)
         {
+            ArgumentNullException.ThrowIfNull(doc);
             using (var stream = new MemoryStream(data))
             {
                 return doc.LoadPngImage(stream);
@@ -201,6 +206,7 @@ namespace Haru.Doc
         public static HpdfImage LoadRawImageFromMem(this HpdfDocument doc, uint width, uint height,
             HpdfColorSpace colorSpace, byte[] data)
         {
+            ArgumentNullException.ThrowIfNull(doc);
             string localName = $"Im{doc.Xref.Entries.Count + 1}";
             return HpdfImage.LoadRawImageFromMem(doc.Xref, localName, data, width, height, colorSpace, 8);
         }
@@ -214,6 +220,7 @@ namespace Haru.Doc
         /// </summary>
         public static HpdfPageMode GetPageMode(this HpdfDocument doc)
         {
+            ArgumentNullException.ThrowIfNull(doc);
             return doc.Catalog.PageMode;
         }
 
@@ -222,6 +229,7 @@ namespace Haru.Doc
         /// </summary>
         public static void SetPageMode(this HpdfDocument doc, HpdfPageMode mode)
         {
+            ArgumentNullException.ThrowIfNull(doc);
             doc.Catalog.PageMode = mode;
         }
 
@@ -234,6 +242,7 @@ namespace Haru.Doc
         /// </summary>
         public static float GetHeight(this HpdfPage page)
         {
+            ArgumentNullException.ThrowIfNull(page);
             return page.Height;
         }
 
@@ -242,6 +251,7 @@ namespace Haru.Doc
         /// </summary>
         public static float GetWidth(this HpdfPage page)
         {
+            ArgumentNullException.ThrowIfNull(page);
             return page.Width;
         }
 
@@ -276,6 +286,7 @@ namespace Haru.Doc
         /// </summary>
         public static HpdfLinkAnnotation CreateURILinkAnnot(this HpdfPage page, HpdfRect rect, string uri)
         {
+            ArgumentNullException.ThrowIfNull(page);
             return page.CreateLinkAnnotation(rect, uri);
         }
 
@@ -288,6 +299,7 @@ namespace Haru.Doc
         /// </summary>
         public static string GetFontName(this HpdfFont font)
         {
+            ArgumentNullException.ThrowIfNull(font);
             return font.BaseFont;
         }
 
@@ -297,6 +309,7 @@ namespace Haru.Doc
         /// </summary>
         public static string GetEncodingName(this HpdfFont font)
         {
+            ArgumentNullException.ThrowIfNull(font);
             // In C# version, return a string representation of the code page
             return font.EncodingCodePage.HasValue && font.EncodingCodePage.Value > 0
                 ? $"CP{font.EncodingCodePage.Value}"
@@ -312,6 +325,7 @@ namespace Haru.Doc
         /// </summary>
         public static uint GetWidth(this HpdfImage image)
         {
+            ArgumentNullException.ThrowIfNull(image);
             return (uint)image.Width;
         }
 
@@ -320,6 +334,7 @@ namespace Haru.Doc
         /// </summary>
         public static uint GetHeight(this HpdfImage image)
         {
+            ArgumentNullException.ThrowIfNull(image);
             return (uint)image.Height;
         }
 

@@ -61,7 +61,7 @@ namespace Haru.Font.CID
         /// <param name="fontName">The font name.</param>
         /// <param name="fontDef">The font definition if found.</param>
         /// <returns>True if the font was found, false otherwise.</returns>
-        public static bool TryGetDefinition(string fontName, out PredefinedFontDefinition fontDef)
+        public static bool TryGetDefinition(string fontName, out PredefinedFontDefinition? fontDef)
         {
             try
             {
@@ -70,7 +70,7 @@ namespace Haru.Font.CID
             }
             catch
             {
-                fontDef = null;
+                fontDef = (PredefinedFontDefinition?)null;
                 return false;
             }
         }
@@ -84,7 +84,7 @@ namespace Haru.Font.CID
         {
             if (string.IsNullOrEmpty(fontName))
                 throw new ArgumentNullException(nameof(fontName));
-            if (fontDef == null)
+            if (fontDef is null)
                 throw new ArgumentNullException(nameof(fontDef));
 
             lock (_lock)

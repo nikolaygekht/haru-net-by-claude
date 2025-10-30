@@ -36,7 +36,7 @@ namespace Haru.Xref
         /// <summary>
         /// Gets or sets the previous xref table (for incremental updates)
         /// </summary>
-        public HpdfXref Previous { get; set; }
+        public HpdfXref? Previous { get; set; }
 
         /// <summary>
         /// Gets the trailer dictionary that appears after the xref table
@@ -46,7 +46,7 @@ namespace Haru.Xref
         /// <summary>
         /// Gets or sets the encryption handler for this document
         /// </summary>
-        private HpdfEncrypt _encrypt;
+        private HpdfEncrypt? _encrypt;
 
         /// <summary>
         /// Initializes a new xref table with the specified starting offset
@@ -57,7 +57,7 @@ namespace Haru.Xref
             StartOffset = startOffset;
             Entries = new List<HpdfXrefEntry>();
             Address = 0;
-            Previous = null;
+            Previous = (HpdfXref?)null;
             Trailer = new HpdfDict();
 
             // If this is the primary xref (offset 0), add the mandatory free entry
@@ -76,7 +76,7 @@ namespace Haru.Xref
         /// <exception cref="HpdfException">If xref table is full</exception>
         public uint Add(HpdfObject obj)
         {
-            if (obj == null)
+            if (obj is null)
                 throw new ArgumentNullException(nameof(obj));
 
             if (Entries.Count >= MaxXrefEntries)
@@ -115,9 +115,9 @@ namespace Haru.Xref
         /// </summary>
         /// <param name="objectId">The object ID to find</param>
         /// <returns>The xref entry, or null if not found</returns>
-        public HpdfXrefEntry GetEntryByObjectId(uint objectId)
+        public HpdfXrefEntry? GetEntryByObjectId(uint objectId)
         {
-            HpdfXref current = this;
+            HpdfXref? current = this;
 
             while (current != null)
             {
@@ -143,6 +143,7 @@ namespace Haru.Xref
         /// <param name="stream">The stream to write to</param>
         public void WriteToStream(HpdfStream stream)
         {
+            ArgumentNullException.ThrowIfNull(stream);
             // Write all objects in the xref table (and previous xrefs)
             WriteObjects(stream);
 
@@ -189,7 +190,7 @@ namespace Haru.Xref
                     }
                 }
 
-                if (shouldEncrypt)
+                if (shouldEncrypt && _encrypt != null)
                 {
                     // Initialize encryption key for this specific object
                     _encrypt.InitKey(objectId, genNo);
@@ -197,14 +198,14 @@ namespace Haru.Xref
                 }
                 else
                 {
-                    stream.EncryptionContext = null;
+                    stream.EncryptionContext = (HpdfEncrypt?)null;
                 }
 
                 // Write the object value
-                Entries[i].Object.WriteValue(stream);
+                Entries[i].Object!.WriteValue(stream);
 
                 // Clear encryption context after writing
-                stream.EncryptionContext = null;
+                stream.EncryptionContext = (HpdfEncrypt?)null;
 
                 // Write: "\nendobj\n"
                 stream.WriteString("\nendobj\n");
@@ -273,7 +274,7 @@ namespace Haru.Xref
         public int GetTotalEntryCount()
         {
             int count = Entries.Count;
-            HpdfXref current = Previous;
+            HpdfXref? current = Previous;
 
             while (current != null)
             {
@@ -288,7 +289,7 @@ namespace Haru.Xref
         /// Sets the encryption handler for encrypting objects.
         /// </summary>
         /// <param name="encrypt">The encryption handler.</param>
-        public void SetEncryption(HpdfEncrypt encrypt)
+        public void SetEncryption(HpdfEncrypt? encrypt)
         {
             _encrypt = encrypt;
         }
@@ -296,7 +297,7 @@ namespace Haru.Xref
         /// <summary>
         /// Gets the encryption handler if encryption is enabled.
         /// </summary>
-        public HpdfEncrypt GetEncryption()
+        public HpdfEncrypt? GetEncryption()
         {
             return _encrypt;
         }

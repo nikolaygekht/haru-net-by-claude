@@ -28,32 +28,33 @@ namespace Haru.Font
     /// <summary>
     /// Represents a TrueType font that can be embedded in a PDF.
     /// </summary>
-    public class HpdfTrueTypeFont : IHpdfFontImplementation
+    public class HpdfTrueTypeFont : IHpdfFontImplementation, IDisposable
     {
         private readonly HpdfDict _dict;
-        private string _baseFont;
+        private string _baseFont = null!;
         private readonly string _localName;
         private readonly HpdfXref _xref;
 
-        // TrueType font data
-        private TrueTypeOffsetTable _offsetTable;
-        private TrueTypeHead _head;
-        private TrueTypeMaxp _maxp;
-        private TrueTypeHhea _hhea;
-        private TrueTypeLongHorMetric[] _hMetrics;
-        private TrueTypeNameTable _nameTable;
-        private TrueTypeCmapFormat4 _cmap;
-        private TrueTypeOS2 _os2;
-        private TrueTypeGlyphOffsets _glyphOffsets;
-        private TrueTypePost _post;
-        private uint[] _locaOffsets;
+        // TrueType font data - initialized by LoadFromStream factory method
+        private TrueTypeOffsetTable _offsetTable = null!;
+        private TrueTypeHead _head = null!;
+        private TrueTypeMaxp _maxp = null!;
+        private TrueTypeHhea _hhea = null!;
+        private TrueTypeLongHorMetric[] _hMetrics = null!;
+        private TrueTypeNameTable _nameTable = null!;
+        private TrueTypeCmapFormat4 _cmap = null!;
+        private TrueTypeOS2? _os2;
+        private TrueTypeGlyphOffsets? _glyphOffsets;
+        private TrueTypePost? _post;
+        private uint[]? _locaOffsets;
 
-        private byte[] _fontData;
+        private byte[]? _fontData;
         private bool _embedding;
-        private HpdfDict _descriptor;
-        private HpdfStreamObject _fontFileStream;
-        private HpdfStreamObject _toUnicodeStream;
+        private HpdfDict _descriptor = null!;
+        private HpdfStreamObject? _fontFileStream;
+        private HpdfStreamObject? _toUnicodeStream;
         private int _codePage;
+        private bool _disposed = false;
 
         /// <summary>
         /// Gets the underlying dictionary object for this font.
@@ -210,62 +211,63 @@ namespace Haru.Font
             if (embedding)
                 font._fontData = fontData;
 
-            var parser = new TrueTypeParser(stream);
-
-            // Parse required tables
-            font._offsetTable = parser.ParseOffsetTable();
-
-            var headTable = parser.FindTable(font._offsetTable, "head");
-            font._head = parser.ParseHead(headTable);
-
-            var maxpTable = parser.FindTable(font._offsetTable, "maxp");
-            font._maxp = parser.ParseMaxp(maxpTable);
-
-            var hheaTable = parser.FindTable(font._offsetTable, "hhea");
-            font._hhea = parser.ParseHhea(hheaTable);
-
-            var hmtxTable = parser.FindTable(font._offsetTable, "hmtx");
-            font._hMetrics = parser.ParseHmtx(hmtxTable, font._hhea.NumberOfHMetrics, font._maxp.NumGlyphs);
-
-            var nameTable = parser.FindTable(font._offsetTable, "name");
-            if (nameTable != null)
+            using (var parser = new TrueTypeParser(stream))
             {
-                font._nameTable = parser.ParseName(nameTable);
-            }
+                // Parse required tables
+                font._offsetTable = parser.ParseOffsetTable();
 
-            // Parse cmap table
-            font.ParseCmapTable(parser);
+                var headTable = parser.FindTable(font._offsetTable, "head");
+                font._head = parser.ParseHead(headTable!);
 
-            // Parse OS/2 table if present
-            var os2Table = parser.FindTable(font._offsetTable, "OS/2");
-            if (os2Table != null)
-            {
-                font.ParseOS2Table(parser, os2Table);
-            }
+                var maxpTable = parser.FindTable(font._offsetTable, "maxp");
+                font._maxp = parser.ParseMaxp(maxpTable!);
 
-            // Parse post table if present (for italic angle)
-            var postTable = parser.FindTable(font._offsetTable, "post");
-            if (postTable != null)
-            {
-                font._post = parser.ParsePost(postTable);
-            }
+                var hheaTable = parser.FindTable(font._offsetTable, "hhea");
+                font._hhea = parser.ParseHhea(hheaTable!);
 
-            // Initialize glyph tracking for subsetting
-            if (embedding)
-            {
-                font._glyphOffsets = new TrueTypeGlyphOffsets
+                var hmtxTable = parser.FindTable(font._offsetTable, "hmtx");
+                font._hMetrics = parser.ParseHmtx(hmtxTable!, font._hhea.NumberOfHMetrics, font._maxp.NumGlyphs);
+
+                var nameTable = parser.FindTable(font._offsetTable, "name");
+                if (nameTable != null)
                 {
-                    Offsets = new uint[font._maxp.NumGlyphs],
-                    Flags = new byte[font._maxp.NumGlyphs]
-                };
-                // Mark glyph 0 (.notdef) as used
-                font._glyphOffsets.Flags[0] = 1;
+                    font._nameTable = parser.ParseName(nameTable);
+                }
 
-                // Parse loca table for subsetting
-                var locaTable = parser.FindTable(font._offsetTable, "loca");
-                if (locaTable != null)
+                // Parse cmap table
+                font.ParseCmapTable(parser);
+
+                // Parse OS/2 table if present
+                var os2Table = parser.FindTable(font._offsetTable, "OS/2");
+                if (os2Table != null)
                 {
-                    font._locaOffsets = parser.ParseLoca(locaTable, font._head.IndexToLocFormat, font._maxp.NumGlyphs);
+                    font.ParseOS2Table(parser, os2Table);
+                }
+
+                // Parse post table if present (for italic angle)
+                var postTable = parser.FindTable(font._offsetTable, "post");
+                if (postTable != null)
+                {
+                    font._post = parser.ParsePost(postTable);
+                }
+
+                // Initialize glyph tracking for subsetting
+                if (embedding)
+                {
+                    font._glyphOffsets = new TrueTypeGlyphOffsets
+                    {
+                        Offsets = new uint[font._maxp.NumGlyphs],
+                        Flags = new byte[font._maxp.NumGlyphs]
+                    };
+                    // Mark glyph 0 (.notdef) as used
+                    font._glyphOffsets.Flags[0] = 1;
+
+                    // Parse loca table for subsetting
+                    var locaTable = parser.FindTable(font._offsetTable, "loca");
+                    if (locaTable != null)
+                    {
+                        font._locaOffsets = parser.ParseLoca(locaTable, font._head.IndexToLocFormat, font._maxp.NumGlyphs);
+                    }
                 }
             }
 
@@ -284,7 +286,7 @@ namespace Haru.Font
         private void ParseCmapTable(TrueTypeParser parser)
         {
             var cmapTable = parser.FindTable(_offsetTable, "cmap");
-            if (cmapTable == null)
+            if (cmapTable is null)
                 throw new HpdfException(HpdfErrorCode.TtInvalidCmapTable, "cmap table not found");
 
             parser.Seek(cmapTable.Offset);
@@ -729,10 +731,10 @@ namespace Haru.Font
             _fontFileStream = new HpdfStreamObject();
 
             // For TrueType fonts, use FontFile2
-            _fontFileStream.Add("Length1", new HpdfNumber(_fontData.Length));
+            _fontFileStream.Add("Length1", new HpdfNumber(_fontData!.Length));
 
             // Add font data to stream
-            _fontFileStream.WriteToStream(_fontData);
+            _fontFileStream.WriteToStream(_fontData!);
 
             // Apply compression
             _fontFileStream.Filter = HpdfStreamFilter.FlateDecode;
@@ -771,7 +773,7 @@ namespace Haru.Font
         /// </summary>
         public ushort GetGlyphId(ushort unicode)
         {
-            if (_cmap == null)
+            if (_cmap is null)
                 return 0;
 
             int segCount = _cmap.SegCountX2 / 2;
@@ -808,7 +810,7 @@ namespace Haru.Font
         /// </summary>
         public int GetGlyphWidth(ushort glyphId)
         {
-            if (_hMetrics == null || glyphId >= _hMetrics.Length)
+            if (_hMetrics is null || glyphId >= _hMetrics.Length)
                 return 0;
 
             return _hMetrics[glyphId].AdvanceWidth;
@@ -848,6 +850,34 @@ namespace Haru.Font
         public byte[] ConvertTextToGlyphIDs(string text)
         {
             throw new InvalidOperationException("The method is available for CID fonts only");
+        }
+
+        /// <summary>
+        /// Releases all resources used by this TrueType font.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Releases the unmanaged resources used by this TrueType font and optionally releases the managed resources.
+        /// </summary>
+        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _fontFileStream?.Dispose();
+                    _toUnicodeStream?.Dispose();
+                }
+
+                _disposed = true;
+            }
         }
     }
 }

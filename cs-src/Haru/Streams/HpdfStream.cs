@@ -13,7 +13,7 @@ namespace Haru.Streams
         /// Gets or sets the encryption handler for encrypting content during writing.
         /// When set, strings and streams will be encrypted as they are written.
         /// </summary>
-        public HpdfEncrypt EncryptionContext { get; set; }
+        public HpdfEncrypt? EncryptionContext { get; set; }
 
         /// <summary>
         /// Gets the type of this stream
@@ -60,7 +60,7 @@ namespace Haru.Streams
         /// </summary>
         public void Write(byte[] buffer)
         {
-            if (buffer == null)
+            if (buffer is null)
                 throw new ArgumentNullException(nameof(buffer));
 
             Write(buffer, 0, buffer.Length);

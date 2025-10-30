@@ -76,7 +76,7 @@ namespace Haru.Security
         public byte[] Md5EncryptionKey { get; private set; }
 
         private readonly HpdfArc4 _arc4;
-        private HpdfAes _aes;
+        private HpdfAes? _aes;
 
         /// <summary>
         /// Initializes a new instance of the HpdfEncrypt class.
@@ -220,18 +220,18 @@ namespace Haru.Security
 
                 // Algorithm 3.2 step 5: Hash encryption ID
                 md5.TransformFinalBlock(EncryptId, 0, IdLength);
-                byte[] hash = md5.Hash;
+                byte[]? hash = md5.Hash;
 
                 // Algorithm 3.2 step 6 (Revision 3 or higher): Hash 50 times
                 if (Mode >= HpdfEncryptMode.R3)
                 {
                     for (int i = 0; i < 50; i++)
                     {
-                        hash = md5.ComputeHash(hash, 0, KeyLength);
+                        hash = md5.ComputeHash(hash!, 0, KeyLength);
                     }
                 }
 
-                Array.Copy(hash, EncryptionKey, KeyLength);
+                Array.Copy(hash!, EncryptionKey, KeyLength);
             }
         }
 
@@ -255,12 +255,12 @@ namespace Haru.Security
 
                     // Algorithm 3.5 step 3: Hash encryption ID
                     md5.TransformFinalBlock(EncryptId, 0, IdLength);
-                    byte[] digest = md5.Hash;
+                    byte[]? digest = md5.Hash;
 
                     // Algorithm 3.5 step 4: Encrypt digest
                     _arc4.Init(EncryptionKey, KeyLength);
                     byte[] digest2 = new byte[Md5KeyLength];
-                    _arc4.Crypt(digest, digest2, Md5KeyLength);
+                    _arc4.Crypt(digest!, digest2, Md5KeyLength);
 
                     // Algorithm 3.5 step 5: Encrypt 19 more times
                     for (int i = 1; i <= 19; i++)
@@ -271,9 +271,9 @@ namespace Haru.Security
                             newKey[j] = (byte)(EncryptionKey[j] ^ i);
                         }
 
-                        Array.Copy(digest2, digest, Md5KeyLength);
+                        Array.Copy(digest2, digest!, Md5KeyLength);
                         _arc4.Init(newKey, KeyLength);
-                        _arc4.Crypt(digest, digest2, Md5KeyLength);
+                        _arc4.Crypt(digest!, digest2, Md5KeyLength);
                     }
 
                     // Store result (first 16 bytes, rest is arbitrary padding)
@@ -337,13 +337,12 @@ namespace Haru.Security
         /// <returns>The length of encrypted data (may be longer for AES due to IV and padding).</returns>
         public int CryptBuffer(byte[] src, byte[] dst, int length)
         {
+            ArgumentNullException.ThrowIfNull(src);
+            ArgumentNullException.ThrowIfNull(dst);
             if (Mode == HpdfEncryptMode.R4)
             {
                 // AES encryption
-                if (_aes == null)
-                {
-                    _aes = new HpdfAes();
-                }
+                _aes ??= new HpdfAes();
                 // Always reinitialize with current object-specific key
                 _aes.Init(Md5EncryptionKey);
                 return _aes.EncryptBuffer(src, dst, length);
@@ -363,9 +362,10 @@ namespace Haru.Security
         /// <returns>The encrypted data.</returns>
         public byte[] Encrypt(byte[] data)
         {
+            ArgumentNullException.ThrowIfNull(data);
             if (Mode == HpdfEncryptMode.R4)
             {
-                if (_aes == null)
+                if (_aes is null)
                 {
                     _aes = new HpdfAes();
                 }

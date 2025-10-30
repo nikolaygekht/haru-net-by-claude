@@ -14,6 +14,7 @@
  *
  */
 
+using System;
 using Haru.Font;
 using Haru.Types;
 using Haru.Streams;
@@ -33,6 +34,7 @@ namespace Haru.Doc
         /// </summary>
         public static void BeginText(this HpdfPage page)
         {
+            ArgumentNullException.ThrowIfNull(page);
             var stream = page.Contents.Stream;
             stream.WriteString("BT\n");
 
@@ -46,6 +48,7 @@ namespace Haru.Doc
         /// </summary>
         public static void EndText(this HpdfPage page)
         {
+            ArgumentNullException.ThrowIfNull(page);
             var stream = page.Contents.Stream;
             stream.WriteString("ET\n");
         }
@@ -59,6 +62,7 @@ namespace Haru.Doc
         /// <param name="charSpace">Character spacing in user space units.</param>
         public static void SetCharSpace(this HpdfPage page, float charSpace)
         {
+            ArgumentNullException.ThrowIfNull(page);
             var stream = page.Contents.Stream;
             stream.WriteReal(charSpace);
             stream.WriteString(" Tc\n");
@@ -73,6 +77,7 @@ namespace Haru.Doc
         /// <param name="wordSpace">Word spacing in user space units.</param>
         public static void SetWordSpace(this HpdfPage page, float wordSpace)
         {
+            ArgumentNullException.ThrowIfNull(page);
             var stream = page.Contents.Stream;
             stream.WriteReal(wordSpace);
             stream.WriteString(" Tw\n");
@@ -87,6 +92,7 @@ namespace Haru.Doc
         /// <param name="scale">Horizontal scaling as a percentage (100 = normal).</param>
         public static void SetHorizontalScaling(this HpdfPage page, float scale)
         {
+            ArgumentNullException.ThrowIfNull(page);
             if (scale <= 0)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "Horizontal scaling must be positive");
 
@@ -105,6 +111,7 @@ namespace Haru.Doc
         /// <param name="leading">Text leading in user space units.</param>
         public static void SetTextLeading(this HpdfPage page, float leading)
         {
+            ArgumentNullException.ThrowIfNull(page);
             var stream = page.Contents.Stream;
             stream.WriteReal(leading);
             stream.WriteString(" TL\n");
@@ -120,7 +127,8 @@ namespace Haru.Doc
         /// <param name="size">The font size in points.</param>
         public static void SetFontAndSize(this HpdfPage page, HpdfFont font, float size)
         {
-            if (font == null)
+            ArgumentNullException.ThrowIfNull(page);
+            if (font is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Font cannot be null");
             if (size <= 0)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "Font size must be positive");
@@ -145,6 +153,7 @@ namespace Haru.Doc
         /// <param name="mode">The rendering mode.</param>
         public static void SetTextRenderingMode(this HpdfPage page, HpdfTextRenderingMode mode)
         {
+            ArgumentNullException.ThrowIfNull(page);
             var stream = page.Contents.Stream;
             stream.WriteInt((int)mode);
             stream.WriteString(" Tr\n");
@@ -160,6 +169,7 @@ namespace Haru.Doc
         /// <param name="rise">Text rise in user space units.</param>
         public static void SetTextRise(this HpdfPage page, float rise)
         {
+            ArgumentNullException.ThrowIfNull(page);
             var stream = page.Contents.Stream;
             stream.WriteReal(rise);
             stream.WriteString(" Ts\n");
@@ -177,6 +187,7 @@ namespace Haru.Doc
         /// <param name="ty">Vertical translation.</param>
         public static void MoveTextPos(this HpdfPage page, float tx, float ty)
         {
+            ArgumentNullException.ThrowIfNull(page);
             var stream = page.Contents.Stream;
             stream.WriteReal(tx);
             stream.WriteChar(' ');
@@ -198,6 +209,7 @@ namespace Haru.Doc
         /// <param name="ty">Vertical translation.</param>
         public static void MoveTextPosAndSetLeading(this HpdfPage page, float tx, float ty)
         {
+            ArgumentNullException.ThrowIfNull(page);
             var stream = page.Contents.Stream;
             stream.WriteReal(tx);
             stream.WriteChar(' ');
@@ -220,6 +232,7 @@ namespace Haru.Doc
         /// <param name="matrix">The transformation matrix.</param>
         public static void SetTextMatrix(this HpdfPage page, HpdfTransMatrix matrix)
         {
+            ArgumentNullException.ThrowIfNull(page);
             var stream = page.Contents.Stream;
             stream.WriteReal(matrix.A);
             stream.WriteChar(' ');
@@ -244,6 +257,7 @@ namespace Haru.Doc
         /// </summary>
         public static void MoveToNextLine(this HpdfPage page)
         {
+            ArgumentNullException.ThrowIfNull(page);
             var stream = page.Contents.Stream;
             stream.WriteString("T*\n");
 
@@ -267,6 +281,7 @@ namespace Haru.Doc
         /// <param name="text">The text to show.</param>
         public static void ShowText(this HpdfPage page, string text)
         {
+            ArgumentNullException.ThrowIfNull(page);
             if (string.IsNullOrEmpty(text))
                 return;
 
@@ -304,6 +319,7 @@ namespace Haru.Doc
         /// <param name="text">The text to show.</param>
         public static void ShowTextNextLine(this HpdfPage page, string text)
         {
+            ArgumentNullException.ThrowIfNull(page);
             if (string.IsNullOrEmpty(text))
                 return;
 
@@ -348,6 +364,7 @@ namespace Haru.Doc
         /// <param name="text">The text to show.</param>
         public static void SetSpacingAndShowText(this HpdfPage page, float wordSpace, float charSpace, string text)
         {
+            ArgumentNullException.ThrowIfNull(page);
             if (string.IsNullOrEmpty(text))
                 return;
 

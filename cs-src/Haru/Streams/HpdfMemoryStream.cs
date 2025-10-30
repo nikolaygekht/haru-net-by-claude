@@ -73,7 +73,7 @@ namespace Haru.Streams
         /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
         {
-            if (buffer == null)
+            if (buffer is null)
                 throw new ArgumentNullException(nameof(buffer));
             if (offset < 0)
                 throw new ArgumentOutOfRangeException(nameof(offset));
@@ -109,7 +109,7 @@ namespace Haru.Streams
         /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (buffer == null)
+            if (buffer is null)
                 throw new ArgumentNullException(nameof(buffer));
             if (offset < 0)
                 throw new ArgumentOutOfRangeException(nameof(offset));
@@ -200,7 +200,7 @@ namespace Haru.Streams
         /// </summary>
         public void Rewrite(byte[] data)
         {
-            if (data == null)
+            if (data is null)
                 throw new ArgumentNullException(nameof(data));
 
             Clear();

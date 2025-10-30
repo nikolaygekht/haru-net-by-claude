@@ -76,7 +76,7 @@ namespace Haru.Objects
         /// </summary>
         public void Add(HpdfObject item)
         {
-            if (item == null)
+            if (item is null)
                 throw new ArgumentNullException(nameof(item));
             _items.Add(item);
         }
@@ -86,7 +86,7 @@ namespace Haru.Objects
         /// </summary>
         public void Insert(int index, HpdfObject item)
         {
-            if (item == null)
+            if (item is null)
                 throw new ArgumentNullException(nameof(item));
             _items.Insert(index, item);
         }

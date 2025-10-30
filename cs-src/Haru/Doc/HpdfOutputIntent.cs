@@ -40,7 +40,7 @@ namespace Haru.Doc
         /// <param name="iccProfile">ICC color profile data (can be null for sRGB default).</param>
         /// <param name="outputCondition">Human-readable output condition (e.g., "sRGB IEC61966-2.1").</param>
         /// <param name="outputConditionIdentifier">Registry identifier (e.g., "sRGB").</param>
-        public HpdfOutputIntent(HpdfXref xref, byte[] iccProfile = null,
+        public HpdfOutputIntent(HpdfXref xref, byte[]? iccProfile = null,
             string outputCondition = "sRGB IEC61966-2.1",
             string outputConditionIdentifier = "sRGB")
         {
@@ -87,7 +87,7 @@ namespace Haru.Doc
         /// </summary>
         public static HpdfOutputIntent CreateSRgbIntent(HpdfXref xref)
         {
-            return new HpdfOutputIntent(xref, null,
+            return new HpdfOutputIntent(xref, (byte[]?)null,
                 "sRGB IEC61966-2.1",
                 "sRGB");
         }
