@@ -5,7 +5,6 @@ using Haru.Doc;
 using Haru.Types;
 using Haru.Xref;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Graphics
 {
@@ -29,7 +28,7 @@ namespace Haru.Test.Graphics
         public void GSave_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.GSave();
@@ -43,7 +42,7 @@ namespace Haru.Test.Graphics
         public void GSave_PushesGraphicsState()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
             var originalState = page.GraphicsState;
 
             // Act
@@ -58,7 +57,7 @@ namespace Haru.Test.Graphics
         public void GRestore_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
             page.GSave();
 
             // Act
@@ -73,7 +72,7 @@ namespace Haru.Test.Graphics
         public void GRestore_PopsGraphicsState()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
             var originalState = page.GraphicsState;
             page.GSave();
 
@@ -90,7 +89,7 @@ namespace Haru.Test.Graphics
         public void SetLineWidth_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetLineWidth(2.5f);
@@ -104,7 +103,7 @@ namespace Haru.Test.Graphics
         public void SetLineWidth_UpdatesGraphicsState()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetLineWidth(3.0f);
@@ -117,7 +116,7 @@ namespace Haru.Test.Graphics
         public void SetLineWidth_ThrowsOnNegativeValue()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             var act = () => page.SetLineWidth(-1.0f);
@@ -131,7 +130,7 @@ namespace Haru.Test.Graphics
         public void SetLineCap_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetLineCap(HpdfLineCap.RoundEnd);
@@ -145,7 +144,7 @@ namespace Haru.Test.Graphics
         public void SetLineCap_UpdatesGraphicsState()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetLineCap(HpdfLineCap.ProjectingSquareEnd);
@@ -158,7 +157,7 @@ namespace Haru.Test.Graphics
         public void SetLineJoin_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetLineJoin(HpdfLineJoin.RoundJoin);
@@ -172,7 +171,7 @@ namespace Haru.Test.Graphics
         public void SetLineJoin_UpdatesGraphicsState()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetLineJoin(HpdfLineJoin.BevelJoin);
@@ -185,7 +184,7 @@ namespace Haru.Test.Graphics
         public void SetMiterLimit_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetMiterLimit(5.0f);
@@ -199,7 +198,7 @@ namespace Haru.Test.Graphics
         public void SetMiterLimit_UpdatesGraphicsState()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetMiterLimit(8.0f);
@@ -212,7 +211,7 @@ namespace Haru.Test.Graphics
         public void SetMiterLimit_ThrowsOnValueLessThanOne()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             var act = () => page.SetMiterLimit(0.5f);
@@ -226,7 +225,7 @@ namespace Haru.Test.Graphics
         public void SetDash_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetDash(new ushort[] { 3, 2 }, 0);
@@ -240,7 +239,7 @@ namespace Haru.Test.Graphics
         public void SetDash_UpdatesGraphicsState()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetDash(new ushort[] { 5, 3, 1, 3 }, 2);
@@ -256,7 +255,7 @@ namespace Haru.Test.Graphics
         public void MoveTo_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.MoveTo(100, 200);
@@ -270,7 +269,7 @@ namespace Haru.Test.Graphics
         public void MoveTo_UpdatesCurrentPosition()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.MoveTo(150, 250);
@@ -284,7 +283,7 @@ namespace Haru.Test.Graphics
         public void LineTo_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.LineTo(300, 400);
@@ -298,7 +297,7 @@ namespace Haru.Test.Graphics
         public void LineTo_UpdatesCurrentPosition()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.LineTo(350, 450);
@@ -312,7 +311,7 @@ namespace Haru.Test.Graphics
         public void Rectangle_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.Rectangle(10, 20, 100, 50);
@@ -326,7 +325,7 @@ namespace Haru.Test.Graphics
         public void ClosePath_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.ClosePath();
@@ -342,7 +341,7 @@ namespace Haru.Test.Graphics
         public void Stroke_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.Stroke();
@@ -356,7 +355,7 @@ namespace Haru.Test.Graphics
         public void ClosePathStroke_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.ClosePathStroke();
@@ -370,7 +369,7 @@ namespace Haru.Test.Graphics
         public void Fill_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.Fill();
@@ -384,7 +383,7 @@ namespace Haru.Test.Graphics
         public void EoFill_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.EoFill();
@@ -398,7 +397,7 @@ namespace Haru.Test.Graphics
         public void FillStroke_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.FillStroke();
@@ -412,7 +411,7 @@ namespace Haru.Test.Graphics
         public void ClosePathFillStroke_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.ClosePathFillStroke();
@@ -426,7 +425,7 @@ namespace Haru.Test.Graphics
         public void EndPath_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.EndPath();
@@ -442,7 +441,7 @@ namespace Haru.Test.Graphics
         public void SetGrayFill_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetGrayFill(0.5f);
@@ -456,7 +455,7 @@ namespace Haru.Test.Graphics
         public void SetGrayFill_UpdatesGraphicsState()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetGrayFill(0.75f);
@@ -470,7 +469,7 @@ namespace Haru.Test.Graphics
         public void SetGrayFill_ThrowsOnInvalidValue()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act & Assert
             var act1 = () => page.SetGrayFill(-0.1f);
@@ -486,7 +485,7 @@ namespace Haru.Test.Graphics
         public void SetGrayStroke_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetGrayStroke(0.25f);
@@ -500,7 +499,7 @@ namespace Haru.Test.Graphics
         public void SetGrayStroke_UpdatesGraphicsState()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetGrayStroke(0.8f);
@@ -514,7 +513,7 @@ namespace Haru.Test.Graphics
         public void SetRgbFill_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetRgbFill(1.0f, 0.5f, 0.0f);
@@ -528,7 +527,7 @@ namespace Haru.Test.Graphics
         public void SetRgbFill_UpdatesGraphicsState()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetRgbFill(0.2f, 0.4f, 0.6f);
@@ -544,7 +543,7 @@ namespace Haru.Test.Graphics
         public void SetRgbStroke_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetRgbStroke(0.0f, 1.0f, 0.5f);
@@ -558,7 +557,7 @@ namespace Haru.Test.Graphics
         public void SetRgbStroke_UpdatesGraphicsState()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetRgbStroke(0.7f, 0.3f, 0.9f);
@@ -574,7 +573,7 @@ namespace Haru.Test.Graphics
         public void SetCmykFill_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetCmykFill(0.1f, 0.2f, 0.3f, 0.4f);
@@ -588,7 +587,7 @@ namespace Haru.Test.Graphics
         public void SetCmykFill_UpdatesGraphicsState()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetCmykFill(0.5f, 0.6f, 0.7f, 0.8f);
@@ -605,7 +604,7 @@ namespace Haru.Test.Graphics
         public void SetCmykStroke_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetCmykStroke(0.9f, 0.8f, 0.7f, 0.6f);
@@ -619,7 +618,7 @@ namespace Haru.Test.Graphics
         public void SetCmykStroke_UpdatesGraphicsState()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetCmykStroke(0.15f, 0.25f, 0.35f, 0.45f);
@@ -638,7 +637,7 @@ namespace Haru.Test.Graphics
         public void DrawRectangle_ProducesCorrectSequence()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetLineWidth(2);
@@ -658,7 +657,7 @@ namespace Haru.Test.Graphics
         public void DrawPath_ProducesCorrectSequence()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.MoveTo(10, 10);
@@ -682,7 +681,7 @@ namespace Haru.Test.Graphics
         public void GraphicsStateStack_WorksCorrectly()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetLineWidth(1);

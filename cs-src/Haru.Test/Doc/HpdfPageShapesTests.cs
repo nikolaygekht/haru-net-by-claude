@@ -5,7 +5,6 @@ using FluentAssertions;
 using Haru.Doc;
 using Haru.Xref;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Doc
 {
@@ -28,7 +27,7 @@ namespace Haru.Test.Doc
         public void Circle_CreatesValidPath()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.Circle(100, 100, 50);
@@ -45,7 +44,7 @@ namespace Haru.Test.Doc
         public void Circle_ThrowsWhenRadiusIsZero()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             Action act = () => page.Circle(100, 100, 0);
@@ -59,7 +58,7 @@ namespace Haru.Test.Doc
         public void Circle_ThrowsWhenRadiusIsNegative()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             Action act = () => page.Circle(100, 100, -10);
@@ -73,7 +72,7 @@ namespace Haru.Test.Doc
         public void Circle_CanBeStroked()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.Circle(200, 200, 75);
@@ -89,7 +88,7 @@ namespace Haru.Test.Doc
         public void Circle_CanBeFilled()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.Circle(200, 200, 75);
@@ -107,7 +106,7 @@ namespace Haru.Test.Doc
         public void Ellipse_CreatesValidPath()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.Ellipse(100, 100, 80, 50);
@@ -124,7 +123,7 @@ namespace Haru.Test.Doc
         public void Ellipse_ThrowsWhenXRadiusIsZero()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             Action act = () => page.Ellipse(100, 100, 0, 50);
@@ -138,7 +137,7 @@ namespace Haru.Test.Doc
         public void Ellipse_ThrowsWhenYRadiusIsNegative()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             Action act = () => page.Ellipse(100, 100, 50, -10);
@@ -152,7 +151,7 @@ namespace Haru.Test.Doc
         public void Ellipse_WithEqualRadii_CreatesCircle()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.Ellipse(100, 100, 50, 50);
@@ -168,7 +167,7 @@ namespace Haru.Test.Doc
         public void Arc_CreatesValidPath()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.Arc(100, 100, 50, 0, 90);
@@ -184,7 +183,7 @@ namespace Haru.Test.Doc
         public void Arc_ThrowsWhenRadiusIsZero()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             Action act = () => page.Arc(100, 100, 0, 0, 90);
@@ -198,7 +197,7 @@ namespace Haru.Test.Doc
         public void Arc_ThrowsWhenAngleRangeIs360OrMore()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             Action act = () => page.Arc(100, 100, 50, 0, 360);
@@ -212,7 +211,7 @@ namespace Haru.Test.Doc
         public void Arc_HandlesNegativeAngles()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act - Should normalize negative angles
             page.Arc(100, 100, 50, -90, 0);
@@ -226,7 +225,7 @@ namespace Haru.Test.Doc
         public void Arc_LargeArc_BreaksIntoSegments()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act - 270 degree arc should be broken into multiple segments
             page.Arc(100, 100, 50, 0, 270);
@@ -244,7 +243,7 @@ namespace Haru.Test.Doc
         public void MultipleShapes_ProduceValidPDF()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.Circle(100, 100, 30);

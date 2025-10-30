@@ -3,7 +3,6 @@ using FluentAssertions;
 using Haru.Graphics;
 using Haru.Types;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Graphics
 {

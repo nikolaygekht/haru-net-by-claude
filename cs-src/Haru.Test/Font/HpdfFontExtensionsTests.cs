@@ -11,7 +11,6 @@ using FluentAssertions;
 using Haru.Font;
 using Haru.Doc;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Font
 {

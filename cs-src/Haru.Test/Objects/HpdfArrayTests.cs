@@ -5,7 +5,6 @@ using Haru.Streams;
 using Haru.Types;
 using Xunit;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Objects
 {
@@ -13,7 +12,7 @@ namespace Haru.Test.Objects
     {
         private static string WriteToString(HpdfObject obj)
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             obj.WriteValue(stream);
             return Encoding.ASCII.GetString(stream.ToArray());
         }

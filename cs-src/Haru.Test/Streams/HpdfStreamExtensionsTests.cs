@@ -5,7 +5,6 @@ using FluentAssertions;
 using Haru.Streams;
 using Xunit;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Streams
 {
@@ -14,7 +13,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteChar_WritesCharacter()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteChar('A');
 
@@ -24,7 +23,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteString_WritesAsciiString()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteString("Hello");
 
@@ -35,7 +34,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteInt_WritesIntegerAsText()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteInt(12345);
 
@@ -46,7 +45,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteInt_NegativeNumber_WritesWithSign()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteInt(-999);
 
@@ -57,7 +56,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteUInt_WritesUnsignedInteger()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteUInt(4294967295);
 
@@ -68,7 +67,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteReal_WritesFloatAsText()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteReal(3.14159f);
 
@@ -79,7 +78,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteReal_RemovesTrailingZeros()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteReal(5.0f);
 
@@ -90,7 +89,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteReal_HandlesSmallNumbers()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteReal(0.123456f);
 
@@ -101,7 +100,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteLine_WritesStringWithNewline()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteLine("Test");
 
@@ -112,7 +111,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteLine_EmptyString_WritesOnlyNewline()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteLine();
 
@@ -122,7 +121,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteEscapedName_WritesSimpleName()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteEscapedName("Font");
 
@@ -133,7 +132,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteEscapedName_EscapesSpaces()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteEscapedName("My Font");
 
@@ -144,7 +143,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteEscapedName_EscapesSpecialCharacters()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteEscapedName("Font#1");
 
@@ -155,7 +154,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteEscapedText_WritesSimpleText()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteEscapedText("Hello World");
 
@@ -166,7 +165,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteEscapedText_EscapesParentheses()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteEscapedText("(test)");
 
@@ -177,7 +176,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteEscapedText_EscapesBackslash()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteEscapedText(@"C:\path");
 
@@ -188,7 +187,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteEscapedText_EscapesNewlineAndReturn()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteEscapedText("Line1\r\nLine2");
 
@@ -199,7 +198,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteEscapedText_EscapesNonPrintableCharacters()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Create string with control character using char cast to avoid any encoding issues
             string testString = "A" + (char)1 + "B";
@@ -215,7 +214,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteHexString_WritesEmptyArray()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteHexString(Array.Empty<byte>());
 
@@ -226,7 +225,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteHexString_WritesHexData()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteHexString(new byte[] { 0x12, 0xAB, 0xCD, 0xEF });
 
@@ -237,7 +236,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteHexString_HandlesZeroes()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteHexString(new byte[] { 0x00, 0x0F, 0xF0 });
 
@@ -248,7 +247,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void ReadLine_ReadsSimpleLine()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             stream.WriteString("Hello World\n");
             stream.Seek(0, SeekOrigin.Begin);
 
@@ -260,7 +259,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void ReadLine_HandlesCarriageReturn()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             stream.WriteString("Line1\rLine2\n");
             stream.Seek(0, SeekOrigin.Begin);
 
@@ -274,7 +273,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void ReadLine_HandlesCarriageReturnLineFeed()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             stream.WriteString("Line1\r\nLine2\n");
             stream.Seek(0, SeekOrigin.Begin);
 
@@ -288,7 +287,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void ReadLine_AtEndOfStream_ReturnsNull()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             stream.WriteString("Test\n");
             stream.Seek(0, SeekOrigin.Begin);
             stream.ReadLine();
@@ -301,7 +300,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void ReadLine_NoNewline_ReturnsPartialLine()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             stream.WriteString("Incomplete");
             stream.Seek(0, SeekOrigin.Begin);
 
@@ -329,7 +328,7 @@ namespace Haru.Test.Streams
         [InlineData(999999, "999999")]
         public void WriteInt_VariousValues_WritesCorrectly(int value, string expected)
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteInt(value);
 
@@ -344,7 +343,7 @@ namespace Haru.Test.Streams
         [InlineData(100.0f, "100")]
         public void WriteReal_VariousValues_WritesCorrectly(float value, string expected)
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteReal(value);
 

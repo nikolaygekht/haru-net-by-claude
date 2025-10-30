@@ -6,7 +6,6 @@ using Haru.Doc;
 using Haru.Xref;
 using Haru.Types;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Doc
 {
@@ -28,7 +27,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             var extGState = new HpdfExtGState(xref, "GS1");
 
             // Act
@@ -44,7 +43,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             var extGState = new HpdfExtGState(xref, "GS1");
 
             // Act
@@ -59,7 +58,7 @@ namespace Haru.Test.Doc
         public void SetExtGState_ThrowsWhenExtGStateIsNull()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             Action act = () => page.SetExtGState(null!);
@@ -74,7 +73,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             var extGState1 = new HpdfExtGState(xref, "GS1");
             var extGState2 = new HpdfExtGState(xref, "GS2");
 
@@ -93,7 +92,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             var extGState = new HpdfExtGState(xref, "GS1");
 
             // Act
@@ -114,7 +113,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             var extGState = new HpdfExtGState(xref, "GS1");
             extGState.SetAlphaFill(0.5f);
 
@@ -140,7 +139,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             var extGState = new HpdfExtGState(xref, "GS1");
             extGState.SetBlendMode(HpdfBlendMode.Multiply);
 
@@ -165,7 +164,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             var gs1 = new HpdfExtGState(xref, "GS1");
             gs1.SetAlphaFill(0.7f);
             var gs2 = new HpdfExtGState(xref, "GS2");

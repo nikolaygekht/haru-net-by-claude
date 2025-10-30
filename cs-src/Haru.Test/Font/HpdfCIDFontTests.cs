@@ -6,7 +6,6 @@ using Haru.Doc;
 using Haru.Font;
 using Haru.Font.CID;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Font
 {

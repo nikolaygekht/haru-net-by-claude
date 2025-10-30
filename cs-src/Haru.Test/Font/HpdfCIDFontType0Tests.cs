@@ -6,7 +6,6 @@ using Haru.Doc;
 using Haru.Font;
 using Haru.Font.CID;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Font
 {
@@ -26,7 +25,7 @@ namespace Haru.Test.Font
             var doc = new HpdfDocument();
 
             // Act
-            var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
+            using var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
 
             // Assert
             cidFont.Should().NotBeNull();
@@ -45,7 +44,7 @@ namespace Haru.Test.Font
             var encoder = new GBKEucHEncoder();
 
             // Act
-            var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H", encoder);
 
             // Assert
             cidFont.Should().NotBeNull();
@@ -63,7 +62,7 @@ namespace Haru.Test.Font
             var doc = new HpdfDocument();
 
             // Act
-            var cidFont = HpdfCIDFontType0.Create(doc, "SimHei", "F2", 936, "GBK-EUC-H");
+            using var cidFont = HpdfCIDFontType0.Create(doc, "SimHei", "F2", 936, "GBK-EUC-H");
 
             // Assert
             cidFont.Should().NotBeNull();
@@ -77,7 +76,7 @@ namespace Haru.Test.Font
             // Arrange
             var doc = new HpdfDocument();
             var encoder = new GBKEucHEncoder();
-            var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H", encoder);
 
             // Act
             var bytes = cidFont.ConvertTextToBytes("你好世界");
@@ -99,7 +98,7 @@ namespace Haru.Test.Font
             var encoder = new ETenB5HEncoder();
 
             // Act
-            var cidFont = HpdfCIDFontType0.Create(doc, "MingLiU", "F3", 950, "ETen-B5-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "MingLiU", "F3", 950, "ETen-B5-H", encoder);
 
             // Assert
             cidFont.Should().NotBeNull();
@@ -115,7 +114,7 @@ namespace Haru.Test.Font
             // Arrange
             var doc = new HpdfDocument();
             var encoder = new ETenB5HEncoder();
-            var cidFont = HpdfCIDFontType0.Create(doc, "MingLiU", "F3", 950, "ETen-B5-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "MingLiU", "F3", 950, "ETen-B5-H", encoder);
 
             // Act
             var bytes = cidFont.ConvertTextToBytes("你好世界");
@@ -137,7 +136,7 @@ namespace Haru.Test.Font
             var encoder = new Ms90RKSJHEncoder();
 
             // Act
-            var cidFont = HpdfCIDFontType0.Create(doc, "MS-Gothic", "F4", 932, "90ms-RKSJ-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "MS-Gothic", "F4", 932, "90ms-RKSJ-H", encoder);
 
             // Assert
             cidFont.Should().NotBeNull();
@@ -156,7 +155,7 @@ namespace Haru.Test.Font
             var encoder = new Ms90RKSJHEncoder();
 
             // Act
-            var cidFont = HpdfCIDFontType0.Create(doc, "MS-Mincho", "F5", 932, "90ms-RKSJ-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "MS-Mincho", "F5", 932, "90ms-RKSJ-H", encoder);
 
             // Assert
             cidFont.Should().NotBeNull();
@@ -170,7 +169,7 @@ namespace Haru.Test.Font
             // Arrange
             var doc = new HpdfDocument();
             var encoder = new Ms90RKSJHEncoder();
-            var cidFont = HpdfCIDFontType0.Create(doc, "MS-Gothic", "F4", 932, "90ms-RKSJ-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "MS-Gothic", "F4", 932, "90ms-RKSJ-H", encoder);
 
             // Act
             var bytes = cidFont.ConvertTextToBytes("こんにちは世界");
@@ -192,7 +191,7 @@ namespace Haru.Test.Font
             var encoder = new Ms90RKSJHEncoder();
 
             // Act
-            var cidFont = HpdfCIDFontType0.Create(doc, "MS-PGothic", "F6", 932, "90ms-RKSJ-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "MS-PGothic", "F6", 932, "90ms-RKSJ-H", encoder);
 
             // Assert
             cidFont.Should().NotBeNull();
@@ -208,7 +207,7 @@ namespace Haru.Test.Font
             var encoder = new Ms90RKSJHEncoder();
 
             // Act
-            var cidFont = HpdfCIDFontType0.Create(doc, "MS-PMincho", "F7", 932, "90ms-RKSJ-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "MS-PMincho", "F7", 932, "90ms-RKSJ-H", encoder);
 
             // Assert
             cidFont.Should().NotBeNull();
@@ -222,7 +221,7 @@ namespace Haru.Test.Font
             // Arrange
             var doc = new HpdfDocument();
             var encoder = new Ms90RKSJHEncoder();
-            var cidFont = HpdfCIDFontType0.Create(doc, "MS-PGothic", "F6", 932, "90ms-RKSJ-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "MS-PGothic", "F6", 932, "90ms-RKSJ-H", encoder);
 
             // Act - Get widths for different CIDs
             var width1 = cidFont.GetCIDWidth(1);
@@ -244,7 +243,7 @@ namespace Haru.Test.Font
             var encoder = new KSCmsUHCHEncoder();
 
             // Act
-            var cidFont = HpdfCIDFontType0.Create(doc, "DotumChe", "F8", 949, "KSCms-UHC-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "DotumChe", "F8", 949, "KSCms-UHC-H", encoder);
 
             // Assert
             cidFont.Should().NotBeNull();
@@ -263,7 +262,7 @@ namespace Haru.Test.Font
             var encoder = new KSCmsUHCHEncoder();
 
             // Act
-            var cidFont = HpdfCIDFontType0.Create(doc, "BatangChe", "F9", 949, "KSCms-UHC-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "BatangChe", "F9", 949, "KSCms-UHC-H", encoder);
 
             // Assert
             cidFont.Should().NotBeNull();
@@ -277,7 +276,7 @@ namespace Haru.Test.Font
             // Arrange
             var doc = new HpdfDocument();
             var encoder = new KSCmsUHCHEncoder();
-            var cidFont = HpdfCIDFontType0.Create(doc, "DotumChe", "F8", 949, "KSCms-UHC-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "DotumChe", "F8", 949, "KSCms-UHC-H", encoder);
 
             // Act
             var bytes = cidFont.ConvertTextToBytes("안녕하세요 세계");
@@ -299,7 +298,7 @@ namespace Haru.Test.Font
             var encoder = new KSCmsUHCHEncoder();
 
             // Act
-            var cidFont = HpdfCIDFontType0.Create(doc, "Dotum", "F10", 949, "KSCms-UHC-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "Dotum", "F10", 949, "KSCms-UHC-H", encoder);
 
             // Assert
             cidFont.Should().NotBeNull();
@@ -315,7 +314,7 @@ namespace Haru.Test.Font
             var encoder = new KSCmsUHCHEncoder();
 
             // Act
-            var cidFont = HpdfCIDFontType0.Create(doc, "Batang", "F11", 949, "KSCms-UHC-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "Batang", "F11", 949, "KSCms-UHC-H", encoder);
 
             // Assert
             cidFont.Should().NotBeNull();
@@ -329,7 +328,7 @@ namespace Haru.Test.Font
             // Arrange
             var doc = new HpdfDocument();
             var encoder = new KSCmsUHCHEncoder();
-            var cidFont = HpdfCIDFontType0.Create(doc, "Dotum", "F10", 949, "KSCms-UHC-H", encoder);
+            using var cidFont = HpdfCIDFontType0.Create(doc, "Dotum", "F10", 949, "KSCms-UHC-H", encoder);
 
             // Act - Get widths for different CIDs
             var width1 = cidFont.GetCIDWidth(1);
@@ -351,7 +350,7 @@ namespace Haru.Test.Font
             doc.Version.Should().Be(HpdfVersion.Version12); // Default is 1.2
 
             // Act
-            var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
+            using var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
 
             // Assert
             doc.Version.Should().Be(HpdfVersion.Version14); // CIDFontType0 requires 1.4+
@@ -365,7 +364,7 @@ namespace Haru.Test.Font
             doc.Version = HpdfVersion.Version16;
 
             // Act
-            var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
+            using var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
 
             // Assert
             doc.Version.Should().Be(HpdfVersion.Version16); // Should stay at 1.6
@@ -400,7 +399,7 @@ namespace Haru.Test.Font
         {
             // Arrange
             var doc = new HpdfDocument();
-            var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
+            using var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
 
             // Act
             var font = cidFont.AsFont();
@@ -417,7 +416,7 @@ namespace Haru.Test.Font
         {
             // Arrange
             var doc = new HpdfDocument();
-            var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
+            using var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
 
             // Act
             var bytes = cidFont.ConvertTextToBytes("");
@@ -432,7 +431,7 @@ namespace Haru.Test.Font
         {
             // Arrange
             var doc = new HpdfDocument();
-            var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
+            using var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
 
             // Act
             var bytes = cidFont.ConvertTextToBytes(null!);
@@ -447,7 +446,7 @@ namespace Haru.Test.Font
         {
             // Arrange
             var doc = new HpdfDocument();
-            var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
+            using var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
 
             // Act
             var width = cidFont.MeasureText("Hello", 12f);
@@ -461,7 +460,7 @@ namespace Haru.Test.Font
         {
             // Arrange
             var doc = new HpdfDocument();
-            var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
+            using var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
 
             // Act
             var width = cidFont.MeasureText("", 12f);
@@ -475,7 +474,7 @@ namespace Haru.Test.Font
         {
             // Arrange
             var doc = new HpdfDocument();
-            var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
+            using var cidFont = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
 
             // Act
             var dict = cidFont.Dict;
@@ -497,10 +496,10 @@ namespace Haru.Test.Font
             var doc = new HpdfDocument();
 
             // Act - Load multiple CID fonts
-            var simSun = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
-            var mingLiU = HpdfCIDFontType0.Create(doc, "MingLiU", "F2", 950, "ETen-B5-H");
-            var msGothic = HpdfCIDFontType0.Create(doc, "MS-Gothic", "F3", 932, "90ms-RKSJ-H");
-            var dotumChe = HpdfCIDFontType0.Create(doc, "DotumChe", "F4", 949, "KSCms-UHC-H");
+            using var simSun = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H");
+            using var mingLiU = HpdfCIDFontType0.Create(doc, "MingLiU", "F2", 950, "ETen-B5-H");
+            using var msGothic = HpdfCIDFontType0.Create(doc, "MS-Gothic", "F3", 932, "90ms-RKSJ-H");
+            using var dotumChe = HpdfCIDFontType0.Create(doc, "DotumChe", "F4", 949, "KSCms-UHC-H");
 
             // Assert
             simSun.Should().NotBeNull();
@@ -518,7 +517,7 @@ namespace Haru.Test.Font
             var doc = new HpdfDocument();
 
             // Act
-            var cidFont = HpdfCIDFontType0.CreateSimSun(doc, "F1");
+            using var cidFont = HpdfCIDFontType0.CreateSimSun(doc, "F1");
 
             // Assert
             cidFont.Should().NotBeNull();
@@ -540,17 +539,28 @@ namespace Haru.Test.Font
             page.SetSize(HpdfPageSize.A4, HpdfPageDirection.Portrait);
 
             // Act - Create all 11 fonts
-            var simSun = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H", new GBKEucHEncoder()).AsFont();
-            var simHei = HpdfCIDFontType0.Create(doc, "SimHei", "F2", 936, "GBK-EUC-H", new GBKEucHEncoder()).AsFont();
-            var mingLiU = HpdfCIDFontType0.Create(doc, "MingLiU", "F3", 950, "ETen-B5-H", new ETenB5HEncoder()).AsFont();
-            var msGothic = HpdfCIDFontType0.Create(doc, "MS-Gothic", "F4", 932, "90ms-RKSJ-H", new Ms90RKSJHEncoder()).AsFont();
-            var msMincho = HpdfCIDFontType0.Create(doc, "MS-Mincho", "F5", 932, "90ms-RKSJ-H", new Ms90RKSJHEncoder()).AsFont();
-            var msPGothic = HpdfCIDFontType0.Create(doc, "MS-PGothic", "F6", 932, "90ms-RKSJ-H", new Ms90RKSJHEncoder()).AsFont();
-            var msPMincho = HpdfCIDFontType0.Create(doc, "MS-PMincho", "F7", 932, "90ms-RKSJ-H", new Ms90RKSJHEncoder()).AsFont();
-            var dotumChe = HpdfCIDFontType0.Create(doc, "DotumChe", "F8", 949, "KSCms-UHC-H", new KSCmsUHCHEncoder()).AsFont();
-            var batangChe = HpdfCIDFontType0.Create(doc, "BatangChe", "F9", 949, "KSCms-UHC-H", new KSCmsUHCHEncoder()).AsFont();
-            var dotum = HpdfCIDFontType0.Create(doc, "Dotum", "F10", 949, "KSCms-UHC-H", new KSCmsUHCHEncoder()).AsFont();
-            var batang = HpdfCIDFontType0.Create(doc, "Batang", "F11", 949, "KSCms-UHC-H", new KSCmsUHCHEncoder()).AsFont();
+            using var simSunCid = HpdfCIDFontType0.Create(doc, "SimSun", "F1", 936, "GBK-EUC-H", new GBKEucHEncoder());
+            var simSun = simSunCid.AsFont();
+            using var simHeiCid = HpdfCIDFontType0.Create(doc, "SimHei", "F2", 936, "GBK-EUC-H", new GBKEucHEncoder());
+            var simHei = simHeiCid.AsFont();
+            using var mingLiUCid = HpdfCIDFontType0.Create(doc, "MingLiU", "F3", 950, "ETen-B5-H", new ETenB5HEncoder());
+            var mingLiU = mingLiUCid.AsFont();
+            using var msGothicCid = HpdfCIDFontType0.Create(doc, "MS-Gothic", "F4", 932, "90ms-RKSJ-H", new Ms90RKSJHEncoder());
+            var msGothic = msGothicCid.AsFont();
+            using var msMinchoCid = HpdfCIDFontType0.Create(doc, "MS-Mincho", "F5", 932, "90ms-RKSJ-H", new Ms90RKSJHEncoder());
+            var msMincho = msMinchoCid.AsFont();
+            using var msPGothicCid = HpdfCIDFontType0.Create(doc, "MS-PGothic", "F6", 932, "90ms-RKSJ-H", new Ms90RKSJHEncoder());
+            var msPGothic = msPGothicCid.AsFont();
+            using var msPMinchoCid = HpdfCIDFontType0.Create(doc, "MS-PMincho", "F7", 932, "90ms-RKSJ-H", new Ms90RKSJHEncoder());
+            var msPMincho = msPMinchoCid.AsFont();
+            using var dotumCheCid = HpdfCIDFontType0.Create(doc, "DotumChe", "F8", 949, "KSCms-UHC-H", new KSCmsUHCHEncoder());
+            var dotumChe = dotumCheCid.AsFont();
+            using var batangCheCid = HpdfCIDFontType0.Create(doc, "BatangChe", "F9", 949, "KSCms-UHC-H", new KSCmsUHCHEncoder());
+            var batangChe = batangCheCid.AsFont();
+            using var dotumCid = HpdfCIDFontType0.Create(doc, "Dotum", "F10", 949, "KSCms-UHC-H", new KSCmsUHCHEncoder());
+            var dotum = dotumCid.AsFont();
+            using var batangCid = HpdfCIDFontType0.Create(doc, "Batang", "F11", 949, "KSCms-UHC-H", new KSCmsUHCHEncoder());
+            var batang = batangCid.AsFont();
 
             // Render text with each font
             page.BeginText();

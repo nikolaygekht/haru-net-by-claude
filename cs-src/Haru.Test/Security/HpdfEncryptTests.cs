@@ -4,7 +4,6 @@ using Haru.Security;
 using Haru.Types;
 using Xunit;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Security
 {

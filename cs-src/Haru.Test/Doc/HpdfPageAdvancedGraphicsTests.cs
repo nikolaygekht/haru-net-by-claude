@@ -5,7 +5,6 @@ using Haru.Doc;
 using Haru.Xref;
 using Haru.Types;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Doc
 {
@@ -28,7 +27,7 @@ namespace Haru.Test.Doc
         public void CurveTo_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.CurveTo(100, 200, 150, 250, 200, 200);
@@ -44,7 +43,7 @@ namespace Haru.Test.Doc
         public void CurveTo2_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.CurveTo2(150, 250, 200, 200);
@@ -60,7 +59,7 @@ namespace Haru.Test.Doc
         public void CurveTo3_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.CurveTo3(100, 200, 200, 200);
@@ -78,7 +77,7 @@ namespace Haru.Test.Doc
         public void Concat_WithFloats_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.Concat(1, 0, 0, 1, 100, 200);
@@ -92,7 +91,7 @@ namespace Haru.Test.Doc
         public void Concat_WithMatrix_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
             var matrix = new HpdfTransMatrix(2, 0, 0, 2, 50, 75);
 
             // Act
@@ -107,7 +106,7 @@ namespace Haru.Test.Doc
         public void Concat_Rotation_ProducesRotationMatrix()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
             // Rotate 90 degrees: cos(90)=0, sin(90)=1
             float cos90 = 0f;
             float sin90 = 1f;
@@ -126,7 +125,7 @@ namespace Haru.Test.Doc
         public void Clip_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.Clip();
@@ -140,7 +139,7 @@ namespace Haru.Test.Doc
         public void EoClip_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.EoClip();
@@ -154,7 +153,7 @@ namespace Haru.Test.Doc
         public void ClipWithPath_ProducesValidSequence()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.Rectangle(50, 50, 100, 100);
@@ -174,7 +173,7 @@ namespace Haru.Test.Doc
         public void BezierCurveSequence_ProducesValidPath()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.MoveTo(100, 100);
@@ -192,7 +191,7 @@ namespace Haru.Test.Doc
         public void TransformAndDraw_ProducesValidSequence()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.GSave();

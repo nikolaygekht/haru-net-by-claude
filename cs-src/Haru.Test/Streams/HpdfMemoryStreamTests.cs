@@ -4,7 +4,6 @@ using FluentAssertions;
 using Haru.Streams;
 using Xunit;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Streams
 {
@@ -13,7 +12,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Constructor_Default_CreatesStream()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.StreamType.Should().Be(HpdfStreamType.Memory);
             stream.CanRead.Should().BeTrue();
@@ -26,7 +25,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Constructor_WithBufferSize_SetsBufferSize()
         {
-            var stream = new HpdfMemoryStream(1024);
+            using var stream = new HpdfMemoryStream(1024);
 
             stream.BufferSize.Should().Be(1024);
         }
@@ -42,7 +41,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Write_SmallData_WritesSuccessfully()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             byte[] data = { 1, 2, 3, 4, 5 };
 
             stream.Write(data);
@@ -54,7 +53,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Write_LargeData_SpansMultipleBuffers()
         {
-            var stream = new HpdfMemoryStream(10); // Small buffer for testing
+            using var stream = new HpdfMemoryStream(10); // Small buffer for testing
             byte[] data = new byte[25];
             for (int i = 0; i < data.Length; i++)
                 data[i] = (byte)i;
@@ -68,7 +67,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Read_AfterWrite_ReturnsWrittenData()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             byte[] writeData = { 10, 20, 30, 40, 50 };
             stream.Write(writeData);
             stream.Seek(0, SeekOrigin.Begin);
@@ -83,7 +82,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Read_AcrossBuffers_ReturnsCorrectData()
         {
-            var stream = new HpdfMemoryStream(10);
+            using var stream = new HpdfMemoryStream(10);
             byte[] writeData = new byte[25];
             for (int i = 0; i < writeData.Length; i++)
                 writeData[i] = (byte)i;
@@ -100,7 +99,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Read_PastEnd_ReturnsZero()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             byte[] data = { 1, 2, 3 };
             stream.Write(data);
 
@@ -113,7 +112,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Seek_Begin_SetsPositionFromStart()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             stream.Write(new byte[20]);
 
             stream.Seek(10, SeekOrigin.Begin);
@@ -124,7 +123,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Seek_Current_SetsPositionRelative()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             stream.Write(new byte[20]);
             stream.Seek(5, SeekOrigin.Begin);
 
@@ -136,7 +135,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Seek_End_SetsPositionFromEnd()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             stream.Write(new byte[20]);
 
             stream.Seek(-5, SeekOrigin.End);
@@ -147,7 +146,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Seek_NegativePosition_ThrowsException()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             Action act = () => stream.Seek(-1, SeekOrigin.Begin);
 
@@ -157,7 +156,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void IsEof_AtEnd_ReturnsTrue()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             stream.Write(new byte[10]);
 
             stream.IsEof.Should().BeTrue();
@@ -166,7 +165,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void IsEof_NotAtEnd_ReturnsFalse()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             stream.Write(new byte[10]);
             stream.Seek(5, SeekOrigin.Begin);
 
@@ -176,7 +175,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void GetBuffer_ValidIndex_ReturnsBuffer()
         {
-            var stream = new HpdfMemoryStream(10);
+            using var stream = new HpdfMemoryStream(10);
             stream.Write(new byte[25]);
 
             var (buffer, length) = stream.GetBuffer(0);
@@ -188,7 +187,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void GetBuffer_LastBuffer_ReturnsPartialLength()
         {
-            var stream = new HpdfMemoryStream(10);
+            using var stream = new HpdfMemoryStream(10);
             stream.Write(new byte[25]);
 
             var (buffer, length) = stream.GetBuffer(2);
@@ -200,7 +199,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void GetBuffer_InvalidIndex_ThrowsException()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             Action act = () => stream.GetBuffer(10);
 
@@ -210,7 +209,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void ToArray_ReturnsAllData()
         {
-            var stream = new HpdfMemoryStream(10);
+            using var stream = new HpdfMemoryStream(10);
             byte[] data = new byte[25];
             for (int i = 0; i < data.Length; i++)
                 data[i] = (byte)i;
@@ -224,7 +223,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Rewrite_ReplacesData()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             stream.Write(new byte[] { 1, 2, 3, 4, 5 });
 
             stream.Rewrite(new byte[] { 10, 20, 30 });
@@ -238,7 +237,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Clear_RemovesAllData()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             stream.Write(new byte[] { 1, 2, 3, 4, 5 });
 
             stream.Clear();
@@ -251,7 +250,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void WriteByte_WritesSingleByte()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             stream.WriteByte(42);
 
@@ -263,7 +262,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Write_WithOffset_WritesCorrectData()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             byte[] data = { 1, 2, 3, 4, 5 };
 
             stream.Write(data, 2, 2);
@@ -276,7 +275,7 @@ namespace Haru.Test.Streams
         [Fact]
         public void Read_WithOffset_ReadsIntoCorrectPosition()
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             stream.Write(new byte[] { 10, 20, 30 });
             stream.Seek(0, SeekOrigin.Begin);
 

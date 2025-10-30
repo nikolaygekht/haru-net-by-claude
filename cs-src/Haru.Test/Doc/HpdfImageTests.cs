@@ -9,7 +9,6 @@ using Haru.Types;
 using Haru.Objects;
 using Haru.Streams;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Doc
 {
@@ -290,7 +289,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             using var stream = GetResourceStream("test_rgb_2x2.png")!;
             var image = HpdfImage.LoadPngImage(xref, "Im1", stream);
 
@@ -310,7 +309,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             using var stream = GetResourceStream("test_rgb_2x2.png")!;
             var image = HpdfImage.LoadPngImage(xref, "Im1", stream);
 
@@ -329,7 +328,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             using var stream1 = GetResourceStream("test_rgb_2x2.png")!;
             using var stream2 = GetResourceStream("test_grayscale_2x2.png")!;
             var image1 = HpdfImage.LoadPngImage(xref, "Im1", stream1);
@@ -351,7 +350,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             Action act = () => page.DrawImage(null!, 0, 0, 100, 100);
@@ -366,7 +365,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             using var stream = GetResourceStream("test_rgb_2x2.png")!;
             var image = HpdfImage.LoadPngImage(xref, "Im1", stream);
 
@@ -383,7 +382,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             using var stream = GetResourceStream("test_rgb_2x2.png")!;
             var image = HpdfImage.LoadPngImage(xref, "Im1", stream);
 

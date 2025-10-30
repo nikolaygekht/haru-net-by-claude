@@ -7,7 +7,6 @@ using Haru.Objects;
 using Haru.Streams;
 using Xunit;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Objects
 {
@@ -49,12 +48,12 @@ namespace Haru.Test.Objects
             string streamContent = content.Substring(streamStart, streamEnd - streamStart);
 
             // Create a stream object with the same content
-            var obj = new HpdfStreamObject();
+            using var obj = new HpdfStreamObject();
             obj.Filter = HpdfStreamFilter.None; // No compression
             obj.WriteToStream(Encoding.ASCII.GetBytes(streamContent));
 
             // Write and verify
-            var outputStream = new HpdfMemoryStream();
+            using var outputStream = new HpdfMemoryStream();
             obj.WriteValue(outputStream);
             string output = Encoding.ASCII.GetString(outputStream.ToArray());
 
@@ -143,12 +142,12 @@ namespace Haru.Test.Objects
             decompressed.Length.Should().BeGreaterThan(compressedData.Length);
 
             // Now create a stream object with the decompressed data and compress it
-            var obj = new HpdfStreamObject();
+            using var obj = new HpdfStreamObject();
             obj.Filter = HpdfStreamFilter.FlateDecode;
             obj.WriteToStream(decompressed);
 
             // Write the object
-            var outputStream = new HpdfMemoryStream();
+            using var outputStream = new HpdfMemoryStream();
             obj.WriteValue(outputStream);
             byte[] output = outputStream.ToArray();
 
@@ -179,10 +178,10 @@ BT
 (LineDemo) Tj
 ET";
 
-            var obj = new HpdfStreamObject();
+            using var obj = new HpdfStreamObject();
             obj.WriteToStream(Encoding.ASCII.GetBytes(graphicsContent));
 
-            var outputStream = new HpdfMemoryStream();
+            using var outputStream = new HpdfMemoryStream();
             obj.WriteValue(outputStream);
             string output = Encoding.ASCII.GetString(outputStream.ToArray());
 
@@ -212,12 +211,12 @@ Q";
             byte[] originalBytes = Encoding.ASCII.GetBytes(originalContent);
 
             // Create stream object with compression
-            var obj = new HpdfStreamObject();
+            using var obj = new HpdfStreamObject();
             obj.Filter = HpdfStreamFilter.FlateDecode;
             obj.WriteToStream(originalBytes);
 
             // Write to output
-            var outputStream = new HpdfMemoryStream();
+            using var outputStream = new HpdfMemoryStream();
             obj.WriteValue(outputStream);
             byte[] output = outputStream.ToArray();
 
@@ -263,16 +262,16 @@ Q";
             byte[] largeBytes = Encoding.ASCII.GetBytes(largeContent);
 
             // Without compression
-            var objUncompressed = new HpdfStreamObject();
+            using var objUncompressed = new HpdfStreamObject();
             objUncompressed.WriteToStream(largeBytes);
-            var uncompressedStream = new HpdfMemoryStream();
+            using var uncompressedStream = new HpdfMemoryStream();
             objUncompressed.WriteValue(uncompressedStream);
 
             // With compression
-            var objCompressed = new HpdfStreamObject();
+            using var objCompressed = new HpdfStreamObject();
             objCompressed.Filter = HpdfStreamFilter.FlateDecode;
             objCompressed.WriteToStream(largeBytes);
-            var compressedStream = new HpdfMemoryStream();
+            using var compressedStream = new HpdfMemoryStream();
             objCompressed.WriteValue(compressedStream);
 
             // Compressed should be significantly smaller
@@ -283,7 +282,7 @@ Q";
         public void StreamObject_WithDictionaryMetadata_WritesCorrectFormat()
         {
             // Create a stream object like you'd see for an image or content stream
-            var obj = new HpdfStreamObject();
+            using var obj = new HpdfStreamObject();
             obj.Add("Type", new HpdfName("XObject"));
             obj.Add("Subtype", new HpdfName("Form"));
             obj.Add("BBox", new HpdfArray(
@@ -296,7 +295,7 @@ Q";
             string content = "q 1 0 0 1 50 50 cm 0 0 20 20 re f Q";
             obj.WriteToStream(Encoding.ASCII.GetBytes(content));
 
-            var outputStream = new HpdfMemoryStream();
+            using var outputStream = new HpdfMemoryStream();
             obj.WriteValue(outputStream);
             string output = Encoding.ASCII.GetString(outputStream.ToArray());
 

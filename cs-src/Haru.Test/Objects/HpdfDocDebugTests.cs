@@ -3,7 +3,6 @@ using Xunit;
 using Xunit.Abstractions;
 using Haru.Doc;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Objects
 {

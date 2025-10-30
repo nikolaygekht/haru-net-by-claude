@@ -7,7 +7,6 @@ using Haru.Xref;
 using Haru.Objects;
 using Haru.Streams;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Xref
 {
@@ -40,7 +39,7 @@ namespace Haru.Test.Xref
             // Set up trailer
             xref.Trailer.Add("Root", new HpdfNumber((int)catalogId));
 
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Act
             xref.WriteToStream(stream);
@@ -68,7 +67,7 @@ namespace Haru.Test.Xref
             xref.Add(new HpdfNumber(42));
             xref.Add(new HpdfBoolean(true));
 
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Act
             xref.WriteToStream(stream);
@@ -102,7 +101,7 @@ namespace Haru.Test.Xref
             dict2.Add("Ref", new HpdfNumber((int)id1)); // Reference to first object
             xref.Add(dict2);
 
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Act
             xref.WriteToStream(stream);
@@ -135,7 +134,7 @@ namespace Haru.Test.Xref
             dict.Add("Numbers", array);
             xref.Add(dict);
 
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Act
             xref.WriteToStream(stream);
@@ -156,7 +155,7 @@ namespace Haru.Test.Xref
             xref1.Add(new HpdfNumber(1));
             xref1.Add(new HpdfNumber(2));
 
-            var stream1 = new HpdfMemoryStream();
+            using var stream1 = new HpdfMemoryStream();
             xref1.WriteToStream(stream1);
 
             // Create incremental update
@@ -164,7 +163,7 @@ namespace Haru.Test.Xref
             xref2.Add(new HpdfNumber(10));
             xref2.Previous = xref1;
 
-            var stream2 = new HpdfMemoryStream();
+            using var stream2 = new HpdfMemoryStream();
 
             // Act
             xref2.WriteToStream(stream2);
@@ -188,7 +187,7 @@ namespace Haru.Test.Xref
             xref.Add(obj1);
             xref.Add(obj2);
 
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Act
             xref.WriteToStream(stream);
@@ -213,7 +212,7 @@ namespace Haru.Test.Xref
             var xref = new HpdfXref(0);
             xref.Add(new HpdfNull());
 
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Act
             xref.WriteToStream(stream);
@@ -239,12 +238,12 @@ namespace Haru.Test.Xref
             // Arrange
             var xref = new HpdfXref(0);
 
-            var streamObj = new HpdfStreamObject();
+            using var streamObj = new HpdfStreamObject();
             streamObj.WriteToStream(Encoding.ASCII.GetBytes("Hello PDF"));
             streamObj.Add("Type", new HpdfName("Stream"));
             xref.Add(streamObj);
 
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Act
             xref.WriteToStream(stream);
@@ -271,7 +270,7 @@ namespace Haru.Test.Xref
                 xref.Add(dict);
             }
 
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Act
             xref.WriteToStream(stream);
@@ -319,7 +318,7 @@ namespace Haru.Test.Xref
             catalog.Add("Pages", new HpdfNumber(2));
             kidsArray.Add(new HpdfNumber(3)); // Reference to page
 
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Act
             xref.WriteToStream(stream);

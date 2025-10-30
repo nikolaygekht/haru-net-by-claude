@@ -5,7 +5,6 @@ using Haru.Xref;
 using Haru.Streams;
 using System.Text;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
 
 namespace Haru.Test.Objects
 {
@@ -52,7 +51,7 @@ namespace Haru.Test.Objects
             dict.Add("MediaBox", array);
 
             // Act
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             dict.WriteValue(stream);
             var output = Encoding.ASCII.GetString(stream.ToArray());
 
@@ -75,7 +74,7 @@ namespace Haru.Test.Objects
             parentDict.Add("Child", childDict);
 
             // Act
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             parentDict.WriteValue(stream);
             var output = Encoding.ASCII.GetString(stream.ToArray());
 
