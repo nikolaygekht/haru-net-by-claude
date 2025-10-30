@@ -49,7 +49,8 @@ namespace Haru.Demos
                 // Chinese Simplified (SimSun - GBK-EUC-H)
                 Console.WriteLine("Loading SimSun (Chinese Simplified)...");
                 var gbkEncoder = new GBKEucHEncoder();
-                var simSunFont = HpdfCIDFontType0.Create(doc, "SimSun", "SimSun", 936, "GBK-EUC-H", gbkEncoder).AsFont();
+                using var simSunFontObj = HpdfCIDFontType0.Create(doc, "SimSun", "SimSun", 936, "GBK-EUC-H", gbkEncoder);
+                var simSunFont = simSunFontObj.AsFont();
 
                 page.BeginText();
                 page.SetFontAndSize(titleFont, 12);
@@ -68,7 +69,8 @@ namespace Haru.Demos
 
                 // Chinese Simplified (SimHei - GBK-EUC-H)
                 Console.WriteLine("Loading SimHei (Chinese Simplified - Sans)...");
-                var simHeiFont = HpdfCIDFontType0.Create(doc, "SimHei", "SimHei", 936, "GBK-EUC-H", gbkEncoder).AsFont();
+                using var simHeiFontObj = HpdfCIDFontType0.Create(doc, "SimHei", "SimHei", 936, "GBK-EUC-H", gbkEncoder);
+                var simHeiFont = simHeiFontObj.AsFont();
 
                 page.BeginText();
                 page.SetFontAndSize(titleFont, 12);
@@ -88,7 +90,8 @@ namespace Haru.Demos
                 // Chinese Traditional (MingLiU - ETen-B5-H)
                 Console.WriteLine("Loading MingLiU (Chinese Traditional)...");
                 var etenEncoder = new ETenB5HEncoder();
-                var mingLiUFont = HpdfCIDFontType0.Create(doc, "MingLiU", "MingLiU", 950, "ETen-B5-H", etenEncoder).AsFont();
+                using var mingLiUFontObj = HpdfCIDFontType0.Create(doc, "MingLiU", "MingLiU", 950, "ETen-B5-H", etenEncoder);
+                var mingLiUFont = mingLiUFontObj.AsFont();
 
                 page.BeginText();
                 page.SetFontAndSize(titleFont, 12);
@@ -108,7 +111,8 @@ namespace Haru.Demos
                 // Japanese (MS-Gothic - 90ms-RKSJ-H)
                 Console.WriteLine("Loading MS-Gothic (Japanese)...");
                 var sjisEncoder = new Ms90RKSJHEncoder();
-                var msGothicFont = HpdfCIDFontType0.Create(doc, "MS-Gothic", "MSGothic", 932, "90ms-RKSJ-H", sjisEncoder).AsFont();
+                using var msGothicFontObj = HpdfCIDFontType0.Create(doc, "MS-Gothic", "MSGothic", 932, "90ms-RKSJ-H", sjisEncoder);
+                var msGothicFont = msGothicFontObj.AsFont();
 
                 page.BeginText();
                 page.SetFontAndSize(titleFont, 12);
@@ -127,7 +131,8 @@ namespace Haru.Demos
 
                 // Japanese (MS-Mincho - 90ms-RKSJ-H)
                 Console.WriteLine("Loading MS-Mincho (Japanese - Serif)...");
-                var msMinchoFont = HpdfCIDFontType0.Create(doc, "MS-Mincho", "MSMincho", 932, "90ms-RKSJ-H", sjisEncoder).AsFont();
+                using var msMinchoFontObj = HpdfCIDFontType0.Create(doc, "MS-Mincho", "MSMincho", 932, "90ms-RKSJ-H", sjisEncoder);
+                var msMinchoFont = msMinchoFontObj.AsFont();
 
                 page.BeginText();
                 page.SetFontAndSize(titleFont, 12);
@@ -147,7 +152,8 @@ namespace Haru.Demos
                 // Korean (DotumChe - KSCms-UHC-H)
                 Console.WriteLine("Loading DotumChe (Korean)...");
                 var uhcEncoder = new KSCmsUHCHEncoder();
-                var dotumCheFont = HpdfCIDFontType0.Create(doc, "DotumChe", "DotumChe", 949, "KSCms-UHC-H", uhcEncoder).AsFont();
+                using var dotumCheFontObj = HpdfCIDFontType0.Create(doc, "DotumChe", "DotumChe", 949, "KSCms-UHC-H", uhcEncoder);
+                var dotumCheFont = dotumCheFontObj.AsFont();
 
                 page.BeginText();
                 page.SetFontAndSize(titleFont, 12);
@@ -166,7 +172,8 @@ namespace Haru.Demos
 
                 // Korean (BatangChe - KSCms-UHC-H)
                 Console.WriteLine("Loading BatangChe (Korean - Serif)...");
-                var batangCheFont = HpdfCIDFontType0.Create(doc, "BatangChe", "BatangChe", 949, "KSCms-UHC-H", uhcEncoder).AsFont();
+                using var batangCheFontObj = HpdfCIDFontType0.Create(doc, "BatangChe", "BatangChe", 949, "KSCms-UHC-H", uhcEncoder);
+                var batangCheFont = batangCheFontObj.AsFont();
 
                 page.BeginText();
                 page.SetFontAndSize(titleFont, 12);
@@ -198,7 +205,8 @@ namespace Haru.Demos
 
                 // Japanese Proportional (MS-PGothic - 90ms-RKSJ-H)
                 Console.WriteLine("Loading MS-PGothic (Japanese Proportional)...");
-                var msPGothicFont = HpdfCIDFontType0.Create(doc, "MS-PGothic", "MSPGothic", 932, "90ms-RKSJ-H", sjisEncoder).AsFont();
+                using var msPGothicFontObj = HpdfCIDFontType0.Create(doc, "MS-PGothic", "MSPGothic", 932, "90ms-RKSJ-H", sjisEncoder);
+                var msPGothicFont = msPGothicFontObj.AsFont();
 
                 page2.BeginText();
                 page2.SetFontAndSize(titleFont, 12);
@@ -217,7 +225,8 @@ namespace Haru.Demos
 
                 // Japanese Proportional (MS-PMincho - 90ms-RKSJ-H)
                 Console.WriteLine("Loading MS-PMincho (Japanese Proportional - Serif)...");
-                var msPMinchoFont = HpdfCIDFontType0.Create(doc, "MS-PMincho", "MSPMincho", 932, "90ms-RKSJ-H", sjisEncoder).AsFont();
+                using var msPMinchoFontObj = HpdfCIDFontType0.Create(doc, "MS-PMincho", "MSPMincho", 932, "90ms-RKSJ-H", sjisEncoder);
+                var msPMinchoFont = msPMinchoFontObj.AsFont();
 
                 page2.BeginText();
                 page2.SetFontAndSize(titleFont, 12);
@@ -236,7 +245,8 @@ namespace Haru.Demos
 
                 // Korean Proportional (Dotum - KSCms-UHC-H)
                 Console.WriteLine("Loading Dotum (Korean Proportional)...");
-                var dotumFont = HpdfCIDFontType0.Create(doc, "Dotum", "Dotum", 949, "KSCms-UHC-H", uhcEncoder).AsFont();
+                using var dotumFontObj = HpdfCIDFontType0.Create(doc, "Dotum", "Dotum", 949, "KSCms-UHC-H", uhcEncoder);
+                var dotumFont = dotumFontObj.AsFont();
 
                 page2.BeginText();
                 page2.SetFontAndSize(titleFont, 12);
@@ -255,7 +265,8 @@ namespace Haru.Demos
 
                 // Korean Proportional (Batang - KSCms-UHC-H)
                 Console.WriteLine("Loading Batang (Korean Proportional - Serif)...");
-                var batangFont = HpdfCIDFontType0.Create(doc, "Batang", "Batang", 949, "KSCms-UHC-H", uhcEncoder).AsFont();
+                using var batangFontObj = HpdfCIDFontType0.Create(doc, "Batang", "Batang", 949, "KSCms-UHC-H", uhcEncoder);
+                var batangFont = batangFontObj.AsFont();
 
                 page2.BeginText();
                 page2.SetFontAndSize(titleFont, 12);

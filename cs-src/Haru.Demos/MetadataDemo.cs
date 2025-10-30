@@ -99,27 +99,27 @@ namespace BasicDemos
             y -= 25;
 
             DrawLabel(page, boldFont, 70, y, "Title:", 11, 0.2f, 0.2f, 0.6f);
-            DrawLabel(page, font, 170, y, pdf.Info.Title, 10);
+            DrawLabel(page, font, 170, y, pdf.Info.Title ?? "(not set)", 10);
             y -= 20;
 
             DrawLabel(page, boldFont, 70, y, "Author:", 11, 0.2f, 0.2f, 0.6f);
-            DrawLabel(page, font, 170, y, pdf.Info.Author, 10);
+            DrawLabel(page, font, 170, y, pdf.Info.Author ?? "(not set)", 10);
             y -= 20;
 
             DrawLabel(page, boldFont, 70, y, "Subject:", 11, 0.2f, 0.2f, 0.6f);
-            DrawLabel(page, font, 170, y, pdf.Info.Subject, 10);
+            DrawLabel(page, font, 170, y, pdf.Info.Subject ?? "(not set)", 10);
             y -= 20;
 
             DrawLabel(page, boldFont, 70, y, "Keywords:", 11, 0.2f, 0.2f, 0.6f);
-            DrawLabel(page, font, 170, y, pdf.Info.Keywords, 10);
+            DrawLabel(page, font, 170, y, pdf.Info.Keywords ?? "(not set)", 10);
             y -= 20;
 
             DrawLabel(page, boldFont, 70, y, "Creator:", 11, 0.2f, 0.2f, 0.6f);
-            DrawLabel(page, font, 170, y, pdf.Info.Creator, 10);
+            DrawLabel(page, font, 170, y, pdf.Info.Creator ?? "(not set)", 10);
             y -= 20;
 
             DrawLabel(page, boldFont, 70, y, "Producer:", 11, 0.2f, 0.2f, 0.6f);
-            DrawLabel(page, font, 170, y, pdf.Info.Producer, 10);
+            DrawLabel(page, font, 170, y, pdf.Info.Producer ?? "(not set)", 10);
             y -= 20;
 
             DrawLabel(page, boldFont, 70, y, "Created:", 11, 0.2f, 0.2f, 0.6f);
@@ -184,15 +184,15 @@ namespace BasicDemos
             y -= 30;
 
             DrawLabel(page, boldFont, 90, y, "Company:", 11, 0.2f, 0.2f, 0.6f);
-            DrawLabel(page, font, 190, y, pdf.Info.GetCustomMetadata("Company"), 10);
+            DrawLabel(page, font, 190, y, pdf.Info.GetCustomMetadata("Company") ?? "(not set)", 10);
             y -= 22;
 
             DrawLabel(page, boldFont, 90, y, "Department:", 11, 0.2f, 0.2f, 0.6f);
-            DrawLabel(page, font, 190, y, pdf.Info.GetCustomMetadata("Department"), 10);
+            DrawLabel(page, font, 190, y, pdf.Info.GetCustomMetadata("Department") ?? "(not set)", 10);
             y -= 22;
 
             DrawLabel(page, boldFont, 90, y, "Project:", 11, 0.2f, 0.2f, 0.6f);
-            DrawLabel(page, font, 190, y, pdf.Info.GetCustomMetadata("Project"), 10);
+            DrawLabel(page, font, 190, y, pdf.Info.GetCustomMetadata("Project") ?? "(not set)", 10);
             y -= 50;
 
             page.SetRgbFill(1.0f, 0.98f, 0.9f);

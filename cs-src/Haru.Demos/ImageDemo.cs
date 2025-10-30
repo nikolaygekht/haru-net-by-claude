@@ -24,13 +24,13 @@ namespace BasicDemos
             page.LineTo(x + 10, y);
             page.Stroke();
 
-            page.SetFontAndSize(page.CurrentFont, 8);
+            page.SetFontAndSize(page.CurrentFont!, 8);
             page.SetRgbFill(0, 0, 0);
 
             page.BeginText();
 
             string buf = $"(x={x},y={y})";
-            page.MoveTextPos(x - page.CurrentFont.MeasureText(buf, 8) - 5, y - 10);
+            page.MoveTextPos(x - page.CurrentFont!.MeasureText(buf, 8) - 5, y - 10);
             page.ShowText(buf);
             page.EndText();
 
