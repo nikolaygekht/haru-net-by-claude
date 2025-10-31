@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Reflection;
 
@@ -21,7 +20,7 @@ namespace Haru.Test
 
             var stream = assembly.GetManifestResourceStream(fullResourceName);
 
-            if (stream == null)
+            if (stream is null)
             {
                 throw new FileNotFoundException(
                     $"Embedded resource '{fullResourceName}' not found. " +

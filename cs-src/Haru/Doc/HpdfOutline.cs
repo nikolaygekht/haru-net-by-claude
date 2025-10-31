@@ -68,7 +68,7 @@ namespace Haru.Doc
         internal HpdfOutline(HpdfXref xref, HpdfOutline parent, string title)
         {
             _xref = xref ?? throw new HpdfException(HpdfErrorCode.InvalidParameter, "Xref cannot be null");
-            if (parent == null)
+            if (parent is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Parent cannot be null");
             if (string.IsNullOrEmpty(title))
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Title cannot be null or empty");
@@ -110,7 +110,7 @@ namespace Haru.Doc
         /// <param name="destination">The destination array.</param>
         public void SetDestination(HpdfArray destination)
         {
-            if (destination == null)
+            if (destination is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Destination cannot be null");
 
             _dict.Add("Dest", destination);
@@ -122,7 +122,7 @@ namespace Haru.Doc
         /// <param name="destination">The destination object.</param>
         public void SetDestination(HpdfDestination destination)
         {
-            if (destination == null)
+            if (destination is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Destination cannot be null");
 
             _dict.Add("Dest", destination.DestArray);
@@ -135,8 +135,8 @@ namespace Haru.Doc
         private void AddToParent(HpdfOutline parent)
         {
             // Get first and last children of parent
-            HpdfDict firstChild = null;
-            HpdfDict lastChild = null;
+            HpdfDict? firstChild = null;
+            HpdfDict? lastChild = null;
 
             if (parent._dict.TryGetValue("First", out var firstObj))
                 firstChild = firstObj as HpdfDict;
@@ -145,7 +145,7 @@ namespace Haru.Doc
                 lastChild = lastObj as HpdfDict;
 
             // If no first child, this becomes the first
-            if (firstChild == null)
+            if (firstChild is null)
                 parent._dict.Add("First", _dict);
 
             // If there's a last child, link them

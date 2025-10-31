@@ -1,11 +1,11 @@
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Xunit;
 using FluentAssertions;
 using Haru.Doc;
 using HpdfPageMode = Haru.Types.HpdfPageMode;
+
 
 namespace Haru.Test.Doc
 {

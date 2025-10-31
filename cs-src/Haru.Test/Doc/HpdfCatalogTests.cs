@@ -5,6 +5,7 @@ using Haru.Objects;
 using Haru.Xref;
 using HpdfPageMode = Haru.Types.HpdfPageMode;
 
+
 namespace Haru.Test.Doc
 {
     public class HpdfCatalogTests
@@ -64,7 +65,7 @@ namespace Haru.Test.Doc
             var rootPages = new HpdfPages(new HpdfXref(0));
 
             // Act
-            var act = () => new HpdfCatalog(null, rootPages);
+            var act = () => new HpdfCatalog(null!, rootPages);
 
             // Assert
             act.Should().Throw<HpdfException>()
@@ -78,7 +79,7 @@ namespace Haru.Test.Doc
             var xref = new HpdfXref(0);
 
             // Act
-            var act = () => new HpdfCatalog(xref, null);
+            var act = () => new HpdfCatalog(xref, null!);
 
             // Assert
             act.Should().Throw<HpdfException>()
@@ -196,7 +197,7 @@ namespace Haru.Test.Doc
             var catalog = new HpdfCatalog(xref, rootPages);
 
             // Act
-            var act = () => catalog.SetNames(null);
+            var act = () => catalog.SetNames(null!);
 
             // Assert
             act.Should().Throw<HpdfException>()

@@ -9,7 +9,6 @@
  * and its documentation for any purpose is hereby granted without fee,
  */
 
-using System;
 using Haru.Annotations;
 using Haru.Doc;
 using Haru.Font;

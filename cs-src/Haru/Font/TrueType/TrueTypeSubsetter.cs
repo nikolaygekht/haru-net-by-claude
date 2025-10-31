@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using Haru.Types;
 
 namespace Haru.Font.TrueType
 {
@@ -71,7 +70,7 @@ namespace Haru.Font.TrueType
             var locaTable = _parser.FindTable(_offsetTable, "loca");
             var glyfTable = _parser.FindTable(_offsetTable, "glyf");
 
-            if (locaTable == null || glyfTable == null)
+            if (locaTable is null || glyfTable is null)
                 throw new HpdfException(HpdfErrorCode.TtInvalidFormat, "loca or glyf table not found");
 
             uint[] locaOffsets = _parser.ParseLoca(locaTable, _head.IndexToLocFormat, _maxp.NumGlyphs);

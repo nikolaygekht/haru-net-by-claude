@@ -8,7 +8,7 @@ namespace Haru.Png
         /// <summary>
         /// Alpha values for palette entries (for indexed color images).
         /// </summary>
-        public byte[] PaletteAlpha { get; set; }
+        public byte[]? PaletteAlpha { get; set; }
 
         /// <summary>
         /// Number of transparent palette entries.

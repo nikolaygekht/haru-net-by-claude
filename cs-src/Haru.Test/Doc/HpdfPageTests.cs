@@ -4,6 +4,7 @@ using Haru.Doc;
 using Haru.Objects;
 using Haru.Xref;
 
+
 namespace Haru.Test.Doc
 {
     public class HpdfPageTests
@@ -15,7 +16,7 @@ namespace Haru.Test.Doc
             var xref = new HpdfXref(0);
 
             // Act
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Assert
             page.Should().NotBeNull();
@@ -29,13 +30,13 @@ namespace Haru.Test.Doc
             var xref = new HpdfXref(0);
 
             // Act
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Assert
             page.Dict.TryGetValue("Type", out var typeObj);
             var type = typeObj as HpdfName;
             type.Should().NotBeNull();
-            type.Value.Should().Be("Page");
+            type!.Value.Should().Be("Page");
         }
 
         [Fact]
@@ -45,7 +46,7 @@ namespace Haru.Test.Doc
             var xref = new HpdfXref(0);
 
             // Act
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Assert
             page.Dict.TryGetValue("MediaBox", out var mediaBoxObj);
@@ -61,7 +62,7 @@ namespace Haru.Test.Doc
             var xref = new HpdfXref(0);
 
             // Act
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Assert
             page.Contents.Should().NotBeNull();
@@ -76,7 +77,7 @@ namespace Haru.Test.Doc
             var xref = new HpdfXref(0);
 
             // Act
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Assert
             var resources = page.GetResources();
@@ -87,7 +88,7 @@ namespace Haru.Test.Doc
         public void Constructor_ThrowsWhenXrefIsNull()
         {
             // Act
-            var act = () => new HpdfPage(null);
+            var act = () => new HpdfPage(null!);
 
             // Assert
             act.Should().Throw<HpdfException>()
@@ -99,7 +100,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             var width = page.Width;
@@ -113,7 +114,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             var height = page.Height;
@@ -127,7 +128,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             page.Width = 500;
@@ -141,7 +142,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             page.Height = 700;
@@ -155,7 +156,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             page.SetMediaBox(10, 20, 610, 820);
@@ -164,11 +165,11 @@ namespace Haru.Test.Doc
             page.Dict.TryGetValue("MediaBox", out var mediaBoxObj);
             var mediaBox = mediaBoxObj as HpdfArray;
             mediaBox.Should().NotBeNull();
-            mediaBox.Count.Should().Be(4);
-            (mediaBox[0] as HpdfReal).Value.Should().Be(10);
-            (mediaBox[1] as HpdfReal).Value.Should().Be(20);
-            (mediaBox[2] as HpdfReal).Value.Should().Be(610);
-            (mediaBox[3] as HpdfReal).Value.Should().Be(820);
+            mediaBox!.Count.Should().Be(4);
+            (mediaBox[0] as HpdfReal)!.Value.Should().Be(10);
+            (mediaBox[1] as HpdfReal)!.Value.Should().Be(20);
+            (mediaBox[2] as HpdfReal)!.Value.Should().Be(610);
+            (mediaBox[3] as HpdfReal)!.Value.Should().Be(820);
         }
 
         [Fact]
@@ -176,7 +177,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             page.SetSize(400, 600);
@@ -191,7 +192,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             page.SetSize(HpdfPageSize.A4, HpdfPageDirection.Portrait);
@@ -206,7 +207,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             page.SetSize(HpdfPageSize.A4, HpdfPageDirection.Landscape);
@@ -221,7 +222,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             var resources = page.GetResources();
@@ -236,7 +237,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act & Assert
             page.Parent.Should().BeNull();
@@ -248,7 +249,7 @@ namespace Haru.Test.Doc
             // Arrange
             var xref = new HpdfXref(0);
             var pages = new HpdfPages(xref);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             pages.AddKid(page);
@@ -267,7 +268,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             page.SetSize(size, direction);
@@ -284,7 +285,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             page.SetHeight(800);
@@ -298,7 +299,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             page.SetWidth(600);
@@ -312,7 +313,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             page.SetWidth(500);

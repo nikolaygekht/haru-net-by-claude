@@ -55,7 +55,7 @@ namespace Haru.Annotations
         public HpdfLinkAnnotation(HpdfXref xref, HpdfRect rect, HpdfArray destination)
             : base(xref, HpdfAnnotationType.Link, rect)
         {
-            if (destination == null)
+            if (destination is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Destination cannot be null");
 
             _dict.Add("Dest", destination);

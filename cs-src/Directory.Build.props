@@ -1,0 +1,25 @@
+<Project>
+  <PropertyGroup>
+    <!-- Enable nullable reference types for better null safety -->
+    <Nullable>enable</Nullable>
+
+    <!-- Enable SDK analyzers for .NET 8.0 -->
+    <AnalysisLevel>8.0</AnalysisLevel>
+
+    <!-- Enforce code style checks during build (not just in IDE) -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!-- Treat specific analyzer warnings as errors (focused on critical issues) -->
+    <WarningsAsErrors>
+      CA1001,CA2000,CA1816,CA2213,CA1062
+    </WarningsAsErrors>
+
+    <!-- Warning level for compiler -->
+    <WarningLevel>9999</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Suppress specific warnings that are not relevant or too noisy -->
+    <CompilerVisibleProperty Include="RootNamespace" />
+  </ItemGroup>
+</Project>

@@ -1,11 +1,11 @@
 using System;
-using System.Text;
 using Xunit;
 using FluentAssertions;
 using Haru.Doc;
 using Haru.Xref;
 using Haru.Types;
 using Haru.Objects;
+
 
 namespace Haru.Test.Doc
 {
@@ -44,7 +44,7 @@ namespace Haru.Test.Doc
         public void Constructor_ThrowsWhenXrefIsNull()
         {
             // Act
-            Action act = () => new HpdfExtGState(null, "GS1");
+            Action act = () => new HpdfExtGState(null!, "GS1");
 
             // Assert
             act.Should().Throw<HpdfException>()
@@ -58,7 +58,7 @@ namespace Haru.Test.Doc
             var xref = new HpdfXref(0);
 
             // Act
-            Action act = () => new HpdfExtGState(xref, null);
+            Action act = () => new HpdfExtGState(xref, null!);
 
             // Assert
             act.Should().Throw<HpdfException>()

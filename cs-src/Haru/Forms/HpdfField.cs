@@ -128,7 +128,7 @@ namespace Haru.Forms
         /// <param name="widget">The widget annotation.</param>
         public void AddWidget(HpdfWidgetAnnotation widget)
         {
-            if (widget == null)
+            if (widget is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Widget cannot be null");
 
             _widgets.Add(widget);

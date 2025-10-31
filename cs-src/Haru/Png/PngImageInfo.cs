@@ -40,12 +40,12 @@ namespace Haru.Png
         /// <summary>
         /// Palette data for indexed color images.
         /// </summary>
-        public PngPalette Palette { get; set; }
+        public PngPalette? Palette { get; set; }
 
         /// <summary>
         /// Transparency information.
         /// </summary>
-        public PngTransparency Transparency { get; set; }
+        public PngTransparency? Transparency { get; set; }
 
         /// <summary>
         /// Gets the number of channels based on color type.

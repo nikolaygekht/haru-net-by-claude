@@ -3,8 +3,6 @@
  * Demonstrates Type 1 font loading and rendering with code page support
  */
 
-using System;
-using System.IO;
 using Haru.Doc;
 using Haru.Font;
 

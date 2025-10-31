@@ -14,6 +14,8 @@
  *
  */
 
+using System;
+
 namespace Haru.Font
 {
     /// <summary>
@@ -44,6 +46,7 @@ namespace Haru.Font
             bool wordWrap,
             out float realWidth)
         {
+            ArgumentNullException.ThrowIfNull(font);
             realWidth = 0;
 
             if (string.IsNullOrEmpty(text))

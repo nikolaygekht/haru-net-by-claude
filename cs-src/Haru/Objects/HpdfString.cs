@@ -9,7 +9,7 @@ namespace Haru.Objects
     /// </summary>
     public class HpdfString : HpdfObject
     {
-        private byte[] _value;
+        private byte[] _value = Array.Empty<byte>();
 
         /// <summary>
         /// Gets or sets the string value as bytes
@@ -52,9 +52,9 @@ namespace Haru.Objects
         /// </summary>
         public HpdfString(string text, Encoding encoding)
         {
-            if (text == null)
+            if (text is null)
                 throw new ArgumentNullException(nameof(text));
-            if (encoding == null)
+            if (encoding is null)
                 throw new ArgumentNullException(nameof(encoding));
 
             Value = encoding.GetBytes(text);
@@ -63,7 +63,7 @@ namespace Haru.Objects
         /// <summary>
         /// Gets the string value as text using the specified encoding
         /// </summary>
-        public string GetText(Encoding encoding = null)
+        public string GetText(Encoding? encoding = null)
         {
             encoding ??= Encoding.UTF8;
             return encoding.GetString(Value);
@@ -72,6 +72,7 @@ namespace Haru.Objects
         /// <inheritdoc/>
         public override void WriteValue(HpdfStream stream)
         {
+            ArgumentNullException.ThrowIfNull(stream);
             byte[] dataToWrite = Value;
 
             // Encrypt if encryption context is set

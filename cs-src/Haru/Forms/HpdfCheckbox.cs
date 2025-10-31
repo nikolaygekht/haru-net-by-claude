@@ -67,7 +67,7 @@ namespace Haru.Forms
             if (value != CheckedState && value != UncheckedState)
             {
                 // Allow null to mean unchecked
-                if (value == null)
+                if (value is null)
                     value = UncheckedState;
                 else
                     throw new HpdfException(HpdfErrorCode.InvalidParameter,

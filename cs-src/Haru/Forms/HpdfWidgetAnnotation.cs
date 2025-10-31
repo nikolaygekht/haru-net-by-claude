@@ -46,7 +46,7 @@ namespace Haru.Forms
         /// <param name="field">The parent field.</param>
         public void SetParent(HpdfField field)
         {
-            if (field == null)
+            if (field is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Field cannot be null");
 
             _dict.Add("Parent", field.Dict);
@@ -58,7 +58,7 @@ namespace Haru.Forms
         /// <param name="page">The page dictionary.</param>
         public void SetPage(HpdfDict page)
         {
-            if (page == null)
+            if (page is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Page cannot be null");
 
             _dict.Add("P", page);
@@ -102,7 +102,7 @@ namespace Haru.Forms
         /// <param name="borderColor">The border color (RGB, each component 0-1), or null.</param>
         /// <param name="backgroundColor">The background color (RGB, each component 0-1), or null.</param>
         /// <param name="rotation">The rotation angle (0, 90, 180, or 270).</param>
-        public void SetAppearanceCharacteristics(float[] borderColor = null, float[] backgroundColor = null, int rotation = 0)
+        public void SetAppearanceCharacteristics(float[]? borderColor = null, float[]? backgroundColor = null, int rotation = 0)
         {
             var mk = new HpdfDict();
 

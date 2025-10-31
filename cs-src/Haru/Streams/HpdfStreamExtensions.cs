@@ -14,7 +14,7 @@ namespace Haru.Streams
         /// </summary>
         public static void WriteChar(this HpdfStream stream, char value)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
 
             stream.WriteByte((byte)value);
@@ -25,9 +25,9 @@ namespace Haru.Streams
         /// </summary>
         public static void WriteString(this HpdfStream stream, string value)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
-            if (value == null)
+            if (value is null)
                 throw new ArgumentNullException(nameof(value));
 
             byte[] bytes = Encoding.ASCII.GetBytes(value);
@@ -39,7 +39,7 @@ namespace Haru.Streams
         /// </summary>
         public static void WriteInt(this HpdfStream stream, int value)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
 
             string text = value.ToString(CultureInfo.InvariantCulture);
@@ -51,7 +51,7 @@ namespace Haru.Streams
         /// </summary>
         public static void WriteUInt(this HpdfStream stream, uint value)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
 
             string text = value.ToString(CultureInfo.InvariantCulture);
@@ -63,7 +63,7 @@ namespace Haru.Streams
         /// </summary>
         public static void WriteReal(this HpdfStream stream, float value)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
 
             // Format with appropriate precision for PDF
@@ -76,7 +76,7 @@ namespace Haru.Streams
         /// </summary>
         public static void WriteLine(this HpdfStream stream, string value = "")
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
 
             if (!string.IsNullOrEmpty(value))
@@ -89,9 +89,9 @@ namespace Haru.Streams
         /// </summary>
         public static void WriteEscapedName(this HpdfStream stream, string name)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
-            if (name == null)
+            if (name is null)
                 throw new ArgumentNullException(nameof(name));
 
             stream.WriteByte((byte)'/');
@@ -120,9 +120,9 @@ namespace Haru.Streams
         /// </summary>
         public static void WriteEscapedText(this HpdfStream stream, string text)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
-            if (text == null)
+            if (text is null)
                 throw new ArgumentNullException(nameof(text));
 
             stream.WriteByte((byte)'(');
@@ -168,9 +168,9 @@ namespace Haru.Streams
         /// </summary>
         public static void WriteEscapedText(this HpdfStream stream, string text, int codePage)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
-            if (text == null)
+            if (text is null)
                 throw new ArgumentNullException(nameof(text));
 
             // Convert text to bytes using the specified code page
@@ -223,9 +223,9 @@ namespace Haru.Streams
         /// </summary>
         public static void WriteEscapedTextMBCS(this HpdfStream stream, string text, int codePage)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
-            if (text == null)
+            if (text is null)
                 throw new ArgumentNullException(nameof(text));
 
             // Convert text to MBCS bytes using the code page
@@ -259,9 +259,9 @@ namespace Haru.Streams
         /// </summary>
         public static void WriteHexString(this HpdfStream stream, byte[] data)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
-            if (data == null)
+            if (data is null)
                 throw new ArgumentNullException(nameof(data));
 
             stream.WriteByte((byte)'<');
@@ -278,9 +278,9 @@ namespace Haru.Streams
         /// <summary>
         /// Reads a line from the stream
         /// </summary>
-        public static string ReadLine(this HpdfStream stream, int maxLength = 1024)
+        public static string? ReadLine(this HpdfStream stream, int maxLength = 1024)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
 
             StringBuilder sb = new StringBuilder();

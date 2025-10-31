@@ -14,10 +14,8 @@
  *
  */
 
-using System;
 using System.Text;
 using Haru.Objects;
-using Haru.Streams;
 using Haru.Xref;
 
 namespace Haru.Doc
@@ -47,7 +45,7 @@ namespace Haru.Doc
         /// </summary>
         public HpdfStreamObject GenerateXmpStream(HpdfXref xref)
         {
-            if (xref == null)
+            if (xref is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Xref cannot be null");
 
             string xmpContent = GenerateXmpContent();
@@ -88,7 +86,7 @@ namespace Haru.Doc
             // Dublin Core metadata (from HpdfInfo if available)
             if (_info != null)
             {
-                string title = GetInfoValue("Title");
+                string? title = GetInfoValue("Title");
                 if (!string.IsNullOrEmpty(title))
                 {
                     sb.AppendLine("      <dc:title>");
@@ -98,7 +96,7 @@ namespace Haru.Doc
                     sb.AppendLine("      </dc:title>");
                 }
 
-                string author = GetInfoValue("Author");
+                string? author = GetInfoValue("Author");
                 if (!string.IsNullOrEmpty(author))
                 {
                     sb.AppendLine("      <dc:creator>");
@@ -108,7 +106,7 @@ namespace Haru.Doc
                     sb.AppendLine("      </dc:creator>");
                 }
 
-                string subject = GetInfoValue("Subject");
+                string? subject = GetInfoValue("Subject");
                 if (!string.IsNullOrEmpty(subject))
                 {
                     sb.AppendLine("      <dc:description>");
@@ -118,7 +116,7 @@ namespace Haru.Doc
                     sb.AppendLine("      </dc:description>");
                 }
 
-                string keywords = GetInfoValue("Keywords");
+                string? keywords = GetInfoValue("Keywords");
                 if (!string.IsNullOrEmpty(keywords))
                 {
                     sb.AppendLine("      <pdf:Keywords>");
@@ -126,30 +124,30 @@ namespace Haru.Doc
                     sb.AppendLine("      </pdf:Keywords>");
                 }
 
-                string creator = GetInfoValue("Creator");
+                string? creator = GetInfoValue("Creator");
                 if (!string.IsNullOrEmpty(creator))
                 {
                     sb.AppendLine($"      <xmp:CreatorTool>{EscapeXml(creator)}</xmp:CreatorTool>");
                 }
 
-                string producer = GetInfoValue("Producer");
+                string? producer = GetInfoValue("Producer");
                 if (!string.IsNullOrEmpty(producer))
                 {
                     sb.AppendLine($"      <pdf:Producer>{EscapeXml(producer)}</pdf:Producer>");
                 }
 
-                string creationDate = GetInfoValue("CreationDate");
+                string? creationDate = GetInfoValue("CreationDate");
                 if (!string.IsNullOrEmpty(creationDate))
                 {
-                    string xmpDate = ConvertPdfDateToXmp(creationDate);
+                    string? xmpDate = ConvertPdfDateToXmp(creationDate);
                     if (!string.IsNullOrEmpty(xmpDate))
                         sb.AppendLine($"      <xmp:CreateDate>{xmpDate}</xmp:CreateDate>");
                 }
 
-                string modDate = GetInfoValue("ModDate");
+                string? modDate = GetInfoValue("ModDate");
                 if (!string.IsNullOrEmpty(modDate))
                 {
-                    string xmpDate = ConvertPdfDateToXmp(modDate);
+                    string? xmpDate = ConvertPdfDateToXmp(modDate);
                     if (!string.IsNullOrEmpty(xmpDate))
                         sb.AppendLine($"      <xmp:ModifyDate>{xmpDate}</xmp:ModifyDate>");
                 }
@@ -168,9 +166,9 @@ namespace Haru.Doc
         /// <summary>
         /// Gets a value from the Info dictionary.
         /// </summary>
-        private string GetInfoValue(string key)
+        private string? GetInfoValue(string key)
         {
-            if (_info?.Dict == null)
+            if (_info?.Dict is null)
                 return null;
 
             if (_info.Dict.TryGetValue(key, out var obj))
@@ -185,7 +183,7 @@ namespace Haru.Doc
         /// <summary>
         /// Converts PDF date format (D:YYYYMMDDHHmmSSOHH'mm') to XMP format (YYYY-MM-DDTHH:mm:SS+HH:mm).
         /// </summary>
-        private string ConvertPdfDateToXmp(string pdfDate)
+        private string? ConvertPdfDateToXmp(string pdfDate)
         {
             if (string.IsNullOrEmpty(pdfDate))
                 return null;
@@ -234,10 +232,10 @@ namespace Haru.Doc
         /// <summary>
         /// Escapes XML special characters.
         /// </summary>
-        private string EscapeXml(string text)
+        private string EscapeXml(string? text)
         {
             if (string.IsNullOrEmpty(text))
-                return text;
+                return string.Empty;
 
             return text
                 .Replace("&", "&amp;")

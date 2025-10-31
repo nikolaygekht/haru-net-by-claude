@@ -7,6 +7,7 @@ using Haru.Font;
 using Haru.Xref;
 using Haru.Types;
 
+
 namespace Haru.Test.Doc
 {
     public class HpdfPageTextTests
@@ -28,7 +29,7 @@ namespace Haru.Test.Doc
         public void BeginText_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.BeginText();
@@ -42,7 +43,7 @@ namespace Haru.Test.Doc
         public void EndText_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.EndText();
@@ -56,7 +57,7 @@ namespace Haru.Test.Doc
         public void BeginText_InitializesTextMatrix()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.BeginText();
@@ -74,7 +75,7 @@ namespace Haru.Test.Doc
         public void SetCharSpace_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetCharSpace(2.5f);
@@ -89,7 +90,7 @@ namespace Haru.Test.Doc
         public void SetWordSpace_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetWordSpace(3.0f);
@@ -104,7 +105,7 @@ namespace Haru.Test.Doc
         public void SetHorizontalScaling_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetHorizontalScaling(110f);
@@ -119,7 +120,7 @@ namespace Haru.Test.Doc
         public void SetHorizontalScaling_ThrowsWhenNegative()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             Action act = () => page.SetHorizontalScaling(-50f);
@@ -133,7 +134,7 @@ namespace Haru.Test.Doc
         public void SetTextLeading_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetTextLeading(14f);
@@ -149,7 +150,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             var font = new HpdfFont(xref, HpdfStandardFont.Helvetica, "F1");
 
             // Act
@@ -167,7 +168,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             var font = new HpdfFont(xref, HpdfStandardFont.Helvetica, "F1");
 
             // Act
@@ -182,10 +183,10 @@ namespace Haru.Test.Doc
         public void SetFontAndSize_ThrowsWhenFontIsNull()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
-            Action act = () => page.SetFontAndSize(null, 12f);
+            Action act = () => page.SetFontAndSize(null!, 12f);
 
             // Assert
             act.Should().Throw<HpdfException>()
@@ -197,7 +198,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             var font = new HpdfFont(xref, HpdfStandardFont.Helvetica, "F1");
 
             // Act
@@ -212,7 +213,7 @@ namespace Haru.Test.Doc
         public void SetTextRenderingMode_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetTextRenderingMode(HpdfTextRenderingMode.Stroke);
@@ -231,7 +232,7 @@ namespace Haru.Test.Doc
         public void SetTextRenderingMode_AllModes_WriteCorrectly(HpdfTextRenderingMode mode, string expected)
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetTextRenderingMode(mode);
@@ -245,7 +246,7 @@ namespace Haru.Test.Doc
         public void SetTextRise_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetTextRise(5f);
@@ -262,7 +263,7 @@ namespace Haru.Test.Doc
         public void MoveTextPos_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.MoveTextPos(100f, 200f);
@@ -276,7 +277,7 @@ namespace Haru.Test.Doc
         public void MoveTextPosAndSetLeading_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.MoveTextPosAndSetLeading(50f, -14f);
@@ -291,7 +292,7 @@ namespace Haru.Test.Doc
         public void SetTextMatrix_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
             var matrix = new HpdfTransMatrix(1, 0, 0, 1, 100, 700);
 
             // Act
@@ -308,7 +309,7 @@ namespace Haru.Test.Doc
         public void MoveToNextLine_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
             page.SetTextLeading(14f);
 
             // Act
@@ -325,7 +326,7 @@ namespace Haru.Test.Doc
         public void ShowText_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.ShowText("Hello");
@@ -339,7 +340,7 @@ namespace Haru.Test.Doc
         public void ShowText_EmptyString_DoesNotWrite()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.ShowText("");
@@ -353,7 +354,7 @@ namespace Haru.Test.Doc
         public void ShowText_EscapesSpecialCharacters()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.ShowText("Test\\");
@@ -367,7 +368,7 @@ namespace Haru.Test.Doc
         public void ShowTextNextLine_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.ShowTextNextLine("World");
@@ -381,7 +382,7 @@ namespace Haru.Test.Doc
         public void SetSpacingAndShowText_WritesCorrectOperator()
         {
             // Arrange
-            var page = CreateTestPage();
+            using var page = CreateTestPage();
 
             // Act
             page.SetSpacingAndShowText(1.5f, 0.5f, "Test");
@@ -400,7 +401,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             var font = new HpdfFont(xref, HpdfStandardFont.Helvetica, "F1");
 
             // Act
@@ -424,7 +425,7 @@ namespace Haru.Test.Doc
         {
             // Arrange
             var xref = new HpdfXref(0);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             var font = new HpdfFont(xref, HpdfStandardFont.TimesRoman, "F1");
 
             // Act

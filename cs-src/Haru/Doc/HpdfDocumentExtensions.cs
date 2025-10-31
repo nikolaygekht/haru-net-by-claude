@@ -24,12 +24,18 @@ namespace Haru.Doc
         /// <param name="fontName">The name of the standard font (e.g., "Helvetica", "Courier", "Times-Roman").</param>
         /// <param name="encodingName">The encoding name (can be null for standard encoding). Currently not used as all fonts use WinAnsiEncoding.</param>
         /// <returns>A new HpdfFont instance.</returns>
-        public static HpdfFont GetFont(this HpdfDocument document, string fontName, string encodingName = null)
+        public static HpdfFont GetFont(this HpdfDocument document, string fontName, string? encodingName = null)
         {
-            if (document == null)
+            if (document is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Document cannot be null");
             if (string.IsNullOrEmpty(fontName))
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Font name cannot be null or empty");
+
+            // Check if this font was previously loaded (custom TrueType or Type1 font)
+            if (document.FontRegistry.TryGetValue(fontName, out var cachedFont))
+            {
+                return cachedFont;
+            }
 
             // Map font names to standard fonts
             var standardFont = MapFontName(fontName);
@@ -74,7 +80,7 @@ namespace Haru.Doc
         /// <param name="mode">The compression mode flags.</param>
         public static void SetCompressionMode(this HpdfDocument document, HpdfCompressionMode mode)
         {
-            if (document == null)
+            if (document is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Document cannot be null");
 
             document.CompressionMode = mode;
@@ -98,7 +104,7 @@ namespace Haru.Doc
         /// <returns>The loaded HpdfImage instance.</returns>
         public static HpdfImage LoadPngImageFromFile(this HpdfDocument document, string filePath)
         {
-            if (document == null)
+            if (document is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Document cannot be null");
 
             // Generate a unique local name for this image

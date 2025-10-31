@@ -1,9 +1,9 @@
-using System.Linq;
 using System.Text;
 using FluentAssertions;
 using Haru.Objects;
 using Haru.Streams;
 using Xunit;
+
 
 namespace Haru.Test.Objects
 {
@@ -11,7 +11,7 @@ namespace Haru.Test.Objects
     {
         private static string WriteToString(HpdfObject obj)
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             obj.WriteValue(stream);
             return Encoding.ASCII.GetString(stream.ToArray());
         }
@@ -82,7 +82,7 @@ namespace Haru.Test.Objects
             bool found = dict.TryGetValue("Key", out var value);
 
             found.Should().BeTrue();
-            ((HpdfNumber)value).Value.Should().Be(42);
+            ((HpdfNumber)value!).Value.Should().Be(42);
         }
 
         [Fact]

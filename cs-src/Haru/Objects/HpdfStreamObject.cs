@@ -7,10 +7,11 @@ namespace Haru.Objects
     /// PDF stream object - a dictionary with associated binary data
     /// Format: &lt;&lt; dictionary &gt;&gt; stream...endstream
     /// </summary>
-    public class HpdfStreamObject : HpdfDict
+    public class HpdfStreamObject : HpdfDict, IDisposable
     {
-        private HpdfMemoryStream _stream;
+        private HpdfMemoryStream? _stream;
         private HpdfStreamFilter _filter;
+        private bool _disposed = false;
 
         /// <summary>
         /// Gets the stream containing the binary data
@@ -19,7 +20,7 @@ namespace Haru.Objects
         {
             get
             {
-                if (_stream == null)
+                if (_stream is null)
                 {
                     _stream = new HpdfMemoryStream();
                 }
@@ -52,7 +53,7 @@ namespace Haru.Objects
         /// </summary>
         public void WriteToStream(byte[] data)
         {
-            if (data == null)
+            if (data is null)
                 throw new ArgumentNullException(nameof(data));
 
             Stream.Write(data);
@@ -63,7 +64,7 @@ namespace Haru.Objects
         /// </summary>
         public void WriteToStream(byte[] data, int offset, int count)
         {
-            if (data == null)
+            if (data is null)
                 throw new ArgumentNullException(nameof(data));
 
             Stream.Write(data, offset, count);
@@ -85,11 +86,12 @@ namespace Haru.Objects
         /// </summary>
         public override void WriteValue(HpdfStream stream)
         {
+            ArgumentNullException.ThrowIfNull(stream);
             // Before writing, update the Filter array if filters are set
             UpdateFilterArray();
 
             // Prepare stream data (even if empty) and update Length BEFORE writing dictionary
-            byte[] streamDataToWrite = null;
+            byte[]? streamDataToWrite = null;
             if (_stream != null && _stream.Size > 0)
             {
                 streamDataToWrite = PrepareStreamData(stream);
@@ -188,7 +190,7 @@ namespace Haru.Objects
         /// Prepares the stream data with filters and encryption applied
         /// </summary>
         /// <returns>The prepared stream data ready to write</returns>
-        private byte[] PrepareStreamData(HpdfStream outputStream)
+        private byte[]? PrepareStreamData(HpdfStream outputStream)
         {
             if (_stream == null || _stream.Size == 0)
                 return null;
@@ -268,6 +270,32 @@ namespace Haru.Objects
             }
 
             return (b << 16) | a;
+        }
+
+        /// <summary>
+        /// Disposes the stream object and releases resources
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Disposes the stream object
+        /// </summary>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _stream?.Dispose();
+                }
+
+                _disposed = true;
+            }
         }
     }
 }

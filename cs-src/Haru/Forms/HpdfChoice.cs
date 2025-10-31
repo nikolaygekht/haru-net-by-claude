@@ -15,7 +15,6 @@
  */
 
 using System.Collections.Generic;
-using System.Linq;
 using Haru.Objects;
 using Haru.Xref;
 
@@ -187,7 +186,7 @@ namespace Haru.Forms
         /// <param name="value">The selected value.</param>
         public override void SetValue(string value)
         {
-            if (value == null)
+            if (value is null)
             {
                 _dict.Remove("V");
                 return;

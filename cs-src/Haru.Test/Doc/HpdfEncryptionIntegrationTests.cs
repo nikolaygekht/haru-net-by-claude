@@ -1,10 +1,10 @@
-using System;
 using System.IO;
 using FluentAssertions;
 using Haru.Doc;
 using Haru.Types;
 using Xunit;
 using HpdfPageDirection = Haru.Doc.HpdfPageDirection;
+
 
 namespace Haru.Test.Doc
 {

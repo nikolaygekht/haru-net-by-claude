@@ -5,13 +5,14 @@ using Haru.Streams;
 using Haru.Types;
 using Xunit;
 
+
 namespace Haru.Test.Objects
 {
     public class HpdfArrayTests
     {
         private static string WriteToString(HpdfObject obj)
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             obj.WriteValue(stream);
             return Encoding.ASCII.GetString(stream.ToArray());
         }

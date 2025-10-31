@@ -5,6 +5,7 @@ using Haru.Font;
 using Haru.Xref;
 using Haru.Objects;
 
+
 namespace Haru.Test.Font
 {
     public class HpdfFontTests
@@ -88,7 +89,7 @@ namespace Haru.Test.Font
         public void Constructor_ThrowsWhenXrefIsNull()
         {
             // Act
-            Action act = () => new HpdfFont(null, HpdfStandardFont.Helvetica, "F1");
+            Action act = () => new HpdfFont(null!, HpdfStandardFont.Helvetica, "F1");
 
             // Assert
             act.Should().Throw<HpdfException>()
@@ -102,7 +103,7 @@ namespace Haru.Test.Font
             var xref = new HpdfXref(0);
 
             // Act
-            Action act = () => new HpdfFont(xref, HpdfStandardFont.Helvetica, null);
+            Action act = () => new HpdfFont(xref, HpdfStandardFont.Helvetica, null!);
 
             // Assert
             act.Should().Throw<HpdfException>()
@@ -159,7 +160,7 @@ namespace Haru.Test.Font
             var font = new HpdfFont(xref, HpdfStandardFont.Helvetica, "F1");
 
             // Act
-            var width = font.MeasureText(null, 12);
+            var width = font.MeasureText(null!, 12);
 
             // Assert
             width.Should().Be(0);

@@ -10,7 +10,6 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
 using Haru.Objects;
 using Haru.Xref;
 using Haru.Types;
@@ -24,33 +23,34 @@ namespace Haru.Font.CID
     /// Represents a CID (Character Identifier) font for multi-byte character sets (CJK).
     /// Uses CIDFontType2 (TrueType-based) with Identity-H encoding.
     /// </summary>
-    public class HpdfCIDFont : IHpdfFontImplementation
+    public class HpdfCIDFont : IHpdfFontImplementation, IDisposable
     {
         private readonly HpdfDict _dict;               // Type 0 (composite) font dictionary
         private readonly HpdfDict _cidFontDict;        // CIDFontType2 descendant font dictionary
         private readonly HpdfDict _descriptor;         // Font descriptor
-        private string _baseFont;
+        private string _baseFont = null!;
         private readonly string _localName;
         private readonly HpdfXref _xref;
         private readonly int _codePage;
 
-        // TrueType font data
-        private TrueTypeOffsetTable _offsetTable;
-        private TrueTypeHead _head;
-        private TrueTypeMaxp _maxp;
-        private TrueTypeHhea _hhea;
-        private TrueTypeLongHorMetric[] _hMetrics;
-        private TrueTypeNameTable _nameTable;
-        private TrueTypeTable _nameTableRef;  // Reference to name table for extracting strings
-        private TrueTypeCmapFormat4 _cmap;
-        private TrueTypeOS2 _os2;
-        private TrueTypePost _post;
+        // TrueType font data - initialized by LoadFromStream factory method
+        private TrueTypeOffsetTable _offsetTable = null!;
+        private TrueTypeHead _head = null!;
+        private TrueTypeMaxp _maxp = null!;
+        private TrueTypeHhea _hhea = null!;
+        private TrueTypeLongHorMetric[] _hMetrics = null!;
+        private TrueTypeNameTable? _nameTable;
+        private TrueTypeTable? _nameTableRef;  // Reference to name table for extracting strings
+        private TrueTypeCmapFormat4 _cmap = null!;
+        private TrueTypeOS2? _os2;
+        private TrueTypePost? _post;
 
-        private byte[] _fontData;
-        private HpdfStreamObject _fontFileStream;
-        private HpdfStreamObject _toUnicodeStream;
-        private CIDSystemInfo _systemInfo;
+        private byte[] _fontData = null!;
+        private HpdfStreamObject _fontFileStream = null!;
+        private HpdfStreamObject _toUnicodeStream = null!;
+        private CIDSystemInfo _systemInfo = null!;
         private CIDWritingMode _writingMode;
+        private bool _disposed = false;
 
         /// <summary>
         /// Gets the underlying Type 0 font dictionary.
@@ -171,7 +171,7 @@ namespace Haru.Font.CID
             string filePath,
             int codePage)
         {
-            if (document == null)
+            if (document is null)
                 throw new ArgumentNullException(nameof(document));
 
             // Validate code page first (before file existence check for better error reporting)
@@ -207,45 +207,46 @@ namespace Haru.Font.CID
             var font = new HpdfCIDFont(xref, localName, codePage);
             font._fontData = fontData;
 
-            var parser = new TrueTypeParser(stream);
-
-            // Parse required tables
-            font._offsetTable = parser.ParseOffsetTable();
-
-            var headTable = parser.FindTable(font._offsetTable, "head");
-            font._head = parser.ParseHead(headTable);
-
-            var maxpTable = parser.FindTable(font._offsetTable, "maxp");
-            font._maxp = parser.ParseMaxp(maxpTable);
-
-            var hheaTable = parser.FindTable(font._offsetTable, "hhea");
-            font._hhea = parser.ParseHhea(hheaTable);
-
-            var hmtxTable = parser.FindTable(font._offsetTable, "hmtx");
-            font._hMetrics = parser.ParseHmtx(hmtxTable, font._hhea.NumberOfHMetrics, font._maxp.NumGlyphs);
-
-            var nameTable = parser.FindTable(font._offsetTable, "name");
-            if (nameTable != null)
+            using (var parser = new TrueTypeParser(stream))
             {
-                font._nameTableRef = nameTable;  // Store table reference for later string extraction
-                font._nameTable = parser.ParseName(nameTable);
-            }
+                // Parse required tables
+                font._offsetTable = parser.ParseOffsetTable();
 
-            // Parse cmap table
-            font.ParseCmapTable(parser);
+                var headTable = parser.FindTable(font._offsetTable, "head");
+                font._head = parser.ParseHead(headTable!);
 
-            // Parse OS/2 table if present
-            var os2Table = parser.FindTable(font._offsetTable, "OS/2");
-            if (os2Table != null)
-            {
-                font.ParseOS2Table(parser, os2Table);
-            }
+                var maxpTable = parser.FindTable(font._offsetTable, "maxp");
+                font._maxp = parser.ParseMaxp(maxpTable!);
 
-            // Parse post table if present
-            var postTable = parser.FindTable(font._offsetTable, "post");
-            if (postTable != null)
-            {
-                font._post = parser.ParsePost(postTable);
+                var hheaTable = parser.FindTable(font._offsetTable, "hhea");
+                font._hhea = parser.ParseHhea(hheaTable!);
+
+                var hmtxTable = parser.FindTable(font._offsetTable, "hmtx");
+                font._hMetrics = parser.ParseHmtx(hmtxTable!, font._hhea.NumberOfHMetrics, font._maxp.NumGlyphs);
+
+                var nameTable = parser.FindTable(font._offsetTable, "name");
+                if (nameTable != null)
+                {
+                    font._nameTableRef = nameTable;  // Store table reference for later string extraction
+                    font._nameTable = parser.ParseName(nameTable);
+                }
+
+                // Parse cmap table
+                font.ParseCmapTable(parser);
+
+                // Parse OS/2 table if present
+                var os2Table = parser.FindTable(font._offsetTable, "OS/2");
+                if (os2Table != null)
+                {
+                    font.ParseOS2Table(parser, os2Table);
+                }
+
+                // Parse post table if present
+                var postTable = parser.FindTable(font._offsetTable, "post");
+                if (postTable != null)
+                {
+                    font._post = parser.ParsePost(postTable);
+                }
             }
 
             // Extract font name
@@ -297,7 +298,7 @@ namespace Haru.Font.CID
         private void ParseCmapTable(TrueTypeParser parser)
         {
             var cmapTable = parser.FindTable(_offsetTable, "cmap");
-            if (cmapTable == null)
+            if (cmapTable is null)
                 throw new HpdfException(HpdfErrorCode.TtInvalidCmapTable, "cmap table not found");
 
             parser.Seek(cmapTable.Offset);
@@ -439,7 +440,7 @@ namespace Haru.Font.CID
         /// </summary>
         private string ExtractFontName()
         {
-            if (_nameTable == null || _nameTableRef == null || _nameTable.NameRecords == null)
+            if (_nameTable is null || _nameTableRef is null || _nameTable.NameRecords is null)
             {
                 // Fallback to synthetic name if name table not available
                 return $"CIDFont-{_localName}";
@@ -447,27 +448,26 @@ namespace Haru.Font.CID
 
             // Create parser from font data to read name strings
             using (var stream = new MemoryStream(_fontData))
+            using (var parser = new TrueTypeParser(stream))
             {
-                var parser = new TrueTypeParser(stream);
-
                 // Priority 1: PostScript name (name ID 6) - Platform 3 (Microsoft), Encoding 1 (Unicode), Language 0x0409 (English US)
-                TrueTypeNameRecord postScriptName = FindNameRecord(_nameTable.NameRecords, 6, 3, 1, 0x0409);
+                TrueTypeNameRecord? postScriptName = FindNameRecord(_nameTable.NameRecords, 6, 3, 1, 0x0409);
 
                 // Priority 2: PostScript name - Platform 3, any encoding, any language
-                if (postScriptName == null)
+                if (postScriptName is null)
                     postScriptName = FindNameRecord(_nameTable.NameRecords, 6, 3);
 
                 // Priority 3: PostScript name - Platform 1 (Macintosh)
-                if (postScriptName == null)
+                if (postScriptName is null)
                     postScriptName = FindNameRecord(_nameTable.NameRecords, 6, 1);
 
                 // Priority 4: PostScript name - Any platform
-                if (postScriptName == null)
+                if (postScriptName is null)
                     postScriptName = FindNameRecord(_nameTable.NameRecords, 6);
 
                 if (postScriptName != null)
                 {
-                    string name = parser.ReadNameString(_nameTable, _nameTableRef, postScriptName);
+                    string? name = parser.ReadNameString(_nameTable, _nameTableRef!, postScriptName);
                     if (!string.IsNullOrWhiteSpace(name))
                     {
                         // Clean up the name - remove invalid characters for PDF names
@@ -477,15 +477,15 @@ namespace Haru.Font.CID
                 }
 
                 // Fallback: Try family name (ID 1) + subfamily name (ID 2)
-                TrueTypeNameRecord familyName = FindNameRecord(_nameTable.NameRecords, 1, 3, 1, 0x0409);
-                if (familyName == null)
+                TrueTypeNameRecord? familyName = FindNameRecord(_nameTable.NameRecords, 1, 3, 1, 0x0409);
+                if (familyName is null)
                     familyName = FindNameRecord(_nameTable.NameRecords, 1, 3);
-                if (familyName == null)
+                if (familyName is null)
                     familyName = FindNameRecord(_nameTable.NameRecords, 1);
 
                 if (familyName != null)
                 {
-                    string name = parser.ReadNameString(_nameTable, _nameTableRef, familyName);
+                    string? name = parser.ReadNameString(_nameTable, _nameTableRef!, familyName);
                     if (!string.IsNullOrWhiteSpace(name))
                     {
                         return CleanFontName(name);
@@ -500,7 +500,7 @@ namespace Haru.Font.CID
         /// <summary>
         /// Finds a name record by name ID, platform ID, encoding ID, and language ID.
         /// </summary>
-        private TrueTypeNameRecord FindNameRecord(TrueTypeNameRecord[] records, ushort nameId,
+        private TrueTypeNameRecord? FindNameRecord(TrueTypeNameRecord[] records, ushort nameId,
             ushort? platformId = null, ushort? encodingId = null, ushort? languageId = null)
         {
             foreach (var record in records)
@@ -523,7 +523,7 @@ namespace Haru.Font.CID
         private string CleanFontName(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
-                return null;
+                return $"CIDFont-{_localName}";
 
             // Remove spaces and invalid characters
             // PDF names should not contain: space, #, /, (, ), <, >, [, ], {, }, %, null
@@ -554,25 +554,24 @@ namespace Haru.Font.CID
         /// <summary>
         /// Extracts the font family name from the name table (name ID 1).
         /// </summary>
-        private string ExtractFontFamily()
+        private string? ExtractFontFamily()
         {
-            if (_nameTable == null || _nameTableRef == null || _nameTable.NameRecords == null)
+            if (_nameTable is null || _nameTableRef is null || _nameTable.NameRecords is null)
                 return null;
 
             using (var stream = new MemoryStream(_fontData))
+            using (var parser = new TrueTypeParser(stream))
             {
-                var parser = new TrueTypeParser(stream);
-
                 // Find family name (name ID 1)
-                TrueTypeNameRecord familyName = FindNameRecord(_nameTable.NameRecords, 1, 3, 1, 0x0409);
-                if (familyName == null)
+                TrueTypeNameRecord? familyName = FindNameRecord(_nameTable.NameRecords, 1, 3, 1, 0x0409);
+                if (familyName is null)
                     familyName = FindNameRecord(_nameTable.NameRecords, 1, 3);
-                if (familyName == null)
+                if (familyName is null)
                     familyName = FindNameRecord(_nameTable.NameRecords, 1);
 
                 if (familyName != null)
                 {
-                    string name = parser.ReadNameString(_nameTable, _nameTableRef, familyName);
+                    string? name = parser.ReadNameString(_nameTable, _nameTableRef!, familyName);
                     if (!string.IsNullOrWhiteSpace(name))
                     {
                         return name.Trim();
@@ -586,7 +585,7 @@ namespace Haru.Font.CID
         /// <summary>
         /// Gets the language tag based on code page.
         /// </summary>
-        private string GetLanguageTag()
+        private string? GetLanguageTag()
         {
             switch (_codePage)
             {
@@ -660,7 +659,7 @@ namespace Haru.Font.CID
 
             // Adobe compatibility: Add optional but recommended fields
             // Extract font family name for FontFamily field
-            string fontFamily = ExtractFontFamily();
+            string? fontFamily = ExtractFontFamily();
             if (!string.IsNullOrEmpty(fontFamily))
             {
                 _descriptor.Add("FontFamily", new HpdfString(fontFamily));
@@ -674,7 +673,7 @@ namespace Haru.Font.CID
             _descriptor.Add("FontWeight", new HpdfNumber(fontWeight));
 
             // Add Lang (language tag) based on code page
-            string langTag = GetLanguageTag();
+            string? langTag = GetLanguageTag();
             if (!string.IsNullOrEmpty(langTag))
             {
                 _descriptor.Add("Lang", new HpdfName(langTag));
@@ -995,7 +994,7 @@ namespace Haru.Font.CID
         /// </summary>
         public ushort GetGlyphId(ushort unicode)
         {
-            if (_cmap == null)
+            if (_cmap is null)
                 return 0;
 
             int segCount = _cmap.SegCountX2 / 2;
@@ -1131,6 +1130,34 @@ namespace Haru.Font.CID
 
                 default:
                     return false;
+            }
+        }
+
+        /// <summary>
+        /// Releases all resources used by this CID font.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Releases the unmanaged resources used by this CID font and optionally releases the managed resources.
+        /// </summary>
+        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _fontFileStream?.Dispose();
+                    _toUnicodeStream?.Dispose();
+                }
+
+                _disposed = true;
             }
         }
     }

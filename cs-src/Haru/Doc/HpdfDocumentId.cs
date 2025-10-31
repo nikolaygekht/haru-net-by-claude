@@ -33,7 +33,7 @@ namespace Haru.Doc
         /// </summary>
         /// <param name="info">Document information (optional).</param>
         /// <returns>Array containing two binary strings (permanent ID, changing ID).</returns>
-        public static HpdfArray GenerateId(HpdfInfo info = null)
+        public static HpdfArray GenerateId(HpdfInfo? info = null)
         {
             byte[] idBytes = GenerateIdBytes(info);
 
@@ -47,7 +47,7 @@ namespace Haru.Doc
         /// <summary>
         /// Generates the actual ID bytes using MD5 hash.
         /// </summary>
-        private static byte[] GenerateIdBytes(HpdfInfo info)
+        private static byte[] GenerateIdBytes(HpdfInfo? info)
         {
             using (var md5 = MD5.Create())
             {

@@ -3,6 +3,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Haru.Doc;
 
+
 namespace Haru.Test.Objects
 {
     public class HpdfDocDebugTests

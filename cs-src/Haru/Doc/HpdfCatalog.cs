@@ -44,7 +44,7 @@ namespace Haru.Doc
                 if (!_dict.TryGetValue("PageLayout", out var layoutObj))
                 return HpdfPageLayout.SinglePage;
             var layoutName = layoutObj as HpdfName;
-                if (layoutName == null)
+                if (layoutName is null)
                     return HpdfPageLayout.SinglePage;
 
                 return layoutName.Value switch
@@ -84,7 +84,7 @@ namespace Haru.Doc
                 if (!_dict.TryGetValue("PageMode", out var modeObj))
                 return HpdfPageMode.UseNone;
             var modeName = modeObj as HpdfName;
-                if (modeName == null)
+                if (modeName is null)
                     return HpdfPageMode.UseNone;
 
                 return modeName.Value switch
@@ -131,7 +131,7 @@ namespace Haru.Doc
         public HpdfCatalog(HpdfXref xref, HpdfPages rootPages)
         {
             _xref = xref ?? throw new HpdfException(HpdfErrorCode.InvalidParameter, "Xref cannot be null");
-            if (rootPages == null)
+            if (rootPages is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Root pages cannot be null");
 
             _dict = new HpdfDict();
@@ -146,7 +146,7 @@ namespace Haru.Doc
         /// Gets the root pages object from the catalog.
         /// </summary>
         /// <returns>The root pages dictionary, or null if not found.</returns>
-        public HpdfDict GetRootPages()
+        public HpdfDict? GetRootPages()
         {
             if (_dict.TryGetValue("Pages", out var pages))
                 return pages as HpdfDict;
@@ -159,7 +159,7 @@ namespace Haru.Doc
         /// <param name="namesDict">The names dictionary.</param>
         public void SetNames(HpdfDict namesDict)
         {
-            if (namesDict == null)
+            if (namesDict is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Names dictionary cannot be null");
 
             _dict.Add("Names", namesDict);
@@ -169,7 +169,7 @@ namespace Haru.Doc
         /// Gets the names dictionary from the catalog.
         /// </summary>
         /// <returns>The names dictionary, or null if not set.</returns>
-        public HpdfDict GetNames()
+        public HpdfDict? GetNames()
         {
             if (_dict.TryGetValue("Names", out var names))
                 return names as HpdfDict;
@@ -183,7 +183,7 @@ namespace Haru.Doc
         /// <param name="pageLabelsDict">The page labels dictionary containing the number tree.</param>
         public void SetPageLabels(HpdfDict pageLabelsDict)
         {
-            if (pageLabelsDict == null)
+            if (pageLabelsDict is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "PageLabels dictionary cannot be null");
 
             _dict["PageLabels"] = pageLabelsDict;
@@ -193,7 +193,7 @@ namespace Haru.Doc
         /// Gets the page labels dictionary from the catalog.
         /// </summary>
         /// <returns>The page labels dictionary, or null if not set.</returns>
-        public HpdfDict GetPageLabels()
+        public HpdfDict? GetPageLabels()
         {
             if (_dict.TryGetValue("PageLabels", out var pageLabels))
                 return pageLabels as HpdfDict;
@@ -207,7 +207,7 @@ namespace Haru.Doc
         /// <param name="acroForm">The AcroForm dictionary.</param>
         public void SetAcroForm(HpdfDict acroForm)
         {
-            if (acroForm == null)
+            if (acroForm is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "AcroForm dictionary cannot be null");
 
             _dict["AcroForm"] = acroForm;
@@ -217,7 +217,7 @@ namespace Haru.Doc
         /// Gets the AcroForm dictionary from the catalog.
         /// </summary>
         /// <returns>The AcroForm dictionary, or null if not set.</returns>
-        public HpdfDict GetAcroForm()
+        public HpdfDict? GetAcroForm()
         {
             if (_dict.TryGetValue("AcroForm", out var acroForm))
                 return acroForm as HpdfDict;

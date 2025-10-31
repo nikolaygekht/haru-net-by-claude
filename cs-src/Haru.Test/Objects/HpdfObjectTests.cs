@@ -4,13 +4,14 @@ using Haru.Objects;
 using Haru.Streams;
 using Xunit;
 
+
 namespace Haru.Test.Objects
 {
     public class HpdfObjectTests
     {
         private static string WriteToString(HpdfObject obj, bool useWrite = false)
         {
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             if (useWrite)
                 obj.Write(stream);
             else

@@ -13,11 +13,8 @@
  * and its documentation for any purpose is hereby granted without fee,
  */
 
-using System;
-using System.Text;
 using Haru.Doc;
 using Haru.Font;
-using Haru.Types;
 
 namespace BasicDemos
 {

@@ -1,10 +1,10 @@
-using System;
 using Xunit;
 using FluentAssertions;
 using Haru.Doc;
 using Haru.Annotations;
 using Haru.Types;
 using Haru.Objects;
+
 
 namespace Haru.Test.Annotations
 {
@@ -67,11 +67,11 @@ namespace Haru.Test.Annotations
 
             var action = annot.Dict["A"] as HpdfDict;
             action.Should().NotBeNull();
-            action.Should().ContainKey("S");
+            action!.Should().ContainKey("S");
             action.Should().ContainKey("URI");
 
             var s = action["S"] as HpdfName;
-            s.Value.Should().Be("URI");
+            s!.Value.Should().Be("URI");
         }
 
         [Fact]
@@ -90,13 +90,13 @@ namespace Haru.Test.Annotations
             annot.Dict.Should().ContainKey("BS");
             var bs = annot.Dict["BS"] as HpdfDict;
             bs.Should().NotBeNull();
-            bs.Should().ContainKey("S");
+            bs!.Should().ContainKey("S");
 
             var style = bs["S"] as HpdfName;
-            style.Value.Should().Be("S");
+            style!.Value.Should().Be("S");
 
             var width = bs["W"] as HpdfReal;
-            width.Value.Should().Be(2.0f);
+            width!.Value.Should().Be(2.0f);
         }
 
         [Fact]
@@ -115,8 +115,8 @@ namespace Haru.Test.Annotations
             var bs = annot.Dict["BS"] as HpdfDict;
             bs.Should().NotBeNull();
 
-            var style = bs["S"] as HpdfName;
-            style.Value.Should().Be("D");
+            var style = bs!["S"] as HpdfName;
+            style!.Value.Should().Be("D");
 
             bs.Should().ContainKey("D");
             var dashArray = bs["D"] as HpdfArray;
@@ -140,10 +140,10 @@ namespace Haru.Test.Annotations
             annot.Dict.Should().ContainKey("C");
             var colorArray = annot.Dict["C"] as HpdfArray;
             colorArray.Should().NotBeNull();
-            colorArray.Count.Should().Be(3);
+            colorArray!.Count.Should().Be(3);
 
             var r = colorArray[0] as HpdfReal;
-            r.Value.Should().Be(1.0f);
+            r!.Value.Should().Be(1.0f);
         }
 
         [Fact]
@@ -220,11 +220,11 @@ namespace Haru.Test.Annotations
             rectArray.Should().NotBeNull();
 
             // After normalization: [left, bottom(150), right, top(200)]
-            var bottom = rectArray[1] as HpdfReal;
+            var bottom = rectArray![1] as HpdfReal;
             var top = rectArray[3] as HpdfReal;
 
-            bottom.Value.Should().Be(150); // Original top becomes bottom
-            top.Value.Should().Be(200);    // Original bottom becomes top
+            bottom!.Value.Should().Be(150); // Original top becomes bottom
+            top!.Value.Should().Be(200);    // Original bottom becomes top
         }
 
         [Fact]

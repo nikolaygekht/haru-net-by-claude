@@ -4,6 +4,7 @@ using Haru.Doc;
 using Haru.Objects;
 using Haru.Xref;
 
+
 namespace Haru.Test.Doc
 {
     public class HpdfPagesTests
@@ -71,7 +72,7 @@ namespace Haru.Test.Doc
         public void Constructor_ThrowsWhenXrefIsNull()
         {
             // Act
-            var act = () => new HpdfPages(null);
+            var act = () => new HpdfPages(null!);
 
             // Assert
             act.Should().Throw<HpdfException>()
@@ -113,7 +114,7 @@ namespace Haru.Test.Doc
             // Arrange
             var xref = new HpdfXref(0);
             var pages = new HpdfPages(xref);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             pages.AddKid(page);
@@ -132,7 +133,7 @@ namespace Haru.Test.Doc
             // Arrange
             var xref = new HpdfXref(0);
             var pages = new HpdfPages(xref);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             pages.AddKid(page);
@@ -147,7 +148,7 @@ namespace Haru.Test.Doc
             // Arrange
             var xref = new HpdfXref(0);
             var pages = new HpdfPages(xref);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             pages.AddKid(page);
@@ -182,7 +183,7 @@ namespace Haru.Test.Doc
             var xref = new HpdfXref(0);
             var root = new HpdfPages(xref);
             var child = new HpdfPages(xref, root);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
 
             // Act
             child.AddKid(page);
@@ -200,7 +201,7 @@ namespace Haru.Test.Doc
             var pages = new HpdfPages(xref);
 
             // Act
-            var act = () => pages.AddKid(null);
+            var act = () => pages.AddKid(null!);
 
             // Assert
             act.Should().Throw<HpdfException>()
@@ -214,7 +215,7 @@ namespace Haru.Test.Doc
             var xref = new HpdfXref(0);
             var pages1 = new HpdfPages(xref);
             var pages2 = new HpdfPages(xref);
-            var page = new HpdfPage(xref);
+            using var page = new HpdfPage(xref);
             pages1.AddKid(page);
 
             // Act
@@ -231,9 +232,9 @@ namespace Haru.Test.Doc
             // Arrange
             var xref = new HpdfXref(0);
             var root = new HpdfPages(xref);
-            var page1 = new HpdfPage(xref);
-            var page2 = new HpdfPage(xref);
-            var page3 = new HpdfPage(xref);
+            using var page1 = new HpdfPage(xref);
+            using var page2 = new HpdfPage(xref);
+            using var page3 = new HpdfPage(xref);
             root.AddKid(page1);
             root.AddKid(page2);
             root.AddKid(page3);
@@ -256,9 +257,9 @@ namespace Haru.Test.Doc
             var root = new HpdfPages(xref);
             var child1 = new HpdfPages(xref, root);
             var child2 = new HpdfPages(xref, root);
-            var page1 = new HpdfPage(xref);
-            var page2 = new HpdfPage(xref);
-            var page3 = new HpdfPage(xref);
+            using var page1 = new HpdfPage(xref);
+            using var page2 = new HpdfPage(xref);
+            using var page3 = new HpdfPage(xref);
             child1.AddKid(page1);
             child1.AddKid(page2);
             child2.AddKid(page3);
@@ -279,8 +280,8 @@ namespace Haru.Test.Doc
             // Arrange
             var xref = new HpdfXref(0);
             var pages = new HpdfPages(xref);
-            var page1 = new HpdfPage(xref);
-            var page2 = new HpdfPage(xref);
+            using var page1 = new HpdfPage(xref);
+            using var page2 = new HpdfPage(xref);
             pages.AddKid(page1);
             pages.AddKid(page2);
 
@@ -303,7 +304,7 @@ namespace Haru.Test.Doc
             // Act
             for (int i = 0; i < 5; i++)
             {
-                var page = new HpdfPage(xref);
+                using var page = new HpdfPage(xref);
                 root.AddKid(page);
             }
 

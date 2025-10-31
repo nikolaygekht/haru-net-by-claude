@@ -23,7 +23,7 @@ namespace Haru.Font.TrueType
     /// </summary>
     internal class TrueTypeTable
     {
-        public string Tag { get; set; }
+        public string Tag { get; set; } = string.Empty;
         public uint CheckSum { get; set; }
         public uint Offset { get; set; }
         public uint Length { get; set; }
@@ -39,7 +39,7 @@ namespace Haru.Font.TrueType
         public ushort SearchRange { get; set; }
         public ushort EntrySelector { get; set; }
         public ushort RangeShift { get; set; }
-        public TrueTypeTable[] Tables { get; set; }
+        public TrueTypeTable[] Tables { get; set; } = Array.Empty<TrueTypeTable>();
     }
 
     /// <summary>
@@ -47,14 +47,14 @@ namespace Haru.Font.TrueType
     /// </summary>
     internal class TrueTypeHead
     {
-        public byte[] VersionNumber { get; set; }  // 4 bytes
+        public byte[] VersionNumber { get; set; } = new byte[4];  // 4 bytes
         public uint FontRevision { get; set; }
         public uint CheckSumAdjustment { get; set; }
         public uint MagicNumber { get; set; }
         public ushort Flags { get; set; }
         public ushort UnitsPerEm { get; set; }
-        public byte[] Created { get; set; }  // 8 bytes
-        public byte[] Modified { get; set; }  // 8 bytes
+        public byte[] Created { get; set; } = new byte[8];  // 8 bytes
+        public byte[] Modified { get; set; } = new byte[8];  // 8 bytes
         public short XMin { get; set; }
         public short YMin { get; set; }
         public short XMax { get; set; }
@@ -133,12 +133,12 @@ namespace Haru.Font.TrueType
         public ushort SearchRange { get; set; }
         public ushort EntrySelector { get; set; }
         public ushort RangeShift { get; set; }
-        public ushort[] EndCount { get; set; }
+        public ushort[] EndCount { get; set; } = Array.Empty<ushort>();
         public ushort ReservedPad { get; set; }
-        public ushort[] StartCount { get; set; }
-        public short[] IdDelta { get; set; }
-        public ushort[] IdRangeOffset { get; set; }
-        public ushort[] GlyphIdArray { get; set; }
+        public ushort[] StartCount { get; set; } = Array.Empty<ushort>();
+        public short[] IdDelta { get; set; } = Array.Empty<short>();
+        public ushort[] IdRangeOffset { get; set; } = Array.Empty<ushort>();
+        public ushort[] GlyphIdArray { get; set; } = Array.Empty<ushort>();
     }
 
     /// <summary>
@@ -162,7 +162,7 @@ namespace Haru.Font.TrueType
         public ushort Format { get; set; }
         public ushort Count { get; set; }
         public ushort StringOffset { get; set; }
-        public TrueTypeNameRecord[] NameRecords { get; set; }
+        public TrueTypeNameRecord[] NameRecords { get; set; } = Array.Empty<TrueTypeNameRecord>();
     }
 
     /// <summary>
@@ -186,12 +186,12 @@ namespace Haru.Font.TrueType
         public short YStrikeoutSize { get; set; }
         public short YStrikeoutPosition { get; set; }
         public short SFamilyClass { get; set; }
-        public byte[] Panose { get; set; }  // 10 bytes
+        public byte[] Panose { get; set; } = new byte[10];  // 10 bytes
         public uint UnicodeRange1 { get; set; }
         public uint UnicodeRange2 { get; set; }
         public uint UnicodeRange3 { get; set; }
         public uint UnicodeRange4 { get; set; }
-        public byte[] AchVendID { get; set; }  // 4 bytes
+        public byte[] AchVendID { get; set; } = new byte[4];  // 4 bytes
         public ushort FsSelection { get; set; }
         public ushort FirstCharIndex { get; set; }
         public ushort LastCharIndex { get; set; }
@@ -210,8 +210,8 @@ namespace Haru.Font.TrueType
     internal class TrueTypeGlyphOffsets
     {
         public uint BaseOffset { get; set; }
-        public uint[] Offsets { get; set; }
-        public byte[] Flags { get; set; }  // 0: unused, 1: used
+        public uint[] Offsets { get; set; } = Array.Empty<uint>();
+        public byte[] Flags { get; set; } = Array.Empty<byte>();  // 0: unused, 1: used
     }
 
     /// <summary>
@@ -248,8 +248,8 @@ namespace Haru.Font.TrueType
     internal class TrueTypeGlyphData
     {
         public ushort GlyphId { get; set; }
-        public byte[] Data { get; set; }
+        public byte[] Data { get; set; } = Array.Empty<byte>();
         public bool IsComposite { get; set; }
-        public ushort[] ComponentGlyphs { get; set; }
+        public ushort[] ComponentGlyphs { get; set; } = Array.Empty<ushort>();
     }
 }

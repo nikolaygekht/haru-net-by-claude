@@ -22,7 +22,7 @@ namespace Haru.Font.CID
     /// Does NOT embed font data - references system fonts by name.
     /// Requires the font to be installed on the viewer's system.
     /// </summary>
-    public class HpdfCIDFontType0 : IHpdfFontImplementation
+    public class HpdfCIDFontType0 : IHpdfFontImplementation, IDisposable
     {
         private readonly HpdfDict _dict;               // Type 0 (composite) font dictionary
         private readonly HpdfDict _cidFontDict;        // CIDFontType0 descendant font dictionary
@@ -32,11 +32,12 @@ namespace Haru.Font.CID
         private readonly HpdfXref _xref;
         private readonly int _codePage;
         private readonly string _encodingName;
-        private readonly CIDEncoder _encoder; // Optional encoder
+        private readonly CIDEncoder? _encoder; // Optional encoder
 
         // Font definition (contains metrics and widths)
         private readonly PredefinedFontDefinition _fontDef;
-        private HpdfStreamObject _toUnicodeStream;
+        private HpdfStreamObject _toUnicodeStream = null!;
+        private bool _disposed = false;
 
         /// <summary>
         /// Gets the underlying Type 0 font dictionary.
@@ -92,7 +93,7 @@ namespace Haru.Font.CID
             PredefinedFontDefinition fontDef,
             int codePage,
             string encodingName,
-            CIDEncoder encoder = null)
+            CIDEncoder? encoder = null)
         {
             _xref = xref ?? throw new ArgumentNullException(nameof(xref));
             _localName = localName ?? throw new ArgumentNullException(nameof(localName));
@@ -123,9 +124,9 @@ namespace Haru.Font.CID
             string localName,
             int codePage,
             string encodingName,
-            CIDEncoder encoder = null)
+            CIDEncoder? encoder = null)
         {
-            if (document == null)
+            if (document is null)
                 throw new ArgumentNullException(nameof(document));
 
             // Load font definition (from registry or embedded resource)
@@ -160,7 +161,7 @@ namespace Haru.Font.CID
         /// </summary>
         public static HpdfCIDFontType0 CreateSimSun(HpdfDocument document, string localName)
         {
-            if (document == null)
+            if (document is null)
                 throw new ArgumentNullException(nameof(document));
 
             // SimSun font metrics from C source (hpdf_fontdef_cns.c:275-282)
@@ -443,6 +444,33 @@ namespace Haru.Font.CID
             // For CIDFontType0, we use the encoding's byte representation
             // This is different from CIDFontType2 which uses Unicode→GlyphID mapping
             return ConvertTextToBytes(text);
+        }
+
+        /// <summary>
+        /// Releases all resources used by this CIDFontType0 font.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Releases the unmanaged resources used by this CIDFontType0 font and optionally releases the managed resources.
+        /// </summary>
+        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _toUnicodeStream?.Dispose();
+                }
+
+                _disposed = true;
+            }
         }
     }
 }

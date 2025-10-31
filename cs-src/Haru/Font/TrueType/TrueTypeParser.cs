@@ -17,17 +17,17 @@
 using System;
 using System.IO;
 using System.Text;
-using Haru.Types;
 
 namespace Haru.Font.TrueType
 {
     /// <summary>
     /// Parses TrueType font files and extracts table data.
     /// </summary>
-    internal class TrueTypeParser
+    internal class TrueTypeParser : IDisposable
     {
         private readonly Stream _stream;
         private readonly BinaryReader _reader;
+        private bool _disposed = false;
 
         public TrueTypeParser(Stream stream)
         {
@@ -144,9 +144,9 @@ namespace Haru.Font.TrueType
         /// <summary>
         /// Finds a table by its tag.
         /// </summary>
-        public TrueTypeTable FindTable(TrueTypeOffsetTable offsetTable, string tag)
+        public TrueTypeTable? FindTable(TrueTypeOffsetTable offsetTable, string tag)
         {
-            if (offsetTable?.Tables == null)
+            if (offsetTable?.Tables is null)
                 return null;
 
             foreach (var table in offsetTable.Tables)
@@ -163,7 +163,7 @@ namespace Haru.Font.TrueType
         /// </summary>
         public TrueTypeHead ParseHead(TrueTypeTable table)
         {
-            if (table == null)
+            if (table is null)
                 throw new HpdfException(HpdfErrorCode.TtInvalidFormat, "head table not found");
 
             Seek(table.Offset);
@@ -201,7 +201,7 @@ namespace Haru.Font.TrueType
         /// </summary>
         public TrueTypeMaxp ParseMaxp(TrueTypeTable table)
         {
-            if (table == null)
+            if (table is null)
                 throw new HpdfException(HpdfErrorCode.TtInvalidFormat, "maxp table not found");
 
             Seek(table.Offset);
@@ -238,7 +238,7 @@ namespace Haru.Font.TrueType
         /// </summary>
         public TrueTypeHhea ParseHhea(TrueTypeTable table)
         {
-            if (table == null)
+            if (table is null)
                 throw new HpdfException(HpdfErrorCode.TtInvalidFormat, "hhea table not found");
 
             Seek(table.Offset);
@@ -272,7 +272,7 @@ namespace Haru.Font.TrueType
         /// </summary>
         public TrueTypeLongHorMetric[] ParseHmtx(TrueTypeTable table, ushort numberOfHMetrics, ushort numGlyphs)
         {
-            if (table == null)
+            if (table is null)
                 throw new HpdfException(HpdfErrorCode.TtInvalidFormat, "hmtx table not found");
 
             Seek(table.Offset);
@@ -311,7 +311,7 @@ namespace Haru.Font.TrueType
         /// </summary>
         public TrueTypeNameTable ParseName(TrueTypeTable table)
         {
-            if (table == null)
+            if (table is null)
                 throw new HpdfException(HpdfErrorCode.TtInvalidFormat, "name table not found");
 
             Seek(table.Offset);
@@ -345,9 +345,9 @@ namespace Haru.Font.TrueType
         /// <summary>
         /// Reads a string from the 'name' table.
         /// </summary>
-        public string ReadNameString(TrueTypeNameTable nameTable, TrueTypeTable table, TrueTypeNameRecord record)
+        public string? ReadNameString(TrueTypeNameTable nameTable, TrueTypeTable table, TrueTypeNameRecord record)
         {
-            if (nameTable == null || table == null || record == null)
+            if (nameTable is null || table is null || record is null)
                 return null;
 
             Seek(table.Offset + nameTable.StringOffset + record.Offset);
@@ -367,9 +367,9 @@ namespace Haru.Font.TrueType
         /// <summary>
         /// Parses the 'post' table.
         /// </summary>
-        public TrueTypePost ParsePost(TrueTypeTable table)
+        public TrueTypePost? ParsePost(TrueTypeTable table)
         {
-            if (table == null)
+            if (table is null)
                 return null;
 
             Seek(table.Offset);
@@ -399,7 +399,7 @@ namespace Haru.Font.TrueType
         /// <returns>Array of glyph offsets.</returns>
         public uint[] ParseLoca(TrueTypeTable table, short indexToLocFormat, ushort numGlyphs)
         {
-            if (table == null)
+            if (table is null)
                 throw new HpdfException(HpdfErrorCode.TtInvalidFormat, "loca table not found");
 
             Seek(table.Offset);
@@ -435,7 +435,7 @@ namespace Haru.Font.TrueType
         /// <returns>The glyph data.</returns>
         public TrueTypeGlyphData ReadGlyphData(TrueTypeTable glyfTable, uint glyphOffset, uint nextGlyphOffset)
         {
-            if (glyfTable == null)
+            if (glyfTable is null)
                 throw new HpdfException(HpdfErrorCode.TtInvalidFormat, "glyf table not found");
 
             uint glyphLength = nextGlyphOffset - glyphOffset;
@@ -533,6 +533,33 @@ namespace Haru.Font.TrueType
         public int ReadFixed()
         {
             return ReadInt32();
+        }
+
+        /// <summary>
+        /// Disposes the parser and releases resources
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Disposes the parser
+        /// </summary>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Dispose the BinaryReader (which wraps the stream)
+                    // Stream is left open due to leaveOpen: true
+                    _reader?.Dispose();
+                }
+
+                _disposed = true;
+            }
         }
     }
 }

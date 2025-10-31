@@ -9,7 +9,6 @@
  * and its documentation for any purpose is hereby granted without fee,
  */
 
-using System;
 using Haru.Doc;
 using Haru.Font;
 using Haru.Types;
@@ -107,7 +106,7 @@ namespace BasicDemos
                 page.SetDash(dashMode3, 0);
                 DrawLine(page, 60, 620, "dash_ptn=[8, 7, 2, 7], phase=0");
 
-                page.SetDash(new ushort[0], 0);
+                page.SetDash(Array.Empty<ushort>(), 0);
 
                 page.SetLineWidth(30);
                 page.SetRgbStroke(0.0f, 0.5f, 0.0f);
@@ -222,7 +221,7 @@ namespace BasicDemos
                 page.LineTo(x2, y2);
                 page.Stroke();
 
-                page.SetDash(new ushort[0], 0);
+                page.SetDash(Array.Empty<ushort>(), 0);
 
                 page.SetLineWidth(1.5f);
 
@@ -256,7 +255,7 @@ namespace BasicDemos
                 page.LineTo(x1, y1);
                 page.Stroke();
 
-                page.SetDash(new ushort[0], 0);
+                page.SetDash(Array.Empty<ushort>(), 0);
 
                 page.SetLineWidth(1.5f);
                 page.MoveTo(x, y);
@@ -295,7 +294,7 @@ namespace BasicDemos
                 page.LineTo(x3, y3);
                 page.Stroke();
 
-                page.SetDash(new ushort[0], 0);
+                page.SetDash(Array.Empty<ushort>(), 0);
 
                 page.SetLineWidth(1.5f);
                 page.MoveTo(x, y);

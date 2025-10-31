@@ -4,6 +4,7 @@ using Haru.Xref;
 using Haru.Objects;
 using Haru.Streams;
 
+
 namespace Haru.Test.Xref
 {
     public class HpdfXrefEntryTests
@@ -54,7 +55,7 @@ namespace Haru.Test.Xref
         public void WriteToStream_ShouldWriteInUseEntryCorrectly()
         {
             // Arrange
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             var entry = new HpdfXrefEntry
             {
                 ByteOffset = 17,
@@ -75,7 +76,7 @@ namespace Haru.Test.Xref
         public void WriteToStream_ShouldWriteFreeEntryCorrectly()
         {
             // Arrange
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             var entry = HpdfXrefEntry.CreateFreeEntry();
 
             // Act
@@ -91,7 +92,7 @@ namespace Haru.Test.Xref
         public void WriteToStream_ShouldFormatLargeOffsetCorrectly()
         {
             // Arrange
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             var entry = new HpdfXrefEntry
             {
                 ByteOffset = 123456789,
@@ -147,7 +148,7 @@ namespace Haru.Test.Xref
         public void WriteToStream_ShouldHandleMaximumValues()
         {
             // Arrange
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             var entry = new HpdfXrefEntry
             {
                 ByteOffset = 4294967295, // Max uint value (fits in 10 digits)

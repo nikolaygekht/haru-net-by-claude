@@ -5,6 +5,7 @@ using Haru.Xref;
 using Haru.Streams;
 using System.Text;
 
+
 namespace Haru.Test.Objects
 {
     public class HpdfIndirectTests
@@ -50,7 +51,7 @@ namespace Haru.Test.Objects
             dict.Add("MediaBox", array);
 
             // Act
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             dict.WriteValue(stream);
             var output = Encoding.ASCII.GetString(stream.ToArray());
 
@@ -73,7 +74,7 @@ namespace Haru.Test.Objects
             parentDict.Add("Child", childDict);
 
             // Act
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
             parentDict.WriteValue(stream);
             var output = Encoding.ASCII.GetString(stream.ToArray());
 

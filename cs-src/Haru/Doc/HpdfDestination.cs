@@ -15,7 +15,6 @@
  */
 
 using Haru.Objects;
-using Haru.Types;
 
 namespace Haru.Doc
 {

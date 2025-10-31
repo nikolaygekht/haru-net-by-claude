@@ -30,21 +30,22 @@ namespace Haru.Font
     /// Represents a Type 1 font that can be embedded in a PDF.
     /// Supports custom code pages for multi-language rendering (similar to TrueType fonts).
     /// </summary>
-    public class HpdfType1Font : IHpdfFontImplementation
+    public class HpdfType1Font : IHpdfFontImplementation, IDisposable
     {
         private readonly HpdfDict _dict;
-        private string _baseFont;
+        private string _baseFont = null!;
         private readonly string _localName;
         private readonly HpdfXref _xref;
 
-        // Type 1 font data
-        private AfmData _afmData;
-        private byte[] _pfbData;
+        // Type 1 font data - initialized by LoadFromFile factory method
+        private AfmData _afmData = null!;
+        private byte[]? _pfbData;
         private bool _embedding;
-        private HpdfDict _descriptor;
-        private HpdfStreamObject _fontFileStream;
-        private HpdfStreamObject _toUnicodeStream;
+        private HpdfDict? _descriptor;
+        private HpdfStreamObject? _fontFileStream;
+        private HpdfStreamObject? _toUnicodeStream;
         private int _codePage;
+        private bool _disposed = false;
 
         /// <summary>
         /// Gets the underlying dictionary object for this font.
@@ -69,7 +70,7 @@ namespace Haru.Font
         /// <summary>
         /// Gets the font descriptor dictionary.
         /// </summary>
-        public HpdfDict Descriptor => _descriptor;
+        public HpdfDict? Descriptor => _descriptor;
 
         /// <summary>
         /// Gets the font ascent in 1000-unit glyph space.
@@ -127,7 +128,7 @@ namespace Haru.Font
         /// <param name="afmPath">Path to the AFM file.</param>
         /// <param name="pfbPath">Path to the PFB file (optional, null for no embedding).</param>
         /// <returns>The loaded Type 1 font.</returns>
-        public static HpdfType1Font LoadFromFile(HpdfXref xref, string localName, string afmPath, string pfbPath = null)
+        public static HpdfType1Font LoadFromFile(HpdfXref xref, string localName, string afmPath, string? pfbPath = null)
         {
             return LoadFromFile(xref, localName, afmPath, pfbPath, 1252);
         }
@@ -141,7 +142,7 @@ namespace Haru.Font
         /// <param name="pfbPath">Path to the PFB file (null for no embedding).</param>
         /// <param name="codePage">The code page to use for encoding (e.g., 1252 for Windows Latin, 1251 for Cyrillic).</param>
         /// <returns>The loaded Type 1 font.</returns>
-        public static HpdfType1Font LoadFromFile(HpdfXref xref, string localName, string afmPath, string pfbPath, int codePage)
+        public static HpdfType1Font LoadFromFile(HpdfXref xref, string localName, string afmPath, string? pfbPath, int codePage)
         {
             if (!File.Exists(afmPath))
                 throw new HpdfException(HpdfErrorCode.FileNotFound, $"AFM file not found: {afmPath}");
@@ -158,7 +159,7 @@ namespace Haru.Font
             // Parse PFB file if embedding
             if (embedding)
             {
-                font._pfbData = PfbParser.ParseFile(pfbPath);
+                font._pfbData = PfbParser.ParseFile(pfbPath!);
             }
 
             // Extract font name
@@ -313,41 +314,53 @@ namespace Haru.Font
             _dict.Add("Encoding", encodingDict);
         }
 
-        private void CreateFontDescriptor(string pfbPath)
+        private void CreateFontDescriptor(string? pfbPath)
         {
             _descriptor = new HpdfDict();
             _descriptor.Add("Type", new HpdfName("FontDescriptor"));
             _descriptor.Add("FontName", new HpdfName(_baseFont));
 
             // Add flags from AFM data
-            _descriptor.Add("Flags", new HpdfNumber(_afmData.Flags));
+            _descriptor.Add("Flags", new HpdfNumber(_afmData?.Flags ?? 0));
 
             // Add font bounding box
             var bbox = new HpdfArray();
-            bbox.Add(new HpdfNumber((int)_afmData.FontBBox.Left));
-            bbox.Add(new HpdfNumber((int)_afmData.FontBBox.Bottom));
-            bbox.Add(new HpdfNumber((int)_afmData.FontBBox.Right));
-            bbox.Add(new HpdfNumber((int)_afmData.FontBBox.Top));
+            if (_afmData?.FontBBox != null)
+            {
+                bbox.Add(new HpdfNumber((int)_afmData.FontBBox.Left));
+                bbox.Add(new HpdfNumber((int)_afmData.FontBBox.Bottom));
+                bbox.Add(new HpdfNumber((int)_afmData.FontBBox.Right));
+                bbox.Add(new HpdfNumber((int)_afmData.FontBBox.Top));
+            }
+            else
+            {
+                bbox.Add(new HpdfNumber(0));
+                bbox.Add(new HpdfNumber(-250));
+                bbox.Add(new HpdfNumber(1000));
+                bbox.Add(new HpdfNumber(750));
+            }
             _descriptor.Add("FontBBox", bbox);
 
             // Add italic angle
-            _descriptor.Add("ItalicAngle", new HpdfReal(_afmData.ItalicAngle));
+            _descriptor.Add("ItalicAngle", new HpdfReal(_afmData?.ItalicAngle ?? 0));
 
             // Add metrics
-            _descriptor.Add("Ascent", new HpdfNumber(_afmData.Ascender));
-            _descriptor.Add("Descent", new HpdfNumber(_afmData.Descender));
+            _descriptor.Add("Ascent", new HpdfNumber(_afmData?.Ascender ?? 750));
+            _descriptor.Add("Descent", new HpdfNumber(_afmData?.Descender ?? -250));
 
             // Add CapHeight
-            _descriptor.Add("CapHeight", new HpdfNumber(_afmData.CapHeight > 0 ? _afmData.CapHeight : _afmData.Ascender));
+            int capHeight = _afmData?.CapHeight ?? 0;
+            int ascender = _afmData?.Ascender ?? 750;
+            _descriptor.Add("CapHeight", new HpdfNumber(capHeight > 0 ? capHeight : ascender));
 
             // Calculate StemV (use StdVW from AFM, or estimate)
-            int stemV = _afmData.StdVW > 0 ? _afmData.StdVW : 80;
+            int stemV = (_afmData?.StdVW ?? 0) > 0 ? (_afmData?.StdVW ?? 80) : 80;
             _descriptor.Add("StemV", new HpdfNumber(stemV));
 
             // Embed font data if requested
             if (_embedding && _pfbData != null && !string.IsNullOrEmpty(pfbPath))
             {
-                EmbedFontData(pfbPath);
+                EmbedFontData(pfbPath!);
             }
 
             // Add ToUnicode CMap for text extraction
@@ -363,25 +376,28 @@ namespace Haru.Font
         /// <summary>
         /// Embeds the font data (PFB) in the PDF.
         /// </summary>
-        private void EmbedFontData(string pfbPath)
+        private void EmbedFontData(string? pfbPath)
         {
             // Create font file stream
             _fontFileStream = new HpdfStreamObject();
 
             // For Type 1 fonts, we need to specify Length1, Length2, Length3
-            var (length1, length2, length3) = PfbParser.GetSectionLengths(pfbPath);
+            var (length1, length2, length3) = PfbParser.GetSectionLengths(pfbPath!);
             _fontFileStream.Add("Length1", new HpdfNumber(length1));
             _fontFileStream.Add("Length2", new HpdfNumber(length2));
             _fontFileStream.Add("Length3", new HpdfNumber(length3));
 
             // Add font data to stream
-            _fontFileStream.WriteToStream(_pfbData);
+            _fontFileStream.WriteToStream(_pfbData!);
 
             // Apply compression
             _fontFileStream.Filter = HpdfStreamFilter.FlateDecode;
 
             // Link to font descriptor (FontFile for Type 1, not FontFile2)
-            _descriptor.Add("FontFile", _fontFileStream);
+            if (_descriptor != null)
+            {
+                _descriptor.Add("FontFile", _fontFileStream);
+            }
 
             // Add to xref
             _xref.Add(_fontFileStream);
@@ -415,7 +431,7 @@ namespace Haru.Font
         /// </summary>
         private string GetGlyphNameForUnicode(ushort unicode)
         {
-            if (_afmData.CharMetrics == null)
+            if (_afmData?.CharMetrics is null)
                 return $"uni{unicode:X4}"; // Fallback to uni format
 
             // Find the character in AFM metrics
@@ -432,7 +448,7 @@ namespace Haru.Font
         /// </summary>
         private int GetWidthForUnicode(ushort unicode)
         {
-            if (_afmData.CharMetrics == null)
+            if (_afmData?.CharMetrics is null)
                 return 500; // Default width
 
             // Find the character in AFM metrics
@@ -489,6 +505,34 @@ namespace Haru.Font
         public byte[] ConvertTextToGlyphIDs(string text)
         {
             throw new InvalidOperationException("The method is available for CID fonts only");
+        }
+
+        /// <summary>
+        /// Releases all resources used by this Type 1 font.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Releases the unmanaged resources used by this Type 1 font and optionally releases the managed resources.
+        /// </summary>
+        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _fontFileStream?.Dispose();
+                    _toUnicodeStream?.Dispose();
+                }
+
+                _disposed = true;
+            }
         }
     }
 }

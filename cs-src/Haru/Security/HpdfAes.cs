@@ -12,7 +12,7 @@ namespace Haru.Security
         private const int BlockSize = 16; // AES block size is always 128 bits (16 bytes)
         private const int KeySize = 16;   // AES-128 uses 16-byte (128-bit) key
 
-        private byte[] _key;
+        private byte[] _key = Array.Empty<byte>();
         private Aes _aes;
 
         /// <summary>

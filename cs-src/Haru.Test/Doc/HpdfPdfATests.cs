@@ -1,10 +1,10 @@
 using System;
-using System.Linq;
 using System.Text;
 using Xunit;
 using FluentAssertions;
 using Haru.Doc;
 using Haru.Objects;
+
 
 namespace Haru.Test.Doc
 {
@@ -72,7 +72,7 @@ namespace Haru.Test.Doc
             outputIntents.Should().BeOfType<HpdfArray>();
 
             var array = outputIntents as HpdfArray;
-            array.Count.Should().Be(1);
+            array!.Count.Should().Be(1);
             array[0].Should().BeOfType<HpdfDict>();
         }
 
@@ -93,9 +93,9 @@ namespace Haru.Test.Doc
             id.Should().BeOfType<HpdfArray>();
 
             var idArray = id as HpdfArray;
-            idArray.Count.Should().Be(2);
-            idArray[0].Should().BeOfType<HpdfBinary>();
-            idArray[1].Should().BeOfType<HpdfBinary>();
+            idArray!.Count.Should().Be(2);
+            idArray![0].Should().BeOfType<HpdfBinary>();
+            idArray![1].Should().BeOfType<HpdfBinary>();
         }
 
         [Fact]
@@ -113,9 +113,9 @@ namespace Haru.Test.Doc
             // Assert
             doc.Catalog.Dict.Should().ContainKey("Metadata");
             var metadataStream = doc.Catalog.Dict["Metadata"] as HpdfStreamObject;
-            metadataStream.Should().NotBeNull();
+            metadataStream!.Should().NotBeNull();
 
-            var xmpBytes = metadataStream.Stream.ToArray();
+            var xmpBytes = metadataStream!.Stream.ToArray();
             var xmpContent = Encoding.UTF8.GetString(xmpBytes);
 
             xmpContent.Should().Contain("pdfaid:part");
@@ -141,7 +141,7 @@ namespace Haru.Test.Doc
 
             // Assert
             var metadataStream = doc.Catalog.Dict["Metadata"] as HpdfStreamObject;
-            var xmpBytes = metadataStream.Stream.ToArray();
+            var xmpBytes = metadataStream!.Stream.ToArray();
             var xmpContent = Encoding.UTF8.GetString(xmpBytes);
 
             xmpContent.Should().Contain("My PDF/A Document");
@@ -163,18 +163,18 @@ namespace Haru.Test.Doc
 
             // Assert
             var outputIntents = doc.Catalog.Dict["OutputIntents"] as HpdfArray;
-            var outputIntent = outputIntents[0] as HpdfDict;
+            var outputIntent = outputIntents![0] as HpdfDict;
 
-            outputIntent.Should().ContainKey("Type");
-            outputIntent.Should().ContainKey("S");
-            outputIntent.Should().ContainKey("OutputCondition");
-            outputIntent.Should().ContainKey("OutputConditionIdentifier");
+            outputIntent!.Should().ContainKey("Type");
+            outputIntent!.Should().ContainKey("S");
+            outputIntent!.Should().ContainKey("OutputCondition");
+            outputIntent!.Should().ContainKey("OutputConditionIdentifier");
 
-            var type = outputIntent["Type"] as HpdfName;
-            type.Value.Should().Be("OutputIntent");
+            var type = outputIntent!["Type"] as HpdfName;
+            type!.Value.Should().Be("OutputIntent");
 
-            var s = outputIntent["S"] as HpdfName;
-            s.Value.Should().Be("GTS_PDFA1");
+            var s = outputIntent!["S"] as HpdfName;
+            s!.Value.Should().Be("GTS_PDFA1");
         }
 
         [Fact]
@@ -191,14 +191,14 @@ namespace Haru.Test.Doc
 
             // Assert
             var idArray = doc.Xref.Trailer["ID"] as HpdfArray;
-            var id1 = idArray[0] as HpdfBinary;
-            var id2 = idArray[1] as HpdfBinary;
+            var id1 = idArray![0] as HpdfBinary;
+            var id2 = idArray![1] as HpdfBinary;
 
             // Both IDs should be identical for PDF/A
-            id1.Value.Should().BeEquivalentTo(id2.Value);
+            id1!.Value.Should().BeEquivalentTo(id2!.Value);
 
             // ID should be 16 bytes (MD5 hash)
-            id1.Length.Should().Be(16);
+            id1!.Length.Should().Be(16);
         }
 
         [Fact]
@@ -240,7 +240,7 @@ namespace Haru.Test.Doc
 
             // Assert
             var metadataStream = doc.Catalog.Dict["Metadata"] as HpdfStreamObject;
-            var xmpBytes = metadataStream.Stream.ToArray();
+            var xmpBytes = metadataStream!.Stream.ToArray();
             var xmpContent = Encoding.UTF8.GetString(xmpBytes);
 
             xmpContent.Should().Contain("xmp:CreateDate");
@@ -274,7 +274,7 @@ namespace Haru.Test.Doc
 
             // Assert
             var metadataStream = doc.Catalog.Dict["Metadata"] as HpdfStreamObject;
-            var xmpBytes = metadataStream.Stream.ToArray();
+            var xmpBytes = metadataStream!.Stream.ToArray();
             var xmpContent = Encoding.UTF8.GetString(xmpBytes);
 
             xmpContent.Should().Contain("&lt;special&gt;");

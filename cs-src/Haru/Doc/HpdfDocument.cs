@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Haru.Font;
 using Haru.Forms;
 using Haru.Objects;
 using Haru.Streams;
@@ -82,15 +83,15 @@ namespace Haru.Doc
         private readonly HpdfPages _rootPages;
         private readonly HpdfInfo _info;
         private readonly List<HpdfPage> _pageList;
-        private HpdfPages _currentPages;
-        private HpdfPage _currentPage;
+        private HpdfPages _currentPages = null!;
+        private HpdfPage? _currentPage;
         private HpdfVersion _version;
-        private HpdfOutline _outlineRoot;
+        private HpdfOutline? _outlineRoot;
         private bool _pdfACompliant;
-        private string _pdfAConformance;
-        private HpdfEncryptDict _encryptDict;
+        private string? _pdfAConformance;
+        private HpdfEncryptDict? _encryptDict;
         private readonly Dictionary<int, HpdfPageLabel> _pageLabels;
-        private HpdfAcroForm _acroForm;
+        private HpdfAcroForm? _acroForm;
         private HpdfCompressionMode _compressionMode;
 
         /// <summary>
@@ -124,7 +125,7 @@ namespace Haru.Doc
         /// <summary>
         /// Gets the current page.
         /// </summary>
-        public HpdfPage CurrentPage => _currentPage;
+        public HpdfPage? CurrentPage => _currentPage;
 
         /// <summary>
         /// Gets the list of all pages in the document.
@@ -137,6 +138,11 @@ namespace Haru.Doc
         public HpdfInfo Info => _info;
 
         /// <summary>
+        /// Gets the font registry for tracking loaded fonts.
+        /// </summary>
+        internal Dictionary<string, HpdfFont> FontRegistry { get; } = new();
+
+        /// <summary>
         /// Gets the cross-reference table.
         /// </summary>
         public HpdfXref Xref => _xref;
@@ -147,7 +153,7 @@ namespace Haru.Doc
         /// </summary>
         public HpdfOutline GetOutlineRoot()
         {
-            if (_outlineRoot == null)
+            if (_outlineRoot is null)
             {
                 _outlineRoot = new HpdfOutline(_xref);
                 _catalog.Dict.Add("Outlines", _outlineRoot.Dict);
@@ -270,7 +276,7 @@ namespace Haru.Doc
         /// </summary>
         /// <param name="parent">The parent pages node, or null to use the current pages.</param>
         /// <returns>The newly created pages node.</returns>
-        public HpdfPages InsertPagesNode(HpdfPages parent = null)
+        public HpdfPages InsertPagesNode(HpdfPages? parent = null)
         {
             parent = parent ?? _currentPages;
             var pages = new HpdfPages(_xref, parent);
@@ -290,7 +296,7 @@ namespace Haru.Doc
             HpdfEncryptMode mode = HpdfEncryptMode.R3)
         {
             // Create encryption dictionary if it doesn't exist
-            if (_encryptDict == null)
+            if (_encryptDict is null)
             {
                 _encryptDict = new HpdfEncryptDict(_xref);
             }
@@ -324,7 +330,7 @@ namespace Haru.Doc
         /// <param name="stream">The stream to write to.</param>
         public void Save(Stream stream)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Stream cannot be null");
 
             // Add PDF/A components if enabled
@@ -365,7 +371,7 @@ namespace Haru.Doc
         private void ApplyPdfACompliance()
         {
             // 1. Add XMP Metadata
-            var xmpGenerator = new HpdfXmpMetadata(_info, _pdfAConformance);
+            var xmpGenerator = new HpdfXmpMetadata(_info, _pdfAConformance ?? "1B");
             var xmpStream = xmpGenerator.GenerateXmpStream(_xref);
             _catalog.Dict.Add("Metadata", xmpStream);
 
@@ -399,14 +405,15 @@ namespace Haru.Doc
             }
 
             // Extract the encryption ID bytes from the ID array
-            byte[] idBytes = null;
+            byte[]? idBytes = null;
             if (documentId.Count > 0 && documentId[0] is HpdfBinary firstId)
             {
                 idBytes = firstId.Value;
             }
 
             // Prepare encryption dictionary with the ID
-            _encryptDict.Prepare(idBytes, _info);
+            // _encryptDict is guaranteed non-null because this method is only called after null check
+            _encryptDict!.Prepare(idBytes!, _info);
 
             // Add encryption dictionary to trailer
             _xref.Trailer.Add("Encrypt", _encryptDict.Dict);
@@ -486,7 +493,7 @@ namespace Haru.Doc
         /// <param name="style">The numbering style.</param>
         /// <param name="firstPage">The value of the numeric portion for the first page (default: 1).</param>
         /// <param name="prefix">Optional prefix string (default: null).</param>
-        public void AddPageLabel(int pageNum, HpdfPageNumStyle style, int firstPage = 1, string prefix = null)
+        public void AddPageLabel(int pageNum, HpdfPageNumStyle style, int firstPage = 1, string? prefix = null)
         {
             if (pageNum < 0)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Page number must be >= 0");
@@ -532,7 +539,8 @@ namespace Haru.Doc
         private void ApplyAcroForm()
         {
             // Prepare the AcroForm for writing
-            _acroForm.PrepareForWriting();
+            // _acroForm is guaranteed non-null because this method is only called after null check
+            _acroForm!.PrepareForWriting();
 
             // Add AcroForm to catalog
             _catalog.SetAcroForm(_acroForm.Dict);
@@ -556,7 +564,7 @@ namespace Haru.Doc
         /// <returns>The AcroForm instance.</returns>
         public HpdfAcroForm GetOrCreateAcroForm()
         {
-            if (_acroForm == null)
+            if (_acroForm is null)
             {
                 _acroForm = new HpdfAcroForm(_xref);
                 // Enable NeedAppearances by default since we're not generating appearances
@@ -569,7 +577,7 @@ namespace Haru.Doc
         /// Gets the AcroForm for this document if it exists.
         /// </summary>
         /// <returns>The AcroForm instance, or null if not created yet.</returns>
-        public HpdfAcroForm GetAcroForm()
+        public HpdfAcroForm? GetAcroForm()
         {
             return _acroForm;
         }

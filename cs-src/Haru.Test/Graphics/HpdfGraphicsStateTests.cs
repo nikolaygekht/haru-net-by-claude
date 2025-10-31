@@ -3,6 +3,7 @@ using FluentAssertions;
 using Haru.Graphics;
 using Haru.Types;
 
+
 namespace Haru.Test.Graphics
 {
     public class HpdfGraphicsStateTests

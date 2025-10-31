@@ -29,7 +29,7 @@ namespace Haru.Forms
         private readonly HpdfDict _dict;
         private readonly HpdfXref _xref;
         private readonly List<HpdfField> _fields;
-        private string _defaultAppearance;
+        private string _defaultAppearance = string.Empty;
         private bool _needAppearances;
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace Haru.Forms
         /// <param name="field">The field to add.</param>
         public void AddField(HpdfField field)
         {
-            if (field == null)
+            if (field is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Field cannot be null");
 
             _fields.Add(field);

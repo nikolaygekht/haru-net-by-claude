@@ -9,11 +9,9 @@
  * and its documentation for any purpose is hereby granted without fee,
  */
 
-using System;
 using Haru.Doc;
 using Haru.Font;
 using Haru.Forms;
-using Haru.Graphics;
 using Haru.Types;
 
 namespace BasicDemos

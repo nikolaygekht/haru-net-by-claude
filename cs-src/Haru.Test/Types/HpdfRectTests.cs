@@ -2,6 +2,7 @@ using FluentAssertions;
 using Haru.Types;
 using Xunit;
 
+
 namespace Haru.Test.Types
 {
     public class HpdfRectTests

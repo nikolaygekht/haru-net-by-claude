@@ -83,7 +83,7 @@ namespace Haru.Png
         /// </summary>
         public PngImageInfo ReadImageInfo(Stream stream)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
 
             long originalPosition = stream.Position;
@@ -121,9 +121,9 @@ namespace Haru.Png
         /// </summary>
         public byte[] ReadPixelData(Stream stream, PngImageInfo info)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
-            if (info == null)
+            if (info is null)
                 throw new ArgumentNullException(nameof(info));
 
             long originalPosition = stream.Position;
@@ -191,11 +191,11 @@ namespace Haru.Png
         /// </summary>
         public void ReadPixelDataByRow(Stream stream, PngImageInfo info, Action<byte[], int> rowCallback)
         {
-            if (stream == null)
+            if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
-            if (info == null)
+            if (info is null)
                 throw new ArgumentNullException(nameof(info));
-            if (rowCallback == null)
+            if (rowCallback is null)
                 throw new ArgumentNullException(nameof(rowCallback));
 
             long originalPosition = stream.Position;
@@ -290,6 +290,9 @@ namespace Haru.Png
         public void Dispose()
         {
             // No resources to dispose in this implementation
+            // Call SuppressFinalize to prevent derived types with finalizers
+            // from needing to re-implement IDisposable
+            GC.SuppressFinalize(this);
         }
     }
 }

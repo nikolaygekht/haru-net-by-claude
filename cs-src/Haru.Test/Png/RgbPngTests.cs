@@ -1,7 +1,7 @@
-using System.IO;
 using FluentAssertions;
 using Haru.Png;
 using Xunit;
+
 
 namespace Haru.Test.Png
 {

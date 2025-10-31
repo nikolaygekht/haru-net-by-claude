@@ -1,10 +1,8 @@
-using System;
 using Xunit;
 using FluentAssertions;
 using Haru.Doc;
 using Haru.Font;
-using Haru.Types;
-using Haru.Xref;
+
 
 namespace Haru.Test.Font
 {
@@ -220,7 +218,7 @@ namespace Haru.Test.Font
             var font = new HpdfFont(doc.Xref, HpdfStandardFont.Helvetica, "F1");
 
             // Act
-            var width = font.MeasureText(null, 12);
+            var width = font.MeasureText(null!, 12);
 
             // Assert
             width.Should().Be(0);

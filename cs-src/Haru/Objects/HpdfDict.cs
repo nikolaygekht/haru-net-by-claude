@@ -44,9 +44,9 @@ namespace Haru.Objects
             get => _items[key];
             set
             {
-                if (key == null)
+                if (key is null)
                     throw new ArgumentNullException(nameof(key));
-                if (value == null)
+                if (value is null)
                     throw new ArgumentNullException(nameof(value));
                 _items[key] = value;
             }
@@ -65,9 +65,9 @@ namespace Haru.Objects
         /// </summary>
         public void Add(string key, HpdfObject value)
         {
-            if (key == null)
+            if (key is null)
                 throw new ArgumentNullException(nameof(key));
-            if (value == null)
+            if (value is null)
                 throw new ArgumentNullException(nameof(value));
             _items.Add(key, value);
         }
@@ -115,7 +115,7 @@ namespace Haru.Objects
         /// <summary>
         /// Tries to get the value associated with the specified key
         /// </summary>
-        public bool TryGetValue(string key, out HpdfObject value)
+        public bool TryGetValue(string key, out HpdfObject? value)
         {
             return _items.TryGetValue(key, out value);
         }

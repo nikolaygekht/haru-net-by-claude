@@ -11,6 +11,7 @@ using FluentAssertions;
 using Haru.Font;
 using Haru.Doc;
 
+
 namespace Haru.Test.Font
 {
     public class HpdfFontExtensionsTests
@@ -102,12 +103,12 @@ namespace Haru.Test.Font
             // Arrange
             var document = new HpdfDocument();
             var font = document.GetFont("Helvetica");
-            string text = null;
+            string? text = null;
             float fontSize = 12f;
             float width = 100f;
 
             // Act
-            int charCount = font.MeasureText(text, fontSize, width, 0f, 0f, wordWrap: true, out float realWidth);
+            int charCount = font.MeasureText(text!, fontSize, width, 0f, 0f, wordWrap: true, out float realWidth);
 
             // Assert
             charCount.Should().Be(0);

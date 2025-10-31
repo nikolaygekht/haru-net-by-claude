@@ -5,6 +5,7 @@ using Haru.Xref;
 using Haru.Objects;
 using Haru.Streams;
 
+
 namespace Haru.Test.Xref
 {
     public class HpdfXrefTests
@@ -98,7 +99,7 @@ namespace Haru.Test.Xref
             var xref = new HpdfXref(0);
 
             // Act & Assert
-            Action act = () => xref.Add(null);
+            Action act = () => xref.Add(null!);
             act.Should().Throw<ArgumentNullException>();
         }
 
@@ -223,7 +224,7 @@ namespace Haru.Test.Xref
             var obj = new HpdfBoolean(true);
             xref.Add(obj);
 
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Act
             xref.WriteToStream(stream);
@@ -257,7 +258,7 @@ namespace Haru.Test.Xref
             xref.Add(new HpdfBoolean(false));
             xref.Add(new HpdfNull());
 
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Act
             xref.WriteToStream(stream);
@@ -282,7 +283,7 @@ namespace Haru.Test.Xref
             xref.Add(new HpdfNumber(1));
             xref.Add(new HpdfNumber(2));
 
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Act
             xref.WriteToStream(stream);
@@ -299,7 +300,7 @@ namespace Haru.Test.Xref
             var xref = new HpdfXref(0);
             xref.Add(new HpdfNull());
 
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Act
             xref.WriteToStream(stream);
@@ -319,7 +320,7 @@ namespace Haru.Test.Xref
             xref2.Add(new HpdfNumber(20));
             xref2.Previous = xref1;
 
-            var stream = new HpdfMemoryStream();
+            using var stream = new HpdfMemoryStream();
 
             // Act
             xref2.WriteToStream(stream);

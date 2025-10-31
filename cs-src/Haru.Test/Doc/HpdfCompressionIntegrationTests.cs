@@ -1,12 +1,12 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Xunit;
 using FluentAssertions;
 using Haru.Doc;
 using Haru.Types;
 using Haru.Font;
+
 
 namespace Haru.Test.Doc
 {

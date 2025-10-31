@@ -43,7 +43,7 @@ namespace Haru.Doc
         /// For example, "Chapter " would produce labels like "Chapter 1", "Chapter 2", etc.
         /// Default is null (no prefix).
         /// </summary>
-        public string Prefix { get; set; }
+        public string? Prefix { get; set; }
 
         /// <summary>
         /// Creates a new page label with default settings (decimal numbering, starting at 1, no prefix).
@@ -52,7 +52,7 @@ namespace Haru.Doc
         {
             Style = HpdfPageNumStyle.Decimal;
             FirstPage = 1;
-            Prefix = null;
+            Prefix = (string?)null;
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Haru.Doc
         /// <param name="style">The numbering style.</param>
         /// <param name="firstPage">The starting page number (default: 1).</param>
         /// <param name="prefix">Optional prefix string (default: null).</param>
-        public HpdfPageLabel(HpdfPageNumStyle style, int firstPage = 1, string prefix = null)
+        public HpdfPageLabel(HpdfPageNumStyle style, int firstPage = 1, string? prefix = null)
         {
             Style = style;
             FirstPage = firstPage;

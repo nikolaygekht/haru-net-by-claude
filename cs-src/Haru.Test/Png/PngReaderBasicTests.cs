@@ -4,6 +4,7 @@ using FluentAssertions;
 using Haru.Png;
 using Xunit;
 
+
 namespace Haru.Test.Png
 {
     /// <summary>
@@ -53,7 +54,7 @@ namespace Haru.Test.Png
         public void ValidateSignature_WithNullStream_ReturnsFalse()
         {
             // Act
-            bool result = _pngReader.ValidateSignature(null);
+            bool result = _pngReader.ValidateSignature(null!);
 
             // Assert
             result.Should().BeFalse();
@@ -78,7 +79,7 @@ namespace Haru.Test.Png
         public void ReadImageInfo_WithNullStream_ThrowsArgumentNullException()
         {
             // Act & Assert
-            Action act = () => _pngReader.ReadImageInfo(null);
+            Action act = () => _pngReader.ReadImageInfo(null!);
             act.Should().Throw<ArgumentNullException>();
         }
 
@@ -89,7 +90,7 @@ namespace Haru.Test.Png
             var info = new PngImageInfo { Width = 100, Height = 100 };
 
             // Act & Assert
-            Action act = () => _pngReader.ReadPixelData(null, info);
+            Action act = () => _pngReader.ReadPixelData(null!, info);
             act.Should().Throw<ArgumentNullException>();
         }
 
@@ -100,7 +101,7 @@ namespace Haru.Test.Png
             using (var stream = new MemoryStream())
             {
                 // Act & Assert
-                Action act = () => _pngReader.ReadPixelData(stream, null);
+                Action act = () => _pngReader.ReadPixelData(stream, null!);
                 act.Should().Throw<ArgumentNullException>();
             }
         }
@@ -113,7 +114,7 @@ namespace Haru.Test.Png
             Action<byte[], int> callback = (data, row) => { };
 
             // Act & Assert
-            Action act = () => _pngReader.ReadPixelDataByRow(null, info, callback);
+            Action act = () => _pngReader.ReadPixelDataByRow(null!, info, callback);
             act.Should().Throw<ArgumentNullException>();
         }
 
@@ -126,7 +127,7 @@ namespace Haru.Test.Png
                 Action<byte[], int> callback = (data, row) => { };
 
                 // Act & Assert
-                Action act = () => _pngReader.ReadPixelDataByRow(stream, null, callback);
+                Action act = () => _pngReader.ReadPixelDataByRow(stream, null!, callback);
                 act.Should().Throw<ArgumentNullException>();
             }
         }
@@ -140,7 +141,7 @@ namespace Haru.Test.Png
                 var info = new PngImageInfo { Width = 100, Height = 100 };
 
                 // Act & Assert
-                Action act = () => _pngReader.ReadPixelDataByRow(stream, info, null);
+                Action act = () => _pngReader.ReadPixelDataByRow(stream, info, null!);
                 act.Should().Throw<ArgumentNullException>();
             }
         }

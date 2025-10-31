@@ -14,6 +14,7 @@
  *
  */
 
+using System;
 using Haru.Graphics;
 using Haru.Types;
 using Haru.Streams;
@@ -32,6 +33,7 @@ namespace Haru.Doc
         /// </summary>
         public static void GSave(this IDrawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteString("q\n");
 
@@ -44,6 +46,7 @@ namespace Haru.Doc
         /// </summary>
         public static void GRestore(this IDrawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteString("Q\n");
 
@@ -58,6 +61,7 @@ namespace Haru.Doc
         /// </summary>
         public static void SetLineWidth(this IDrawable drawable, float width)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             if (width < 0)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "Line width must be non-negative");
 
@@ -73,6 +77,7 @@ namespace Haru.Doc
         /// </summary>
         public static void SetLineCap(this IDrawable drawable, HpdfLineCap lineCap)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteInt((int)lineCap);
             stream.WriteString(" J\n");
@@ -85,6 +90,7 @@ namespace Haru.Doc
         /// </summary>
         public static void SetLineJoin(this IDrawable drawable, HpdfLineJoin lineJoin)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteInt((int)lineJoin);
             stream.WriteString(" j\n");
@@ -97,6 +103,7 @@ namespace Haru.Doc
         /// </summary>
         public static void SetMiterLimit(this IDrawable drawable, float miterLimit)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             if (miterLimit < 1)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "Miter limit must be >= 1");
 
@@ -109,15 +116,24 @@ namespace Haru.Doc
 
         /// <summary>
         /// Sets the dash pattern (d operator)
+        /// Pass null or empty array to clear dash pattern (solid line)
         /// </summary>
-        public static void SetDash(this IDrawable drawable, ushort[] pattern, uint phase)
+        public static void SetDash(this IDrawable drawable, ushort[]? pattern, uint phase)
         {
-            if (pattern == null)
-                throw new HpdfException(HpdfErrorCode.InvalidParameter, "Pattern cannot be null");
+            ArgumentNullException.ThrowIfNull(drawable);
+            var stream = drawable.Stream;
+
+            // Null or empty pattern means solid line (clear dash pattern)
+            if (pattern == null || pattern.Length == 0)
+            {
+                stream.WriteString("[] 0 d\n");
+                drawable.GraphicsState.DashMode = new HpdfDashMode(Array.Empty<ushort>(), 0);
+                return;
+            }
+
             if (pattern.Length > HpdfDashMode.MaxPatternLength)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Pattern too long");
 
-            var stream = drawable.Stream;
             stream.WriteChar('[');
             for (int i = 0; i < pattern.Length; i++)
             {
@@ -138,6 +154,7 @@ namespace Haru.Doc
         /// </summary>
         public static void MoveTo(this IDrawable drawable, float x, float y)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteReal(x);
             stream.WriteChar(' ');
@@ -152,6 +169,7 @@ namespace Haru.Doc
         /// </summary>
         public static void LineTo(this IDrawable drawable, float x, float y)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteReal(x);
             stream.WriteChar(' ');
@@ -166,6 +184,7 @@ namespace Haru.Doc
         /// </summary>
         public static void Rectangle(this IDrawable drawable, float x, float y, float width, float height)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteReal(x);
             stream.WriteChar(' ');
@@ -182,6 +201,7 @@ namespace Haru.Doc
         /// </summary>
         public static void ClosePath(this IDrawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteString("h\n");
         }
@@ -193,6 +213,7 @@ namespace Haru.Doc
         /// </summary>
         public static void Stroke(this IDrawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteString("S\n");
         }
@@ -202,6 +223,7 @@ namespace Haru.Doc
         /// </summary>
         public static void ClosePathStroke(this IDrawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteString("s\n");
         }
@@ -211,6 +233,7 @@ namespace Haru.Doc
         /// </summary>
         public static void Fill(this IDrawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteString("f\n");
         }
@@ -220,6 +243,7 @@ namespace Haru.Doc
         /// </summary>
         public static void EoFill(this IDrawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteString("f*\n");
         }
@@ -229,6 +253,7 @@ namespace Haru.Doc
         /// </summary>
         public static void FillStroke(this IDrawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteString("B\n");
         }
@@ -238,6 +263,7 @@ namespace Haru.Doc
         /// </summary>
         public static void ClosePathFillStroke(this IDrawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteString("b\n");
         }
@@ -247,6 +273,7 @@ namespace Haru.Doc
         /// </summary>
         public static void EndPath(this IDrawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteString("n\n");
         }
@@ -258,6 +285,7 @@ namespace Haru.Doc
         /// </summary>
         public static void SetGrayFill(this IDrawable drawable, float gray)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             if (gray < 0 || gray > 1)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "Gray value must be 0-1");
 
@@ -274,6 +302,7 @@ namespace Haru.Doc
         /// </summary>
         public static void SetGrayStroke(this IDrawable drawable, float gray)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             if (gray < 0 || gray > 1)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "Gray value must be 0-1");
 
@@ -290,6 +319,7 @@ namespace Haru.Doc
         /// </summary>
         public static void SetRgbFill(this IDrawable drawable, float r, float g, float b)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             if (r < 0 || r > 1 || g < 0 || g > 1 || b < 0 || b > 1)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "RGB values must be 0-1");
 
@@ -310,6 +340,7 @@ namespace Haru.Doc
         /// </summary>
         public static void SetRgbStroke(this IDrawable drawable, float r, float g, float b)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             if (r < 0 || r > 1 || g < 0 || g > 1 || b < 0 || b > 1)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "RGB values must be 0-1");
 
@@ -330,6 +361,7 @@ namespace Haru.Doc
         /// </summary>
         public static void SetCmykFill(this IDrawable drawable, float c, float m, float y, float k)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             if (c < 0 || c > 1 || m < 0 || m > 1 || y < 0 || y > 1 || k < 0 || k > 1)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "CMYK values must be 0-1");
 
@@ -352,6 +384,7 @@ namespace Haru.Doc
         /// </summary>
         public static void SetCmykStroke(this IDrawable drawable, float c, float m, float y, float k)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             if (c < 0 || c > 1 || m < 0 || m > 1 || y < 0 || y > 1 || k < 0 || k > 1)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "CMYK values must be 0-1");
 
@@ -377,6 +410,7 @@ namespace Haru.Doc
         /// </summary>
         public static void CurveTo(this IDrawable drawable, float x1, float y1, float x2, float y2, float x3, float y3)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteReal(x1);
             stream.WriteChar(' ');
@@ -400,6 +434,7 @@ namespace Haru.Doc
         /// </summary>
         public static void CurveTo2(this IDrawable drawable, float x2, float y2, float x3, float y3)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteReal(x2);
             stream.WriteChar(' ');
@@ -419,6 +454,7 @@ namespace Haru.Doc
         /// </summary>
         public static void CurveTo3(this IDrawable drawable, float x1, float y1, float x3, float y3)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteReal(x1);
             stream.WriteChar(' ');
@@ -439,6 +475,7 @@ namespace Haru.Doc
         /// </summary>
         public static void Concat(this IDrawable drawable, float a, float b, float c, float d, float x, float y)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteReal(a);
             stream.WriteChar(' ');
@@ -459,6 +496,7 @@ namespace Haru.Doc
         /// </summary>
         public static void Concat(this IDrawable drawable, HpdfTransMatrix matrix)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             drawable.Concat(matrix.A, matrix.B, matrix.C, matrix.D, matrix.X, matrix.Y);
         }
 
@@ -469,6 +507,7 @@ namespace Haru.Doc
         /// </summary>
         public static void Clip(this IDrawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteString("W\n");
         }
@@ -478,6 +517,7 @@ namespace Haru.Doc
         /// </summary>
         public static void EoClip(this IDrawable drawable)
         {
+            ArgumentNullException.ThrowIfNull(drawable);
             var stream = drawable.Stream;
             stream.WriteString("W*\n");
         }
@@ -489,7 +529,8 @@ namespace Haru.Doc
         /// </summary>
         public static void SetExtGState(this HpdfPage page, HpdfExtGState extGState)
         {
-            if (extGState == null)
+            ArgumentNullException.ThrowIfNull(page);
+            if (extGState is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Extended graphics state cannot be null");
 
             // Add to page resources
@@ -514,7 +555,8 @@ namespace Haru.Doc
         /// <param name="height">Height of the image in user space units.</param>
         public static void DrawImage(this HpdfPage page, HpdfImage image, float x, float y, float width, float height)
         {
-            if (image == null)
+            ArgumentNullException.ThrowIfNull(page);
+            if (image is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Image cannot be null");
             if (width <= 0 || height <= 0)
                 throw new HpdfException(HpdfErrorCode.PageOutOfRange, "Image dimensions must be positive");

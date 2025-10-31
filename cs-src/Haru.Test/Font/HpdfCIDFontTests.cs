@@ -5,7 +5,7 @@ using FluentAssertions;
 using Haru.Doc;
 using Haru.Font;
 using Haru.Font.CID;
-using Haru.Xref;
+
 
 namespace Haru.Test.Font
 {
@@ -101,7 +101,7 @@ namespace Haru.Test.Font
         {
             // Act
             Action act = () => HpdfCIDFont.LoadFromTrueTypeFile(
-                null,
+                null!,
                 "TestFont",
                 TestFontPath,
                 JapaneseCodePage);
@@ -275,7 +275,7 @@ namespace Haru.Test.Font
                 JapaneseCodePage);
 
             // Act
-            var glyphBytes = cidFont.ConvertTextToGlyphIDs(null);
+            var glyphBytes = cidFont.ConvertTextToGlyphIDs(null!);
 
             // Assert
             glyphBytes.Should().NotBeNull();

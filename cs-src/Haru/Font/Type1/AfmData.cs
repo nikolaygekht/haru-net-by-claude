@@ -14,6 +14,7 @@
  *
  */
 
+using System;
 using Haru.Types;
 
 namespace Haru.Font.Type1
@@ -36,7 +37,7 @@ namespace Haru.Font.Type1
         /// <summary>
         /// PostScript glyph name.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// Unicode value for this glyph.
@@ -53,22 +54,22 @@ namespace Haru.Font.Type1
         /// <summary>
         /// Font name (PostScript name).
         /// </summary>
-        public string FontName { get; set; }
+        public string FontName { get; set; } = string.Empty;
 
         /// <summary>
         /// Full font name.
         /// </summary>
-        public string FullName { get; set; }
+        public string FullName { get; set; } = string.Empty;
 
         /// <summary>
         /// Font family name.
         /// </summary>
-        public string FamilyName { get; set; }
+        public string FamilyName { get; set; } = string.Empty;
 
         /// <summary>
         /// Font weight (e.g., "Bold", "Book", "Regular").
         /// </summary>
-        public string Weight { get; set; }
+        public string Weight { get; set; } = string.Empty;
 
         /// <summary>
         /// Italic angle in degrees.
@@ -93,12 +94,12 @@ namespace Haru.Font.Type1
         /// <summary>
         /// Font version.
         /// </summary>
-        public string Version { get; set; }
+        public string Version { get; set; } = string.Empty;
 
         /// <summary>
         /// Encoding scheme (e.g., "AdobeStandardEncoding").
         /// </summary>
-        public string EncodingScheme { get; set; }
+        public string EncodingScheme { get; set; } = string.Empty;
 
         /// <summary>
         /// Font bounding box.
@@ -138,12 +139,12 @@ namespace Haru.Font.Type1
         /// <summary>
         /// Character set name.
         /// </summary>
-        public string CharacterSet { get; set; }
+        public string CharacterSet { get; set; } = string.Empty;
 
         /// <summary>
         /// Character metrics (glyph data).
         /// </summary>
-        public AfmCharMetric[] CharMetrics { get; set; }
+        public AfmCharMetric[] CharMetrics { get; set; } = Array.Empty<AfmCharMetric>();
 
         /// <summary>
         /// Font flags for PDF font descriptor.

@@ -35,7 +35,7 @@ namespace Haru.Xref
         /// Gets or sets the PDF object associated with this entry.
         /// Null for free entries or before the object is written.
         /// </summary>
-        public HpdfObject Object { get; set; }
+        public HpdfObject? Object { get; set; }
 
         /// <summary>
         /// Initializes a new in-use xref entry with default values
@@ -45,7 +45,7 @@ namespace Haru.Xref
             EntryType = HpdfXrefEntryType.InUse;
             ByteOffset = 0;
             GenerationNumber = 0;
-            Object = null;
+            Object = (HpdfObject?)null;
         }
 
         /// <summary>

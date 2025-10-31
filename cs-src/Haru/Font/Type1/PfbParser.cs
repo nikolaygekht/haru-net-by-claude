@@ -111,6 +111,7 @@ namespace Haru.Font.Type1
         /// </summary>
         public static (int length1, int length2, int length3) GetSectionLengths(Stream stream)
         {
+            ArgumentNullException.ThrowIfNull(stream);
             int length1 = 0;
             int length2 = 0;
             int length3 = 0;

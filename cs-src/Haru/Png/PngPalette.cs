@@ -11,7 +11,7 @@ namespace Haru.Png
         /// Array of RGB color entries. Each entry contains 3 bytes (R, G, B).
         /// Length is ColorCount * 3.
         /// </summary>
-        public byte[] Colors { get; set; }
+        public byte[] Colors { get; set; } = Array.Empty<byte>();
 
         /// <summary>
         /// Number of colors in the palette.

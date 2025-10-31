@@ -4,6 +4,7 @@ using Haru.Security;
 using Haru.Types;
 using Xunit;
 
+
 namespace Haru.Test.Security
 {
     /// <summary>

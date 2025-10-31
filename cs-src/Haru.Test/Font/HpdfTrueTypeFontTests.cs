@@ -14,14 +14,12 @@
  *
  */
 
-using System;
 using System.IO;
 using Xunit;
 using FluentAssertions;
 using Haru.Doc;
 using Haru.Font;
-using Haru.Objects;
-using HTypes = Haru.Types;
+
 
 namespace Haru.Test.Font
 {
