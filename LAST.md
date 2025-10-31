@@ -147,6 +147,14 @@ cs-src/
 ## Demos Available
 
 - **BasicDemo** - Core graphics and text
+- **ShapesDemo** - High-level shape drawing (Circles, Ellipses, Rectangles, Arcs, combined shapes)
+- **TransparencyDemo** - Alpha transparency and blend modes (watermarks, highlights, shadows, glass effects)
+- **AnnotationsDemo** - Text annotations (sticky notes) with all 7 icon types, colors, and document review workflow
+- **PdfADemo** - PDF/A-1b archival documents (long-term preservation with embedded fonts and metadata)
+- **MetadataDemo** - Document metadata (Title, Author, Keywords, custom fields)
+- **AdvancedTextDemo** - Text rendering modes (Fill, Stroke, Clipping), transformations (rotation, scaling, skewing), and positioning
+- **ColorSpacesDemo** - RGB, CMYK, and Grayscale color spaces with rich blacks for professional printing
+- **CompressionDemo** - PDF compression modes (None, Text, Image, Metadata, All) for file size optimization
 - **InternationalDemo** - Multi-language text (Western, Cyrillic, Greek, Turkish)
 - **Type1FontDemo** - PostScript fonts with Russian text
 - **CJKDemo** - Chinese (Traditional/Simplified), Japanese, Korean (CIDFontType2 embedded fonts)

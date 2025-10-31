@@ -88,6 +88,38 @@ namespace BasicDemos
             Haru.Demos.CJKFontsDemo.Run("pdfs/cjk_fonts_all.pdf");
             Console.WriteLine("CJKFontsDemo completed.\n");
 
+            Console.WriteLine("Running ShapesDemo...");
+            ShapesDemo.Run();
+            Console.WriteLine("ShapesDemo completed.\n");
+
+            Console.WriteLine("Running TransparencyDemo...");
+            TransparencyDemo.Run();
+            Console.WriteLine("TransparencyDemo completed.\n");
+
+            Console.WriteLine("Running AnnotationsDemo...");
+            AnnotationsDemo.Run();
+            Console.WriteLine("AnnotationsDemo completed.\n");
+
+            Console.WriteLine("Running PdfADemo...");
+            PdfADemo.Run();
+            Console.WriteLine("PdfADemo completed.\n");
+
+            Console.WriteLine("Running MetadataDemo...");
+            MetadataDemo.Run();
+            Console.WriteLine("MetadataDemo completed.\n");
+
+            Console.WriteLine("Running AdvancedTextDemo...");
+            AdvancedTextDemo.Run();
+            Console.WriteLine("AdvancedTextDemo completed.\n");
+
+            Console.WriteLine("Running ColorSpacesDemo...");
+            ColorSpacesDemo.Run();
+            Console.WriteLine("ColorSpacesDemo completed.\n");
+
+            Console.WriteLine("Running CompressionDemo...");
+            CompressionDemo.Run();
+            Console.WriteLine("CompressionDemo completed.\n");
+
             Console.WriteLine("All demos completed successfully!");
             Console.WriteLine("PDF files have been generated in the current directory.");
         }
