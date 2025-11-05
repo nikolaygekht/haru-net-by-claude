@@ -9,6 +9,13 @@ namespace Haru.Streams
     /// </summary>
     public static class HpdfStreamExtensions
     {
+        static HpdfStreamExtensions()
+        {
+            // Register code page encoding provider for Windows-1252 and other encodings
+            // This is required on .NET Core/5+ where these encodings are not available by default
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        }
+
         /// <summary>
         /// Writes a character to the stream
         /// </summary>
@@ -116,7 +123,7 @@ namespace Haru.Streams
 
         /// <summary>
         /// Writes an escaped PDF text string to the stream (enclosed in parentheses).
-        /// Uses PDFDocEncoding for ASCII text.
+        /// Uses WinAnsiEncoding (Windows-1252) for standard fonts.
         /// </summary>
         public static void WriteEscapedText(this HpdfStream stream, string text)
         {
@@ -125,38 +132,42 @@ namespace Haru.Streams
             if (text is null)
                 throw new ArgumentNullException(nameof(text));
 
+            // Convert Unicode text to WinAnsiEncoding (Windows-1252) bytes
+            // This is the standard encoding used by PDF standard fonts
+            Encoding winAnsiEncoding = Encoding.GetEncoding(1252);
+            byte[] bytes = winAnsiEncoding.GetBytes(text);
+
             stream.WriteByte((byte)'(');
 
-            // ASCII text - use PDFDocEncoding (which is compatible with ASCII)
-            foreach (char c in text)
+            foreach (byte b in bytes)
             {
                 // Escape special characters in PDF strings
-                if (c == '(' || c == ')' || c == '\\')
+                if (b == (byte)'(' || b == (byte)')' || b == (byte)'\\')
                 {
                     stream.WriteByte((byte)'\\');
-                    stream.WriteByte((byte)c);
+                    stream.WriteByte(b);
                 }
-                else if (c == '\r')
+                else if (b == (byte)'\r')
                 {
                     stream.WriteByte((byte)'\\');
                     stream.WriteByte((byte)'r');
                 }
-                else if (c == '\n')
+                else if (b == (byte)'\n')
                 {
                     stream.WriteByte((byte)'\\');
                     stream.WriteByte((byte)'n');
                 }
-                else if (c < 32 || c > 126)
+                else if (b < 32 || b > 126)
                 {
-                    // Write as octal escape
+                    // Write as octal escape for non-printable characters
                     stream.WriteByte((byte)'\\');
-                    stream.WriteByte((byte)('0' + ((c >> 6) & 0x07)));
-                    stream.WriteByte((byte)('0' + ((c >> 3) & 0x07)));
-                    stream.WriteByte((byte)('0' + (c & 0x07)));
+                    stream.WriteByte((byte)('0' + ((b >> 6) & 0x07)));
+                    stream.WriteByte((byte)('0' + ((b >> 3) & 0x07)));
+                    stream.WriteByte((byte)('0' + (b & 0x07)));
                 }
                 else
                 {
-                    stream.WriteByte((byte)c);
+                    stream.WriteByte(b);
                 }
             }
 

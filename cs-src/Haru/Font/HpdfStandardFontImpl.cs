@@ -89,10 +89,16 @@ namespace Haru.Font
             if (string.IsNullOrEmpty(text))
                 return 0;
 
+            // Convert Unicode text to WinAnsiEncoding (Windows-1252) bytes
+            // Standard fonts use WinAnsiEncoding, so we need to convert Unicode characters
+            // to their WinAnsi byte values (e.g., en-dash U+2013 → 0x96)
+            System.Text.Encoding winAnsiEncoding = System.Text.Encoding.GetEncoding(1252);
+            byte[] bytes = winAnsiEncoding.GetBytes(text);
+
             float totalWidth = 0;
-            foreach (char c in text)
+            foreach (byte b in bytes)
             {
-                totalWidth += GetCharWidth((byte)c);
+                totalWidth += GetCharWidth(b);
             }
 
             // Convert from 1000-unit glyph space to user space

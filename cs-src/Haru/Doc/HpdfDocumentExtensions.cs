@@ -31,7 +31,7 @@ namespace Haru.Doc
             if (string.IsNullOrEmpty(fontName))
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Font name cannot be null or empty");
 
-            // Check if this font was previously loaded (custom TrueType or Type1 font)
+            // Check if this font was previously loaded (both standard and custom fonts are cached)
             if (document.FontRegistry.TryGetValue(fontName, out var cachedFont))
             {
                 return cachedFont;
@@ -41,10 +41,13 @@ namespace Haru.Doc
             var standardFont = MapFontName(fontName);
 
             // Generate a unique local name for this font
-            // Note: In a full implementation, we might want to cache fonts to avoid duplicates
             var localName = $"F{document.Xref.Entries.Count}";
 
-            return new HpdfFont(document.Xref, standardFont, localName);
+            // Create the font and cache it in the registry to avoid duplicates
+            var font = new HpdfFont(document.Xref, standardFont, localName);
+            document.FontRegistry[fontName] = font;
+
+            return font;
         }
 
         /// <summary>
