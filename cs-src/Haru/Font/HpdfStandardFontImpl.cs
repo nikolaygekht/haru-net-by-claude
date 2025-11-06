@@ -71,7 +71,52 @@ namespace Haru.Font
             if (standardFont != HpdfStandardFont.Symbol &&
                 standardFont != HpdfStandardFont.ZapfDingbats)
             {
-                _dict.Add("Encoding", new HpdfName("WinAnsiEncoding"));
+                // Always create custom encoding with Cyrillic support in Differences array
+                // This matches old libharu behavior and allows Cyrillic to render via font substitution
+                var encodingDict = new HpdfDict();
+                encodingDict.Add("Type", new HpdfName("Encoding"));
+                encodingDict.Add("BaseEncoding", new HpdfName("WinAnsiEncoding"));
+
+                // Create Differences array to map bytes 192-255 to Cyrillic glyphs
+                // CP1252 best-fit mapping maps Cyrillic to bytes 192-255, so we remap those to Cyrillic glyphs
+                var differences = new HpdfArray();
+                differences.Add(new HpdfNumber(192));  // Start at byte 192 (0xC0)
+
+                // Cyrillic capital letters А-Я (afii10017 through afii10049)
+                string[] cyrillicCaps = {
+                    "afii10017", "afii10018", "afii10019", "afii10020", "afii10021", "afii10022",
+                    "afii10024", "afii10025", "afii10026", "afii10027", "afii10028", "afii10029",
+                    "afii10030", "afii10031", "afii10032", "afii10033", "afii10034", "afii10035",
+                    "afii10036", "afii10037", "afii10038", "afii10039", "afii10040", "afii10041",
+                    "afii10042", "afii10043", "afii10044", "afii10045", "afii10046", "afii10047",
+                    "afii10048", "afii10049"
+                };
+
+                // Cyrillic lowercase letters а-я (afii10065 through afii10097)
+                string[] cyrillicLower = {
+                    "afii10065", "afii10066", "afii10067", "afii10068", "afii10069", "afii10070",
+                    "afii10072", "afii10073", "afii10074", "afii10075", "afii10076", "afii10077",
+                    "afii10078", "afii10079", "afii10080", "afii10081", "afii10082", "afii10083",
+                    "afii10084", "afii10085", "afii10086", "afii10087", "afii10088", "afii10089",
+                    "afii10090", "afii10091", "afii10092", "afii10093", "afii10094", "afii10095",
+                    "afii10096", "afii10097"
+                };
+
+                // Add capital letters (bytes 192-223)
+                foreach (var glyph in cyrillicCaps)
+                {
+                    differences.Add(new HpdfName(glyph));
+                }
+
+                // Add lowercase letters (bytes 224-255)
+                foreach (var glyph in cyrillicLower)
+                {
+                    differences.Add(new HpdfName(glyph));
+                }
+
+                encodingDict.Add("Differences", differences);
+                xref.Add(encodingDict);
+                _dict.Add("Encoding", encodingDict);
             }
 
             // Add to xref

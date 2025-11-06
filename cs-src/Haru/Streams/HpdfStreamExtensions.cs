@@ -148,7 +148,6 @@ namespace Haru.Streams
                 throw new ArgumentNullException(nameof(text));
 
             // Convert text to bytes using the specified code page
-            // Replace characters that can't be encoded with '?'
             Encoding encoding;
             try
             {
@@ -160,55 +159,19 @@ namespace Haru.Streams
                 encoding = Encoding.GetEncoding(28591); // ISO-8859-1
             }
 
-            // Pre-process text to replace unencodable characters with '?'
-            var sb = new StringBuilder(text.Length);
-            foreach (char c in text)
-            {
-                // Try to encode this character
-                byte[] testBytes = encoding.GetBytes(new char[] { c });
-                // Decode it back to see if it round-trips correctly
-                string decoded = encoding.GetString(testBytes);
+            byte[] bytes = encoding.GetBytes(text);
 
-                // If the character doesn't round-trip correctly, it's not supported
-                if (decoded.Length == 1 && decoded[0] == c)
-                {
-                    sb.Append(c);
-                }
-                else
-                {
-                    sb.Append('?');
-                }
-            }
-
-            byte[] bytes = encoding.GetBytes(sb.ToString());
-
-            stream.WriteByte((byte)'(');
+            // Write as hex string format <XXXX> instead of literal string (text)
+            // This matches the old libharu behavior and works correctly with custom encodings
+            stream.WriteByte((byte)'<');
 
             foreach (byte b in bytes)
             {
-                // Escape special characters in PDF strings
-                if (b == (byte)'(' || b == (byte)')' || b == (byte)'\\')
-                {
-                    stream.WriteByte((byte)'\\');
-                    stream.WriteByte(b);
-                }
-                else if (b == (byte)'\r')
-                {
-                    stream.WriteByte((byte)'\\');
-                    stream.WriteByte((byte)'r');
-                }
-                else if (b == (byte)'\n')
-                {
-                    stream.WriteByte((byte)'\\');
-                    stream.WriteByte((byte)'n');
-                }
-                else
-                {
-                    stream.WriteByte(b);
-                }
+                stream.WriteByte(ToHexDigit((b >> 4) & 0x0F));
+                stream.WriteByte(ToHexDigit(b & 0x0F));
             }
 
-            stream.WriteByte((byte)')');
+            stream.WriteByte((byte)'>');
         }
 
         /// <summary>
