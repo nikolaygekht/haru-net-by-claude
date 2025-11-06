@@ -71,9 +71,10 @@ namespace Haru.Font
         /// <param name="xref">The cross-reference table.</param>
         /// <param name="standardFont">The standard font to use.</param>
         /// <param name="localName">Local resource name (e.g., "F1").</param>
-        public HpdfFont(HpdfXref xref, HpdfStandardFont standardFont, string localName)
+        /// <param name="codePage">The code page to use for text encoding (default 1252 for WinAnsiEncoding).</param>
+        public HpdfFont(HpdfXref xref, HpdfStandardFont standardFont, string localName, int codePage = 1252)
         {
-            _implementation = new HpdfStandardFontImpl(xref, standardFont, localName);
+            _implementation = new HpdfStandardFontImpl(xref, standardFont, localName, codePage);
             _isCIDFont = false;
         }
 

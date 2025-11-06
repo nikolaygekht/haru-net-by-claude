@@ -30,11 +30,12 @@ namespace Haru.Font
         private readonly string _localName;
         private readonly StandardFontMetrics _metrics;
         private readonly HpdfStandardFontWidths _widths;
+        private readonly int _codePage;
 
         public HpdfDict Dict => _dict;
         public string BaseFont => _baseFont;
         public string LocalName => _localName;
-        public int? CodePage => null; // Standard fonts don't have a code page
+        public int? CodePage => _codePage;
 
         public int Ascent => _metrics.Ascent;
         public int Descent => _metrics.Descent;
@@ -47,7 +48,8 @@ namespace Haru.Font
         /// <param name="xref">The cross-reference table.</param>
         /// <param name="standardFont">The standard font to use.</param>
         /// <param name="localName">Local resource name (e.g., "F1").</param>
-        public HpdfStandardFontImpl(HpdfXref xref, HpdfStandardFont standardFont, string localName)
+        /// <param name="codePage">The code page to use for text encoding (default 1252 for WinAnsiEncoding).</param>
+        public HpdfStandardFontImpl(HpdfXref xref, HpdfStandardFont standardFont, string localName, int codePage = 1252)
         {
             if (xref is null)
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Xref cannot be null");
@@ -56,6 +58,7 @@ namespace Haru.Font
 
             _baseFont = standardFont.GetPostScriptName();
             _localName = localName;
+            _codePage = codePage;
 
             // Create font dictionary
             _dict = new HpdfDict();
@@ -89,11 +92,10 @@ namespace Haru.Font
             if (string.IsNullOrEmpty(text))
                 return 0;
 
-            // Convert Unicode text to WinAnsiEncoding (Windows-1252) bytes
-            // Standard fonts use WinAnsiEncoding, so we need to convert Unicode characters
-            // to their WinAnsi byte values (e.g., en-dash U+2013 → 0x96)
-            System.Text.Encoding winAnsiEncoding = System.Text.Encoding.GetEncoding(1252);
-            byte[] bytes = winAnsiEncoding.GetBytes(text);
+            // Convert Unicode text using the font's code page encoding
+            // Standard fonts may use different encodings (e.g., WinAnsiEncoding 1252, CP1251 for Cyrillic)
+            System.Text.Encoding encoding = System.Text.Encoding.GetEncoding(_codePage);
+            byte[] bytes = encoding.GetBytes(text);
 
             float totalWidth = 0;
             foreach (byte b in bytes)

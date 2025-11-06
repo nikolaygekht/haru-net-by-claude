@@ -15,6 +15,7 @@
  */
 
 using Haru.Types;
+using Haru.Font;
 
 namespace Haru.Graphics
 {
@@ -137,6 +138,11 @@ namespace Haru.Graphics
         public float FontSize { get; set; }
 
         /// <summary>
+        /// Current font (part of text state that must be saved/restored with graphics state)
+        /// </summary>
+        public HpdfFont? CurrentFont { get; set; }
+
+        /// <summary>
         /// Previous graphics state (for state stack)
         /// </summary>
         public HpdfGraphicsState? Previous { get; set; }
@@ -177,6 +183,7 @@ namespace Haru.Graphics
             GrayStroke = 0;
 
             FontSize = 0;
+            CurrentFont = null;
             Previous = (HpdfGraphicsState?)null;
             Depth = 0;
         }
@@ -211,6 +218,7 @@ namespace Haru.Graphics
                 GrayFill = GrayFill,
                 GrayStroke = GrayStroke,
                 FontSize = FontSize,
+                CurrentFont = CurrentFont,
                 Previous = this,
                 Depth = Depth + 1
             };

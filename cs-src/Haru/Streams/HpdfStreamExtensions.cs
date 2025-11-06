@@ -123,7 +123,8 @@ namespace Haru.Streams
 
         /// <summary>
         /// Writes an escaped PDF text string to the stream (enclosed in parentheses).
-        /// Uses WinAnsiEncoding (Windows-1252) for standard fonts.
+        /// Uses WinAnsiEncoding (Windows-1252 / CP1252) by default for characters outside ASCII range.
+        /// This is the default encoding for standard PDF fonts (Helvetica, Times, Courier, etc.).
         /// </summary>
         public static void WriteEscapedText(this HpdfStream stream, string text)
         {
@@ -132,46 +133,8 @@ namespace Haru.Streams
             if (text is null)
                 throw new ArgumentNullException(nameof(text));
 
-            // Convert Unicode text to WinAnsiEncoding (Windows-1252) bytes
-            // This is the standard encoding used by PDF standard fonts
-            Encoding winAnsiEncoding = Encoding.GetEncoding(1252);
-            byte[] bytes = winAnsiEncoding.GetBytes(text);
-
-            stream.WriteByte((byte)'(');
-
-            foreach (byte b in bytes)
-            {
-                // Escape special characters in PDF strings
-                if (b == (byte)'(' || b == (byte)')' || b == (byte)'\\')
-                {
-                    stream.WriteByte((byte)'\\');
-                    stream.WriteByte(b);
-                }
-                else if (b == (byte)'\r')
-                {
-                    stream.WriteByte((byte)'\\');
-                    stream.WriteByte((byte)'r');
-                }
-                else if (b == (byte)'\n')
-                {
-                    stream.WriteByte((byte)'\\');
-                    stream.WriteByte((byte)'n');
-                }
-                else if (b < 32 || b > 126)
-                {
-                    // Write as octal escape for non-printable characters
-                    stream.WriteByte((byte)'\\');
-                    stream.WriteByte((byte)('0' + ((b >> 6) & 0x07)));
-                    stream.WriteByte((byte)('0' + ((b >> 3) & 0x07)));
-                    stream.WriteByte((byte)('0' + (b & 0x07)));
-                }
-                else
-                {
-                    stream.WriteByte(b);
-                }
-            }
-
-            stream.WriteByte((byte)')');
+            // Delegate to the codePage overload with WinAnsiEncoding (CP1252)
+            WriteEscapedText(stream, text, 1252);
         }
 
         /// <summary>
@@ -185,6 +148,7 @@ namespace Haru.Streams
                 throw new ArgumentNullException(nameof(text));
 
             // Convert text to bytes using the specified code page
+            // Replace characters that can't be encoded with '?'
             Encoding encoding;
             try
             {
@@ -196,7 +160,27 @@ namespace Haru.Streams
                 encoding = Encoding.GetEncoding(28591); // ISO-8859-1
             }
 
-            byte[] bytes = encoding.GetBytes(text);
+            // Pre-process text to replace unencodable characters with '?'
+            var sb = new StringBuilder(text.Length);
+            foreach (char c in text)
+            {
+                // Try to encode this character
+                byte[] testBytes = encoding.GetBytes(new char[] { c });
+                // Decode it back to see if it round-trips correctly
+                string decoded = encoding.GetString(testBytes);
+
+                // If the character doesn't round-trip correctly, it's not supported
+                if (decoded.Length == 1 && decoded[0] == c)
+                {
+                    sb.Append(c);
+                }
+                else
+                {
+                    sb.Append('?');
+                }
+            }
+
+            byte[] bytes = encoding.GetBytes(sb.ToString());
 
             stream.WriteByte((byte)'(');
 

@@ -22,7 +22,7 @@ namespace Haru.Doc
         /// </summary>
         /// <param name="document">The PDF document.</param>
         /// <param name="fontName">The name of the standard font (e.g., "Helvetica", "Courier", "Times-Roman").</param>
-        /// <param name="encodingName">The encoding name (can be null for standard encoding). Currently not used as all fonts use WinAnsiEncoding.</param>
+        /// <param name="encodingName">The encoding name (e.g., "WinAnsiEncoding", "CP1251", "ISO8859-5").</param>
         /// <returns>A new HpdfFont instance.</returns>
         public static HpdfFont GetFont(this HpdfDocument document, string fontName, string? encodingName = null)
         {
@@ -31,10 +31,23 @@ namespace Haru.Doc
             if (string.IsNullOrEmpty(fontName))
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Font name cannot be null or empty");
 
-            // Check if this font was previously loaded (both standard and custom fonts are cached)
-            if (document.FontRegistry.TryGetValue(fontName, out var cachedFont))
+            // Parse encoding to code page
+            int codePage = ParseEncodingToCodePage(encodingName);
+
+            // Create a cache key that includes both font name and encoding
+            string cacheKey = $"{fontName}#{codePage}";
+
+            // Check if this font+encoding combination was previously loaded
+            if (document.FontRegistry.TryGetValue(cacheKey, out var cachedFont))
             {
                 return cachedFont;
+            }
+
+            // Check if this is a TrueType or Type1 font loaded via LoadTTFontFromFile/LoadType1FontFromFile
+            // These are registered by their BaseFont name without encoding suffix
+            if (document.FontRegistry.TryGetValue(fontName, out var loadedFont))
+            {
+                return loadedFont;
             }
 
             // Map font names to standard fonts
@@ -43,11 +56,57 @@ namespace Haru.Doc
             // Generate a unique local name for this font
             var localName = $"F{document.Xref.Entries.Count}";
 
-            // Create the font and cache it in the registry to avoid duplicates
-            var font = new HpdfFont(document.Xref, standardFont, localName);
-            document.FontRegistry[fontName] = font;
+            // Create the font with the specified encoding and cache it in the registry
+            var font = new HpdfFont(document.Xref, standardFont, localName, codePage);
+            document.FontRegistry[cacheKey] = font;
 
             return font;
+        }
+
+        /// <summary>
+        /// Parses an encoding name to a code page number.
+        /// </summary>
+        private static int ParseEncodingToCodePage(string? encodingName)
+        {
+            if (string.IsNullOrEmpty(encodingName) ||
+                encodingName == "WinAnsiEncoding" ||
+                encodingName == "StandardEncoding")
+            {
+                return 1252; // Default WinAnsiEncoding
+            }
+
+            // Handle CPxxxx format (e.g., "CP1251")
+            if (encodingName.StartsWith("CP", System.StringComparison.OrdinalIgnoreCase))
+            {
+                if (int.TryParse(encodingName.Substring(2), out int cpNumber))
+                    return cpNumber;
+            }
+
+            // Handle ISO8859-x format
+            if (encodingName.StartsWith("ISO8859", System.StringComparison.OrdinalIgnoreCase))
+            {
+                string numberPart = encodingName.Substring(encodingName.IndexOf('-') + 1);
+                if (int.TryParse(numberPart, out int isoNumber))
+                {
+                    // ISO-8859-1 = CP28591, ISO-8859-5 = CP28595, etc.
+                    if (isoNumber >= 1 && isoNumber <= 9)
+                        return 28590 + isoNumber;
+                    else if (isoNumber >= 10 && isoNumber <= 16 && isoNumber != 12)
+                        return 28600 + (isoNumber % 10);
+                }
+            }
+
+            // For other encodings, try to get the code page directly
+            try
+            {
+                var enc = System.Text.Encoding.GetEncoding(encodingName);
+                return enc.CodePage;
+            }
+            catch
+            {
+                // Fall back to default
+                return 1252;
+            }
         }
 
         /// <summary>
