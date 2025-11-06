@@ -47,6 +47,12 @@ namespace Haru.Font
             if (_widths.TryGetValue(charCode, out int width))
                 return width;
 
+            // Control characters (0-31) should have zero width
+            // This matches libharu behavior which initializes all widths to 0
+            // and only populates widths for printable characters
+            if (charCode < 32)
+                return 0;
+
             return DefaultWidth;
         }
 
