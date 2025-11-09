@@ -160,7 +160,8 @@ namespace Haru.Font
         }
 
         /// <summary>
-        /// Loads a TrueType font from a file with default code page (437 - DOS).
+        /// Loads a TrueType font from a file with default code page (1252 - Windows ANSI/WinAnsiEncoding).
+        /// This matches libharu's default behavior and PDF standard encoding for Western European text.
         /// </summary>
         /// <param name="xref">The cross-reference table.</param>
         /// <param name="localName">Local resource name (e.g., "F1").</param>
@@ -169,7 +170,7 @@ namespace Haru.Font
         /// <returns>The loaded TrueType font.</returns>
         public static HpdfTrueTypeFont LoadFromFile(HpdfXref xref, string localName, string filePath, bool embedding)
         {
-            return LoadFromFile(xref, localName, filePath, embedding, 437);
+            return LoadFromFile(xref, localName, filePath, embedding, 1252);
         }
 
         /// <summary>
@@ -202,9 +203,9 @@ namespace Haru.Font
         /// <param name="stream">Stream containing TTF data.</param>
         /// <param name="fontData">Font data bytes (for embedding).</param>
         /// <param name="embedding">Whether to embed the font data.</param>
-        /// <param name="codePage">The code page to use for encoding (e.g., 437 for DOS, 1251 for Cyrillic).</param>
+        /// <param name="codePage">The code page to use for encoding (e.g., 1252 for Windows ANSI, 1251 for Cyrillic).</param>
         /// <returns>The loaded TrueType font.</returns>
-        public static HpdfTrueTypeFont LoadFromStream(HpdfXref xref, string localName, Stream stream, byte[] fontData, bool embedding, int codePage = 437)
+        public static HpdfTrueTypeFont LoadFromStream(HpdfXref xref, string localName, Stream stream, byte[] fontData, bool embedding, int codePage = 1252)
         {
             var font = new HpdfTrueTypeFont(xref, localName, embedding, codePage);
 
