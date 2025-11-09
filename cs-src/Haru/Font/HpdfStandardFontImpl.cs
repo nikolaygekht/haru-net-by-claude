@@ -71,52 +71,46 @@ namespace Haru.Font
             if (standardFont != HpdfStandardFont.Symbol &&
                 standardFont != HpdfStandardFont.ZapfDingbats)
             {
-                // Always create custom encoding with Cyrillic support in Differences array
-                // This matches old libharu behavior and allows Cyrillic to render via font substitution
-                var encodingDict = new HpdfDict();
-                encodingDict.Add("Type", new HpdfName("Encoding"));
-                encodingDict.Add("BaseEncoding", new HpdfName("WinAnsiEncoding"));
-
-                // Create Differences array to map bytes 192-255 to Cyrillic glyphs
-                // CP1252 best-fit mapping maps Cyrillic to bytes 192-255, so we remap those to Cyrillic glyphs
-                var differences = new HpdfArray();
-                differences.Add(new HpdfNumber(192));  // Start at byte 192 (0xC0)
-
-                // Cyrillic capital letters А-Я (afii10017 through afii10049)
-                string[] cyrillicCaps = {
-                    "afii10017", "afii10018", "afii10019", "afii10020", "afii10021", "afii10022",
-                    "afii10024", "afii10025", "afii10026", "afii10027", "afii10028", "afii10029",
-                    "afii10030", "afii10031", "afii10032", "afii10033", "afii10034", "afii10035",
-                    "afii10036", "afii10037", "afii10038", "afii10039", "afii10040", "afii10041",
-                    "afii10042", "afii10043", "afii10044", "afii10045", "afii10046", "afii10047",
-                    "afii10048", "afii10049"
-                };
-
-                // Cyrillic lowercase letters а-я (afii10065 through afii10097)
-                string[] cyrillicLower = {
-                    "afii10065", "afii10066", "afii10067", "afii10068", "afii10069", "afii10070",
-                    "afii10072", "afii10073", "afii10074", "afii10075", "afii10076", "afii10077",
-                    "afii10078", "afii10079", "afii10080", "afii10081", "afii10082", "afii10083",
-                    "afii10084", "afii10085", "afii10086", "afii10087", "afii10088", "afii10089",
-                    "afii10090", "afii10091", "afii10092", "afii10093", "afii10094", "afii10095",
-                    "afii10096", "afii10097"
-                };
-
-                // Add capital letters (bytes 192-223)
-                foreach (var glyph in cyrillicCaps)
+                // For code page 1252 (WinAnsi), use the base encoding directly - no Differences needed
+                if (codePage == 1252)
                 {
-                    differences.Add(new HpdfName(glyph));
+                    _dict.Add("Encoding", new HpdfName("WinAnsiEncoding"));
                 }
-
-                // Add lowercase letters (bytes 224-255)
-                foreach (var glyph in cyrillicLower)
+                else
                 {
-                    differences.Add(new HpdfName(glyph));
-                }
+                    // For other code pages, create custom Encoding with Differences array
+                    // Generate Differences dynamically based on the code page
+                    var encodingDict = new HpdfDict();
+                    encodingDict.Add("Type", new HpdfName("Encoding"));
+                    encodingDict.Add("BaseEncoding", new HpdfName("WinAnsiEncoding"));
 
-                encodingDict.Add("Differences", differences);
-                xref.Add(encodingDict);
-                _dict.Add("Encoding", encodingDict);
+                    // Get the encoding for this code page
+                    System.Text.Encoding encoding;
+                    try
+                    {
+                        encoding = System.Text.Encoding.GetEncoding(codePage);
+                    }
+                    catch
+                    {
+                        // Fallback to WinAnsi if code page not available
+                        encoding = System.Text.Encoding.GetEncoding(1252);
+                    }
+
+                    // Build Differences array by comparing with WinAnsi
+                    var differences = CreateDifferencesArray(encoding);
+
+                    if (differences != null && differences.Count > 0)
+                    {
+                        encodingDict.Add("Differences", differences);
+                        xref.Add(encodingDict);
+                        _dict.Add("Encoding", encodingDict);
+                    }
+                    else
+                    {
+                        // No differences, use base encoding
+                        _dict.Add("Encoding", new HpdfName("WinAnsiEncoding"));
+                    }
+                }
             }
 
             // Add to xref
@@ -125,6 +119,88 @@ namespace Haru.Font
             // Initialize metrics and width table
             _metrics = HpdfStandardFontMetrics.GetMetrics(standardFont);
             _widths = new HpdfStandardFontWidths(standardFont);
+        }
+
+        /// <summary>
+        /// Creates a /Differences array for the encoding by comparing with WinAnsiEncoding (CP1252).
+        /// Only includes bytes that differ from WinAnsi.
+        /// </summary>
+        private HpdfArray? CreateDifferencesArray(System.Text.Encoding encoding)
+        {
+            // Get WinAnsi encoding for comparison
+            var winAnsi = System.Text.Encoding.GetEncoding(1252);
+
+            var differences = new HpdfArray();
+            int rangeStart = -1;
+            var rangeGlyphs = new System.Collections.Generic.List<string>();
+
+            // Compare all 256 byte values
+            for (int i = 0; i < 256; i++)
+            {
+                byte b = (byte)i;
+                byte[] byteArray = new byte[] { b };
+
+                // Get Unicode from both encodings
+                string targetChar = encoding.GetString(byteArray);
+                string winAnsiChar = winAnsi.GetString(byteArray);
+
+                ushort targetUnicode = (targetChar.Length > 0) ? (ushort)targetChar[0] : (ushort)0;
+                ushort winAnsiUnicode = (winAnsiChar.Length > 0) ? (ushort)winAnsiChar[0] : (ushort)0;
+
+                // Skip if the encoding matches WinAnsi or is in ASCII range (typically same)
+                if (targetUnicode == winAnsiUnicode || (i >= 0x20 && i <= 0x7E))
+                {
+                    // Flush current range if any
+                    if (rangeStart >= 0)
+                    {
+                        differences.Add(new HpdfNumber(rangeStart));
+                        foreach (var glyph in rangeGlyphs)
+                        {
+                            differences.Add(new HpdfName(glyph));
+                        }
+                        rangeStart = -1;
+                        rangeGlyphs.Clear();
+                    }
+                    continue;
+                }
+
+                // Get proper glyph name for this Unicode value
+                string? glyphName = HpdfGlyphNames.GetGlyphName(targetUnicode);
+                if (glyphName == null)
+                {
+                    // Flush current range and skip this byte if no glyph name found
+                    if (rangeStart >= 0)
+                    {
+                        differences.Add(new HpdfNumber(rangeStart));
+                        foreach (var glyph in rangeGlyphs)
+                        {
+                            differences.Add(new HpdfName(glyph));
+                        }
+                        rangeStart = -1;
+                        rangeGlyphs.Clear();
+                    }
+                    continue;
+                }
+
+                // Start a new range or continue current one
+                if (rangeStart < 0)
+                {
+                    rangeStart = i;
+                }
+                rangeGlyphs.Add(glyphName);
+            }
+
+            // Flush final range if any
+            if (rangeStart >= 0)
+            {
+                differences.Add(new HpdfNumber(rangeStart));
+                foreach (var glyph in rangeGlyphs)
+                {
+                    differences.Add(new HpdfName(glyph));
+                }
+            }
+
+            return differences.Count > 0 ? differences : null;
         }
 
         public float GetCharWidth(byte charCode)

@@ -718,9 +718,15 @@ namespace Haru.Font
                     continue;
                 }
 
-                // For non-ASCII, we need to specify the glyph name
-                // Use uni[XXXX] format where XXXX is the Unicode hex value
-                string glyphName = $"uni{unicode:X4}";
+                // For non-ASCII, we need to specify the PostScript glyph name
+                // Get the proper glyph name from the mapping table (e.g., afii10017 for Cyrillic А)
+                // Fall back to uni[XXXX] format if no standard name exists
+                string? glyphName = HpdfGlyphNames.GetGlyphName(unicode);
+                if (glyphName == null)
+                {
+                    // Use uni[XXXX] format for unmapped characters
+                    glyphName = $"uni{unicode:X4}";
+                }
 
                 // Start a new range or continue current one
                 if (rangeStart < 0)
