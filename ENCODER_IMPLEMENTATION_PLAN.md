@@ -4,9 +4,83 @@
 
 This document describes the plan to implement a complete encoder system for the Haru C# port, matching the original libharu C implementation's architecture. This would replace the current hardcoded Cyrillic encoding support with a flexible, extensible system supporting 22+ encodings.
 
-**Status**: PLANNED (Not yet implemented - saved for future work)
-**Estimated Effort**: 10-15 hours
+**Status**: PARTIALLY IMPLEMENTED
+**Estimated Effort**: 10-15 hours (original estimate)
 **Date Created**: 2025-01-06
+**Last Updated**: 2025-01-09
+
+## Progress Update (2025-01-09)
+
+### Completed Work
+
+**Phase 1.2: Glyph Name Mapping Table** ✅ COMPLETED
+- **File**: `/home/gleb/work/gehtsoft/haru-net-by-claude/cs-src/Haru/Font/HpdfGlyphNames.cs` (NEW - 1068 lines)
+- Implemented complete Unicode → PostScript glyph name mapping table with 1051 entries
+- Extracted from libharu C source `HPDF_UNICODE_GRYPH_NAME_MAP` table
+- Includes mappings for:
+  - Basic Latin, Latin Extended
+  - Greek (U+0384 - U+03CE)
+  - Cyrillic (U+0401 - U+04D9) including uppercase, lowercase, and extended forms
+  - Hebrew (U+05B0 - U+05F2)
+  - Arabic (U+060C - U+06D5)
+  - Special characters and symbols (em-dash, en-dash, mathematical symbols, etc.)
+- Static `GetGlyphName(ushort unicode)` method for lookup
+
+**Standard Font Dynamic Encoding** ✅ COMPLETED
+- **File**: `/home/gleb/work/gehtsoft/haru-net-by-claude/cs-src/Haru/Font/HpdfStandardFontImpl.cs` (MODIFIED)
+- Removed hardcoded Cyrillic-only encoding
+- Implemented dynamic `/Differences` array generation based on code page
+- New `CreateDifferencesArray()` method that:
+  - Compares target encoding with WinAnsiEncoding byte-by-byte
+  - Uses `HpdfGlyphNames.GetGlyphName()` for proper PostScript glyph names
+  - Only includes bytes that differ from base encoding
+- For CP1252 (WinAnsi), uses base encoding directly without custom dictionary
+- For other code pages (CP1250, CP1251, CP1253-1258, KOI8-R, ISO8859-x):
+  - Creates custom encoding dictionary with `/BaseEncoding` and `/Differences`
+  - Dynamically generates glyph names using .NET's `System.Text.Encoding`
+- **Tested and verified**: Hebrew (CP1255), Arabic (CP1256), Cyrillic (CP1251, KOI8-R), and other encodings
+
+**TrueType Font Glyph Names** ✅ COMPLETED
+- **File**: `/home/gleb/work/gehtsoft/haru-net-by-claude/cs-src/Haru/Font/HpdfTrueTypeFont.cs` (MODIFIED)
+- Updated to use `HpdfGlyphNames.GetGlyphName()` instead of `uni{unicode:X4}` format
+- Falls back to `uni{XXXX}` format for unmapped characters
+- Properly handles non-ASCII characters in TrueType fonts
+
+**Commit**: `74e5b43` - "feat: Implement Unicode to PostScript glyph name mapping and dynamic encoding support for Standard fonts"
+
+### Remaining Work
+
+The following phases from the original plan are **not yet implemented** and remain planned for future work:
+
+**Phase 1.1: Define Encoder Interfaces and Classes** ⏳ NOT STARTED
+- `IHpdfEncoder` interface
+- `HpdfBasicEncoder` class
+- Full encoder abstraction matching libharu architecture
+
+**Phase 2: Create Encoding Definitions** ⏳ NOT STARTED
+- Extract complete unicode_map arrays from libharu C source for all 22 encodings
+- `HpdfEncoderFactory` with all encoder registrations
+- Dedicated encoder classes for each code page
+
+**Phase 3-6: Full Integration** ⏳ NOT STARTED
+- Complete integration with font system
+- Update stream extensions to use encoder abstraction
+- Comprehensive unit tests
+- Documentation updates
+
+### Current Implementation Notes
+
+The current implementation (completed 2025-01-09) provides a **lightweight, pragmatic solution** that:
+- ✅ Uses .NET's `System.Text.Encoding` to dynamically get Unicode mappings for any code page
+- ✅ Leverages the HpdfGlyphNames table to map Unicode → PostScript glyph names
+- ✅ Generates `/Differences` arrays on-the-fly without hardcoded tables
+- ✅ Supports all encodings that .NET supports (CP125x, KOI8-R, ISO8859-x, etc.)
+- ✅ Tested with Hebrew, Arabic, Cyrillic, and other encodings - all working correctly
+
+This approach differs from the full encoder system described below (which would use hardcoded unicode_map arrays from libharu), but achieves the same functional result with less code complexity. The full encoder system remains available for future implementation if needed for:
+- Exact byte-for-byte parity with libharu
+- CJK (Chinese/Japanese/Korean) encodings
+- Performance optimization (pre-computed tables vs dynamic lookup)
 
 ## Background
 
