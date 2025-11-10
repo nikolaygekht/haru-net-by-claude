@@ -177,5 +177,13 @@ namespace Haru.Font
         {
             throw new System.InvalidOperationException("The method is available for CID fonts only");
         }
+
+        public byte[] EncodeText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return System.Array.Empty<byte>();
+
+            return _encoder.EncodeText(text);
+        }
     }
 }

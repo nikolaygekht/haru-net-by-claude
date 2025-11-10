@@ -66,6 +66,15 @@ namespace Haru.Font
         }
 
         /// <summary>
+        /// Encodes text to bytes using the font's encoding.
+        /// This ensures measurement and output use the same byte sequence.
+        /// </summary>
+        public byte[] EncodeText(string text)
+        {
+            return _implementation.EncodeText(text);
+        }
+
+        /// <summary>
         /// Creates a standard Type 1 font.
         /// </summary>
         /// <param name="xref">The cross-reference table.</param>

@@ -1007,6 +1007,18 @@ namespace Haru.Font
         }
 
         /// <summary>
+        /// Encodes text to bytes using the font's code page encoding.
+        /// </summary>
+        public byte[] EncodeText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return Array.Empty<byte>();
+
+            var encoding = System.Text.Encoding.GetEncoding(_codePage);
+            return encoding.GetBytes(text);
+        }
+
+        /// <summary>
         /// Releases all resources used by this TrueType font.
         /// </summary>
         public void Dispose()

@@ -122,6 +122,54 @@ namespace Haru.Streams
         }
 
         /// <summary>
+        /// Writes pre-encoded bytes as a PDF literal string (enclosed in parentheses with proper escaping).
+        /// This ensures measurement and output use the same byte sequence.
+        /// </summary>
+        public static void WriteLiteralString(this HpdfStream stream, byte[] bytes)
+        {
+            if (stream is null)
+                throw new ArgumentNullException(nameof(stream));
+            if (bytes is null)
+                throw new ArgumentNullException(nameof(bytes));
+
+            stream.WriteByte((byte)'(');
+
+            foreach (byte b in bytes)
+            {
+                // Escape special characters in PDF strings
+                if (b == (byte)'(' || b == (byte)')' || b == (byte)'\\')
+                {
+                    stream.WriteByte((byte)'\\');
+                    stream.WriteByte(b);
+                }
+                else if (b == (byte)'\r')
+                {
+                    stream.WriteByte((byte)'\\');
+                    stream.WriteByte((byte)'r');
+                }
+                else if (b == (byte)'\n')
+                {
+                    stream.WriteByte((byte)'\\');
+                    stream.WriteByte((byte)'n');
+                }
+                else if (b < 32 || b > 126)
+                {
+                    // Write as octal escape for non-printable characters
+                    stream.WriteByte((byte)'\\');
+                    stream.WriteByte((byte)('0' + ((b >> 6) & 0x07)));
+                    stream.WriteByte((byte)('0' + ((b >> 3) & 0x07)));
+                    stream.WriteByte((byte)('0' + (b & 0x07)));
+                }
+                else
+                {
+                    stream.WriteByte(b);
+                }
+            }
+
+            stream.WriteByte((byte)')');
+        }
+
+        /// <summary>
         /// Writes an escaped PDF text string to the stream (enclosed in parentheses).
         /// Uses WinAnsiEncoding (Windows-1252 / CP1252) by default for characters outside ASCII range.
         /// This is the default encoding for standard PDF fonts (Helvetica, Times, Courier, etc.).
@@ -160,18 +208,7 @@ namespace Haru.Streams
             }
 
             byte[] bytes = encoding.GetBytes(text);
-
-            // Write as hex string format <XXXX> instead of literal string (text)
-            // This matches the old libharu behavior and works correctly with custom encodings
-            stream.WriteByte((byte)'<');
-
-            foreach (byte b in bytes)
-            {
-                stream.WriteByte(ToHexDigit((b >> 4) & 0x0F));
-                stream.WriteByte(ToHexDigit(b & 0x0F));
-            }
-
-            stream.WriteByte((byte)'>');
+            stream.WriteLiteralString(bytes);
         }
 
         /// <summary>

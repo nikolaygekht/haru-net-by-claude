@@ -87,9 +87,8 @@ namespace Haru.Objects
             }
             else
             {
-                // Convert bytes to string for escape processing
-                string text = System.Text.Encoding.Latin1.GetString(dataToWrite);
-                stream.WriteEscapedText(text);
+                // Write bytes as literal string with proper escaping
+                stream.WriteLiteralString(dataToWrite);
             }
         }
 

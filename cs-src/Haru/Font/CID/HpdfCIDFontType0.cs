@@ -447,6 +447,15 @@ namespace Haru.Font.CID
         }
 
         /// <summary>
+        /// Encodes text to bytes using the font's encoding.
+        /// </summary>
+        public byte[] EncodeText(string text)
+        {
+            // For CIDFontType0, encoding means converting to the encoding's byte representation
+            return ConvertTextToBytes(text);
+        }
+
+        /// <summary>
         /// Releases all resources used by this CIDFontType0 font.
         /// </summary>
         public void Dispose()

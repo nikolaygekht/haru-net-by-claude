@@ -990,6 +990,15 @@ namespace Haru.Font.CID
         }
 
         /// <summary>
+        /// Encodes text to glyph IDs for CID fonts.
+        /// </summary>
+        public byte[] EncodeText(string text)
+        {
+            // For CID fonts, encoding means converting to glyph IDs
+            return ConvertTextToGlyphIDs(text);
+        }
+
+        /// <summary>
         /// Gets the glyph ID for a Unicode character.
         /// </summary>
         public ushort GetGlyphId(ushort unicode)

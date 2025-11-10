@@ -442,6 +442,7 @@ namespace Haru.Test.Doc
 
             // Assert
             var content = GetPageContent(page);
+            // Literal format
             content.Should().Contain("(Line 1) Tj\n");
             content.Should().Contain("T*\n");
             content.Should().Contain("(Line 2) Tj\n");
