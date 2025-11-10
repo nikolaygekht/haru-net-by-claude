@@ -19,7 +19,7 @@ namespace Haru.Test.Graphics
         private string GetStreamContent(HpdfPage page)
         {
             var data = page.Contents.Stream.ToArray();
-            return Encoding.ASCII.GetString(data);
+            return System.Text.Encoding.ASCII.GetString(data);
         }
 
         // Graphics State Tests

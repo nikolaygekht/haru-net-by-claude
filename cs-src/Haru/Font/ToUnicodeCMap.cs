@@ -158,26 +158,26 @@ namespace Haru.Font
         public static ToUnicodeCMap CreateFromCodePage(int codePage)
         {
             var cmap = new ToUnicodeCMap();
-            Encoding encoding;
+            System.Text.Encoding encoding;
 
             try
             {
                 // Try to register code page provider if not already registered
                 try
                 {
-                    Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+                    System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
                 }
                 catch
                 {
                     // Already registered or not available
                 }
 
-                encoding = Encoding.GetEncoding(codePage);
+                encoding = System.Text.Encoding.GetEncoding(codePage);
             }
             catch (Exception)
             {
                 // Fallback to UTF-8 if code page not supported
-                encoding = Encoding.UTF8;
+                encoding = System.Text.Encoding.UTF8;
             }
 
             // Map all byte values (0x00 - 0xFF) to their Unicode equivalents

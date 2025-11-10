@@ -13,7 +13,7 @@ namespace Haru.Streams
         {
             // Register code page encoding provider for Windows-1252 and other encodings
             // This is required on .NET Core/5+ where these encodings are not available by default
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            System.Text.Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Haru.Streams
             if (value is null)
                 throw new ArgumentNullException(nameof(value));
 
-            byte[] bytes = Encoding.ASCII.GetBytes(value);
+            byte[] bytes = System.Text.Encoding.ASCII.GetBytes(value);
             stream.Write(bytes);
         }
 
@@ -148,15 +148,15 @@ namespace Haru.Streams
                 throw new ArgumentNullException(nameof(text));
 
             // Convert text to bytes using the specified code page
-            Encoding encoding;
+            System.Text.Encoding encoding;
             try
             {
-                encoding = Encoding.GetEncoding(codePage);
+                encoding = System.Text.Encoding.GetEncoding(codePage);
             }
             catch
             {
                 // Fallback to Latin-1 if code page not available
-                encoding = Encoding.GetEncoding(28591); // ISO-8859-1
+                encoding = System.Text.Encoding.GetEncoding(28591); // ISO-8859-1
             }
 
             byte[] bytes = encoding.GetBytes(text);
@@ -187,15 +187,15 @@ namespace Haru.Streams
                 throw new ArgumentNullException(nameof(text));
 
             // Convert text to MBCS bytes using the code page
-            Encoding encoding;
+            System.Text.Encoding encoding;
             try
             {
-                encoding = Encoding.GetEncoding(codePage);
+                encoding = System.Text.Encoding.GetEncoding(codePage);
             }
             catch
             {
                 // Fallback to UTF-8 if code page not available
-                encoding = Encoding.UTF8;
+                encoding = System.Text.Encoding.UTF8;
             }
 
             byte[] mbcsBytes = encoding.GetBytes(text);

@@ -53,7 +53,7 @@ namespace Haru.Test.Objects
             // Act
             using var stream = new HpdfMemoryStream();
             dict.WriteValue(stream);
-            var output = Encoding.ASCII.GetString(stream.ToArray());
+            var output = System.Text.Encoding.ASCII.GetString(stream.ToArray());
 
             // Assert
             output.Should().Contain("[");  // Should contain direct array
@@ -76,7 +76,7 @@ namespace Haru.Test.Objects
             // Act
             using var stream = new HpdfMemoryStream();
             parentDict.WriteValue(stream);
-            var output = Encoding.ASCII.GetString(stream.ToArray());
+            var output = System.Text.Encoding.ASCII.GetString(stream.ToArray());
 
             // Assert
             output.Should().Contain("1 0 R");  // Should contain indirect reference to child

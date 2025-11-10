@@ -69,7 +69,7 @@ namespace Haru.Doc
                 // Add random component for uniqueness
                 sb.Append(Guid.NewGuid().ToString());
 
-                byte[] inputBytes = Encoding.UTF8.GetBytes(sb.ToString());
+                byte[] inputBytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
                 byte[] hashBytes = md5.ComputeHash(inputBytes);
 
                 return hashBytes;
@@ -85,7 +85,7 @@ namespace Haru.Doc
             {
                 if (obj is HpdfString str)
                 {
-                    string value = Encoding.UTF8.GetString(str.Value);
+                    string value = System.Text.Encoding.UTF8.GetString(str.Value);
                     if (!string.IsNullOrEmpty(value))
                         sb.Append(value);
                 }

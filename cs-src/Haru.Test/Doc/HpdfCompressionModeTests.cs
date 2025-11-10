@@ -68,7 +68,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
             pdfText.Should().Contain("/Filter [/FlateDecode]");
         }
 
@@ -91,7 +91,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
 
             // Should not contain any FlateDecode filters when compression is disabled
             pdfText.Should().NotContain("/Filter [/FlateDecode]");
@@ -127,7 +127,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
 
             // Count FlateDecode occurrences (should be at least 3 for page content)
             int filterCount = 0;
@@ -168,7 +168,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
 
             // Should have at least one compressed stream (page2)
             pdfText.Should().Contain("/Filter [/FlateDecode]");

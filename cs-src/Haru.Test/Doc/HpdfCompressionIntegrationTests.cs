@@ -61,7 +61,7 @@ namespace Haru.Test.Doc
                 "compressed PDF should be smaller than uncompressed");
 
             // Verify compression actually happened
-            var compressedText = Encoding.ASCII.GetString(compressedData);
+            var compressedText = System.Text.Encoding.ASCII.GetString(compressedData);
             compressedText.Should().Contain("/Filter [/FlateDecode]");
         }
 
@@ -84,7 +84,7 @@ namespace Haru.Test.Doc
 
             // Assert
             // Look for zlib header (0x78 0x9C) after "stream\n"
-            var streamMarker = Encoding.ASCII.GetBytes("stream\n");
+            var streamMarker = System.Text.Encoding.ASCII.GetBytes("stream\n");
             bool foundZlibHeader = false;
 
             for (int i = 0; i < pdfData.Length - streamMarker.Length - 2; i++)
@@ -137,7 +137,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
 
             // Count /Filter [/FlateDecode] occurrences
             int filterCount = CountOccurrences(pdfText, "/Filter [/FlateDecode]");
@@ -171,7 +171,7 @@ namespace Haru.Test.Doc
                 File.Exists(tempFile).Should().BeTrue();
 
                 var fileData = File.ReadAllBytes(tempFile);
-                var fileText = Encoding.ASCII.GetString(fileData);
+                var fileText = System.Text.Encoding.ASCII.GetString(fileData);
 
                 fileText.Should().StartWith("%PDF-");
                 fileText.Should().Contain("/Filter [/FlateDecode]");
@@ -206,7 +206,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
             pdfText.Should().Contain("/Filter [/FlateDecode]");
 
             // Verify graphics commands are compressed (not visible as plain text in stream)
@@ -241,7 +241,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
 
             // Should have both encryption and compression
             pdfText.Should().Contain("/Encrypt");
@@ -265,7 +265,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
 
             // Page content should be compressed
             pdfText.Should().Contain("/Filter [/FlateDecode]");
@@ -290,7 +290,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
 
             // Should be able to find text operators in plain text
             pdfText.Should().Contain("BT"); // BeginText

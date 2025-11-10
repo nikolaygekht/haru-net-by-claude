@@ -23,7 +23,7 @@ namespace Haru.Test.Doc
 
             // Assert
             pdfData.Should().NotBeNullOrEmpty();
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
             pdfText.Should().StartWith("%PDF-1.2");
             pdfText.Should().Contain("%%EOF");
         }
@@ -40,7 +40,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
             pdfText.Should().StartWith("%PDF-1.4");
         }
 
@@ -71,7 +71,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
             pdfText.Should().Contain("/Type /Catalog");
             pdfText.Should().Contain("/Pages");
         }
@@ -87,7 +87,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
             pdfText.Should().Contain("/Type /Pages");
             pdfText.Should().Contain("/Kids");
             pdfText.Should().Contain("/Count");
@@ -104,7 +104,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
             pdfText.Should().Contain("/Type /Page");
             pdfText.Should().Contain("/MediaBox");
             pdfText.Should().Contain("/Contents");
@@ -122,7 +122,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
             pdfText.Should().Contain("xref");
             pdfText.Should().MatchRegex(@"\d{10} \d{5} [fn] ");
         }
@@ -138,7 +138,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
             pdfText.Should().Contain("trailer");
             pdfText.Should().Contain("/Root");
             pdfText.Should().Contain("startxref");
@@ -155,7 +155,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
             pdfText.Should().Contain("/MediaBox");
             pdfText.Should().MatchRegex(@"/MediaBox\s*\[\s*0\s+0\s+595\.27\d*\s+841\.89");
         }
@@ -194,7 +194,7 @@ namespace Haru.Test.Doc
                 fileInfo.Length.Should().BeGreaterThan(0);
 
                 var pdfData = File.ReadAllBytes(tempFile);
-                var pdfText = Encoding.ASCII.GetString(pdfData);
+                var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
                 pdfText.Should().StartWith("%PDF-");
             }
             finally
@@ -224,7 +224,7 @@ namespace Haru.Test.Doc
 
             // Assert
             doc.PageCount.Should().Be(4);
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
 
             // Should have multiple Pages objects
             var pagesMatches = Regex.Matches(pdfText, @"/Type /Pages");
@@ -243,7 +243,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
             pdfText.Should().Contain("/PageLayout /TwoColumnLeft");
         }
 
@@ -259,7 +259,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
             pdfText.Should().Contain("/PageMode /UseOutlines");
         }
 
@@ -280,7 +280,7 @@ namespace Haru.Test.Doc
             doc.PageCount.Should().Be(10);
             doc.RootPages.Count.Should().Be(10);
 
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
             var pageMatches = Regex.Matches(pdfText, @"/Type /Page\b");
             pageMatches.Count.Should().Be(10);
         }
@@ -331,7 +331,7 @@ namespace Haru.Test.Doc
             page.Width.Should().Be(300);
             page.Height.Should().Be(400);
 
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
             pdfText.Should().Contain("/MediaBox");
             pdfText.Should().Contain("0 0 300 400");
         }
@@ -347,7 +347,7 @@ namespace Haru.Test.Doc
             var pdfData = doc.SaveToMemory();
 
             // Assert - Check for all required PDF elements
-            var pdfText = Encoding.ASCII.GetString(pdfData);
+            var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
 
             // Header
             pdfText.Should().MatchRegex(@"^%PDF-1\.\d");

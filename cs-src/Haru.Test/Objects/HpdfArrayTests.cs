@@ -14,7 +14,7 @@ namespace Haru.Test.Objects
         {
             using var stream = new HpdfMemoryStream();
             obj.WriteValue(stream);
-            return Encoding.ASCII.GetString(stream.ToArray());
+            return System.Text.Encoding.ASCII.GetString(stream.ToArray());
         }
 
         [Fact]

@@ -105,7 +105,7 @@ namespace Haru.Doc
         {
             if (!string.IsNullOrEmpty(value))
             {
-                byte[] bytes = Encoding.UTF8.GetBytes(value);
+                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(value);
                 md5.TransformBlock(bytes, 0, bytes.Length, null, 0);
             }
         }

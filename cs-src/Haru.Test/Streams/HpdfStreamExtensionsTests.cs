@@ -27,7 +27,7 @@ namespace Haru.Test.Streams
 
             stream.WriteString("Hello");
 
-            byte[] expected = Encoding.ASCII.GetBytes("Hello");
+            byte[] expected = System.Text.Encoding.ASCII.GetBytes("Hello");
             stream.ToArray().Should().Equal(expected);
         }
 
@@ -38,7 +38,7 @@ namespace Haru.Test.Streams
 
             stream.WriteInt(12345);
 
-            byte[] expected = Encoding.ASCII.GetBytes("12345");
+            byte[] expected = System.Text.Encoding.ASCII.GetBytes("12345");
             stream.ToArray().Should().Equal(expected);
         }
 
@@ -49,7 +49,7 @@ namespace Haru.Test.Streams
 
             stream.WriteInt(-999);
 
-            byte[] expected = Encoding.ASCII.GetBytes("-999");
+            byte[] expected = System.Text.Encoding.ASCII.GetBytes("-999");
             stream.ToArray().Should().Equal(expected);
         }
 
@@ -60,7 +60,7 @@ namespace Haru.Test.Streams
 
             stream.WriteUInt(4294967295);
 
-            byte[] expected = Encoding.ASCII.GetBytes("4294967295");
+            byte[] expected = System.Text.Encoding.ASCII.GetBytes("4294967295");
             stream.ToArray().Should().Equal(expected);
         }
 
@@ -71,7 +71,7 @@ namespace Haru.Test.Streams
 
             stream.WriteReal(3.14159f);
 
-            string result = Encoding.ASCII.GetString(stream.ToArray());
+            string result = System.Text.Encoding.ASCII.GetString(stream.ToArray());
             result.Should().Be("3.14159");
         }
 
@@ -82,7 +82,7 @@ namespace Haru.Test.Streams
 
             stream.WriteReal(5.0f);
 
-            string result = Encoding.ASCII.GetString(stream.ToArray());
+            string result = System.Text.Encoding.ASCII.GetString(stream.ToArray());
             result.Should().Be("5");
         }
 
@@ -93,7 +93,7 @@ namespace Haru.Test.Streams
 
             stream.WriteReal(0.123456f);
 
-            string result = Encoding.ASCII.GetString(stream.ToArray());
+            string result = System.Text.Encoding.ASCII.GetString(stream.ToArray());
             result.Should().StartWith("0.123");
         }
 
@@ -104,7 +104,7 @@ namespace Haru.Test.Streams
 
             stream.WriteLine("Test");
 
-            byte[] expected = Encoding.ASCII.GetBytes("Test\n");
+            byte[] expected = System.Text.Encoding.ASCII.GetBytes("Test\n");
             stream.ToArray().Should().Equal(expected);
         }
 
@@ -125,7 +125,7 @@ namespace Haru.Test.Streams
 
             stream.WriteEscapedName("Font");
 
-            byte[] expected = Encoding.ASCII.GetBytes("/Font");
+            byte[] expected = System.Text.Encoding.ASCII.GetBytes("/Font");
             stream.ToArray().Should().Equal(expected);
         }
 
@@ -136,7 +136,7 @@ namespace Haru.Test.Streams
 
             stream.WriteEscapedName("My Font");
 
-            byte[] expected = Encoding.ASCII.GetBytes("/My#20Font");
+            byte[] expected = System.Text.Encoding.ASCII.GetBytes("/My#20Font");
             stream.ToArray().Should().Equal(expected);
         }
 
@@ -147,7 +147,7 @@ namespace Haru.Test.Streams
 
             stream.WriteEscapedName("Font#1");
 
-            string result = Encoding.ASCII.GetString(stream.ToArray());
+            string result = System.Text.Encoding.ASCII.GetString(stream.ToArray());
             result.Should().Be("/Font#231");
         }
 
@@ -158,7 +158,7 @@ namespace Haru.Test.Streams
 
             stream.WriteEscapedText("Hello World");
 
-            byte[] expected = Encoding.ASCII.GetBytes("(Hello World)");
+            byte[] expected = System.Text.Encoding.ASCII.GetBytes("(Hello World)");
             stream.ToArray().Should().Equal(expected);
         }
 
@@ -169,7 +169,7 @@ namespace Haru.Test.Streams
 
             stream.WriteEscapedText("(test)");
 
-            byte[] expected = Encoding.ASCII.GetBytes(@"(\(test\))");
+            byte[] expected = System.Text.Encoding.ASCII.GetBytes(@"(\(test\))");
             stream.ToArray().Should().Equal(expected);
         }
 
@@ -180,7 +180,7 @@ namespace Haru.Test.Streams
 
             stream.WriteEscapedText(@"C:\path");
 
-            byte[] expected = Encoding.ASCII.GetBytes(@"(C:\\path)");
+            byte[] expected = System.Text.Encoding.ASCII.GetBytes(@"(C:\\path)");
             stream.ToArray().Should().Equal(expected);
         }
 
@@ -191,7 +191,7 @@ namespace Haru.Test.Streams
 
             stream.WriteEscapedText("Line1\r\nLine2");
 
-            byte[] expected = Encoding.ASCII.GetBytes(@"(Line1\r\nLine2)");
+            byte[] expected = System.Text.Encoding.ASCII.GetBytes(@"(Line1\r\nLine2)");
             stream.ToArray().Should().Equal(expected);
         }
 
@@ -218,7 +218,7 @@ namespace Haru.Test.Streams
 
             stream.WriteHexString(Array.Empty<byte>());
 
-            byte[] expected = Encoding.ASCII.GetBytes("<>");
+            byte[] expected = System.Text.Encoding.ASCII.GetBytes("<>");
             stream.ToArray().Should().Equal(expected);
         }
 
@@ -229,7 +229,7 @@ namespace Haru.Test.Streams
 
             stream.WriteHexString(new byte[] { 0x12, 0xAB, 0xCD, 0xEF });
 
-            byte[] expected = Encoding.ASCII.GetBytes("<12ABCDEF>");
+            byte[] expected = System.Text.Encoding.ASCII.GetBytes("<12ABCDEF>");
             stream.ToArray().Should().Equal(expected);
         }
 
@@ -240,7 +240,7 @@ namespace Haru.Test.Streams
 
             stream.WriteHexString(new byte[] { 0x00, 0x0F, 0xF0 });
 
-            byte[] expected = Encoding.ASCII.GetBytes("<000FF0>");
+            byte[] expected = System.Text.Encoding.ASCII.GetBytes("<000FF0>");
             stream.ToArray().Should().Equal(expected);
         }
 
@@ -332,7 +332,7 @@ namespace Haru.Test.Streams
 
             stream.WriteInt(value);
 
-            string result = Encoding.ASCII.GetString(stream.ToArray());
+            string result = System.Text.Encoding.ASCII.GetString(stream.ToArray());
             result.Should().Be(expected);
         }
 
@@ -347,7 +347,7 @@ namespace Haru.Test.Streams
 
             stream.WriteReal(value);
 
-            string result = Encoding.ASCII.GetString(stream.ToArray());
+            string result = System.Text.Encoding.ASCII.GetString(stream.ToArray());
             result.Should().Be(expected);
         }
     }

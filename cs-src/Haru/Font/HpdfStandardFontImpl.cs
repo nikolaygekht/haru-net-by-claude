@@ -14,6 +14,7 @@
  *
  */
 
+using Haru.Encoding;
 using Haru.Objects;
 using Haru.Types;
 using Haru.Xref;
@@ -30,6 +31,7 @@ namespace Haru.Font
         private readonly string _localName;
         private readonly StandardFontMetrics _metrics;
         private readonly HpdfStandardFontWidths _widths;
+        private readonly IHpdfEncoder _encoder;
         private readonly int _codePage;
 
         public HpdfDict Dict => _dict;
@@ -60,6 +62,10 @@ namespace Haru.Font
             _localName = localName;
             _codePage = codePage;
 
+            // Get encoder for the specified code page
+            string encoderName = MapCodePageToEncoderName(codePage);
+            _encoder = HpdfEncoderFactory.GetEncoder(encoderName);
+
             // Create font dictionary
             _dict = new HpdfDict();
             _dict.Add("Type", new HpdfName("Font"));
@@ -71,34 +77,22 @@ namespace Haru.Font
             if (standardFont != HpdfStandardFont.Symbol &&
                 standardFont != HpdfStandardFont.ZapfDingbats)
             {
-                // For code page 1252 (WinAnsi), use the base encoding directly - no Differences needed
-                if (codePage == 1252)
+                // Use the encoder's base encoding name
+                string baseEncodingName = _encoder.BaseEncodingName;
+
+                // If no differences, just use the base encoding name
+                if (!_encoder.HasDifferences)
                 {
-                    _dict.Add("Encoding", new HpdfName("WinAnsiEncoding"));
+                    _dict.Add("Encoding", new HpdfName(baseEncodingName));
                 }
                 else
                 {
-                    // For other code pages, create custom Encoding with Differences array
-                    // Generate Differences dynamically based on the code page
+                    // Create custom Encoding with Differences array from encoder
                     var encodingDict = new HpdfDict();
                     encodingDict.Add("Type", new HpdfName("Encoding"));
-                    encodingDict.Add("BaseEncoding", new HpdfName("WinAnsiEncoding"));
+                    encodingDict.Add("BaseEncoding", new HpdfName(baseEncodingName));
 
-                    // Get the encoding for this code page
-                    System.Text.Encoding encoding;
-                    try
-                    {
-                        encoding = System.Text.Encoding.GetEncoding(codePage);
-                    }
-                    catch
-                    {
-                        // Fallback to WinAnsi if code page not available
-                        encoding = System.Text.Encoding.GetEncoding(1252);
-                    }
-
-                    // Build Differences array by comparing with WinAnsi
-                    var differences = CreateDifferencesArray(encoding);
-
+                    var differences = _encoder.CreateDifferencesArray();
                     if (differences != null && differences.Count > 0)
                     {
                         encodingDict.Add("Differences", differences);
@@ -108,7 +102,7 @@ namespace Haru.Font
                     else
                     {
                         // No differences, use base encoding
-                        _dict.Add("Encoding", new HpdfName("WinAnsiEncoding"));
+                        _dict.Add("Encoding", new HpdfName(baseEncodingName));
                     }
                 }
             }
@@ -122,85 +116,38 @@ namespace Haru.Font
         }
 
         /// <summary>
-        /// Creates a /Differences array for the encoding by comparing with WinAnsiEncoding (CP1252).
-        /// Only includes bytes that differ from WinAnsi.
+        /// Maps a code page number to an encoder name.
         /// </summary>
-        private HpdfArray? CreateDifferencesArray(System.Text.Encoding encoding)
+        private static string MapCodePageToEncoderName(int codePage)
         {
-            // Get WinAnsi encoding for comparison
-            var winAnsi = System.Text.Encoding.GetEncoding(1252);
-
-            var differences = new HpdfArray();
-            int rangeStart = -1;
-            var rangeGlyphs = new System.Collections.Generic.List<string>();
-
-            // Compare all 256 byte values
-            for (int i = 0; i < 256; i++)
+            return codePage switch
             {
-                byte b = (byte)i;
-                byte[] byteArray = new byte[] { b };
-
-                // Get Unicode from both encodings
-                string targetChar = encoding.GetString(byteArray);
-                string winAnsiChar = winAnsi.GetString(byteArray);
-
-                ushort targetUnicode = (targetChar.Length > 0) ? (ushort)targetChar[0] : (ushort)0;
-                ushort winAnsiUnicode = (winAnsiChar.Length > 0) ? (ushort)winAnsiChar[0] : (ushort)0;
-
-                // Skip if the encoding matches WinAnsi or is in ASCII range (typically same)
-                if (targetUnicode == winAnsiUnicode || (i >= 0x20 && i <= 0x7E))
-                {
-                    // Flush current range if any
-                    if (rangeStart >= 0)
-                    {
-                        differences.Add(new HpdfNumber(rangeStart));
-                        foreach (var glyph in rangeGlyphs)
-                        {
-                            differences.Add(new HpdfName(glyph));
-                        }
-                        rangeStart = -1;
-                        rangeGlyphs.Clear();
-                    }
-                    continue;
-                }
-
-                // Get proper glyph name for this Unicode value
-                string? glyphName = HpdfGlyphNames.GetGlyphName(targetUnicode);
-                if (glyphName == null)
-                {
-                    // Flush current range and skip this byte if no glyph name found
-                    if (rangeStart >= 0)
-                    {
-                        differences.Add(new HpdfNumber(rangeStart));
-                        foreach (var glyph in rangeGlyphs)
-                        {
-                            differences.Add(new HpdfName(glyph));
-                        }
-                        rangeStart = -1;
-                        rangeGlyphs.Clear();
-                    }
-                    continue;
-                }
-
-                // Start a new range or continue current one
-                if (rangeStart < 0)
-                {
-                    rangeStart = i;
-                }
-                rangeGlyphs.Add(glyphName);
-            }
-
-            // Flush final range if any
-            if (rangeStart >= 0)
-            {
-                differences.Add(new HpdfNumber(rangeStart));
-                foreach (var glyph in rangeGlyphs)
-                {
-                    differences.Add(new HpdfName(glyph));
-                }
-            }
-
-            return differences.Count > 0 ? differences : null;
+                1250 => "CP1250",
+                1251 => "CP1251",
+                1252 => "WinAnsiEncoding",  // CP1252 is the same as WinAnsiEncoding
+                1253 => "CP1253",
+                1254 => "CP1254",
+                1255 => "CP1255",
+                1256 => "CP1256",
+                1257 => "CP1257",
+                1258 => "CP1258",
+                20866 => "KOI8-R",         // Russian Cyrillic
+                28592 => "ISO8859-2",      // Latin-2 (Central European)
+                28593 => "ISO8859-3",      // Latin-3 (South European)
+                28594 => "ISO8859-4",      // Latin-4 (North European)
+                28595 => "ISO8859-5",      // Cyrillic
+                28596 => "ISO8859-6",      // Arabic
+                28597 => "ISO8859-7",      // Greek
+                28598 => "ISO8859-8",      // Hebrew
+                28599 => "ISO8859-9",      // Turkish
+                28600 => "ISO8859-10",     // Nordic
+                28601 => "ISO8859-11",     // Thai
+                28603 => "ISO8859-13",     // Baltic Rim
+                28604 => "ISO8859-14",     // Celtic
+                28605 => "ISO8859-15",     // Western European with Euro
+                28606 => "ISO8859-16",     // South-Eastern European
+                _ => "WinAnsiEncoding"     // Default fallback
+            };
         }
 
         public float GetCharWidth(byte charCode)
@@ -213,10 +160,8 @@ namespace Haru.Font
             if (string.IsNullOrEmpty(text))
                 return 0;
 
-            // Convert Unicode text using the font's code page encoding
-            // Standard fonts may use different encodings (e.g., WinAnsiEncoding 1252, CP1251 for Cyrillic)
-            System.Text.Encoding encoding = System.Text.Encoding.GetEncoding(_codePage);
-            byte[] bytes = encoding.GetBytes(text);
+            // Convert Unicode text using the font's encoder
+            byte[] bytes = _encoder.EncodeText(text);
 
             float totalWidth = 0;
             foreach (byte b in bytes)

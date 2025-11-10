@@ -482,7 +482,7 @@ namespace Haru.Doc
         private void WriteHeader(HpdfStream stream)
         {
             var header = VersionHeaders[(int)_version];
-            var headerBytes = Encoding.ASCII.GetBytes(header);
+            var headerBytes = System.Text.Encoding.ASCII.GetBytes(header);
             stream.Write(headerBytes, 0, headerBytes.Length);
         }
 

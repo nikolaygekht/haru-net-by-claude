@@ -43,14 +43,14 @@ namespace Haru.Objects
         /// Creates a new string object from text
         /// </summary>
         public HpdfString(string text)
-            : this(text, Encoding.UTF8)
+            : this(text, System.Text.Encoding.UTF8)
         {
         }
 
         /// <summary>
         /// Creates a new string object from text with specified encoding
         /// </summary>
-        public HpdfString(string text, Encoding encoding)
+        public HpdfString(string text, System.Text.Encoding encoding)
         {
             if (text is null)
                 throw new ArgumentNullException(nameof(text));
@@ -63,9 +63,9 @@ namespace Haru.Objects
         /// <summary>
         /// Gets the string value as text using the specified encoding
         /// </summary>
-        public string GetText(Encoding? encoding = null)
+        public string GetText(System.Text.Encoding? encoding = null)
         {
-            encoding ??= Encoding.UTF8;
+            encoding ??= System.Text.Encoding.UTF8;
             return encoding.GetString(Value);
         }
 
@@ -88,7 +88,7 @@ namespace Haru.Objects
             else
             {
                 // Convert bytes to string for escape processing
-                string text = Encoding.Latin1.GetString(dataToWrite);
+                string text = System.Text.Encoding.Latin1.GetString(dataToWrite);
                 stream.WriteEscapedText(text);
             }
         }
