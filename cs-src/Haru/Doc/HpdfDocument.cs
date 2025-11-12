@@ -14,6 +14,7 @@
  *
  */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -140,7 +141,75 @@ namespace Haru.Doc
         /// <summary>
         /// Gets the font registry for tracking loaded fonts.
         /// </summary>
-        internal Dictionary<string, HpdfFont> FontRegistry { get; } = new();
+        public Dictionary<string, HpdfFont> FontRegistry { get; } = new();
+
+        /// <summary>
+        /// Registers a custom font (TrueType, Type1, or CID) so it can be retrieved later via GetFont().
+        /// This method allows dynamically loaded fonts to be cached and reused.
+        /// </summary>
+        /// <param name="font">The font to register.</param>
+        /// <param name="encoding">Optional encoding name (e.g., "UTF-8", "CP1252"). If null, uses the font's default encoding.</param>
+        /// <remarks>
+        /// The font will be registered with a cache key based on its BaseFont name and encoding.
+        /// If a font with the same name and encoding already exists, it will be replaced.
+        /// </remarks>
+        public void RegisterFont(HpdfFont font, string? encoding = null)
+        {
+            ArgumentNullException.ThrowIfNull(font);
+
+            // Determine the code page from encoding name
+            int codePage = 0;
+            if (!string.IsNullOrEmpty(encoding))
+            {
+                codePage = ParseEncodingToCodePage(encoding);
+            }
+            else if (font.EncodingCodePage.HasValue)
+            {
+                codePage = font.EncodingCodePage.Value;
+            }
+
+            string cacheKey = $"{font.BaseFont}#{codePage}";
+
+            FontRegistry[cacheKey] = font;
+        }
+
+        /// <summary>
+        /// Parses an encoding name to a code page number.
+        /// </summary>
+        private static int ParseEncodingToCodePage(string? encodingName)
+        {
+            if (string.IsNullOrEmpty(encodingName))
+                return 0;
+
+            // Handle standard PDF encoding names
+            return encodingName.ToUpperInvariant() switch
+            {
+                "UTF-8" or "UTF8" => 65001,
+                "WINANSIENCODING" or "WINANSI" or "CP1252" => 1252,
+                "CP1251" => 1251,
+                "CP1250" => 1250,
+                "ISO8859-5" or "ISO-8859-5" => 28595,
+                "KOI8-R" => 20866,
+                _ => TryParseCodePage(encodingName)
+            };
+        }
+
+        /// <summary>
+        /// Tries to parse a code page number from string like "CP1252" or "1252".
+        /// </summary>
+        private static int TryParseCodePage(string encodingName)
+        {
+            // Try parsing as direct number
+            if (int.TryParse(encodingName, out int codePage))
+                return codePage;
+
+            // Try parsing as "CPxxxx" format
+            if (encodingName.StartsWith("CP", StringComparison.OrdinalIgnoreCase) &&
+                int.TryParse(encodingName.Substring(2), out codePage))
+                return codePage;
+
+            return 0;
+        }
 
         /// <summary>
         /// Gets the cross-reference table.

@@ -91,7 +91,7 @@ namespace Haru.Font
         /// Creates a font wrapper for a TrueType font.
         /// </summary>
         /// <param name="ttFont">The TrueType font to wrap.</param>
-        internal HpdfFont(HpdfTrueTypeFont ttFont)
+        public HpdfFont(HpdfTrueTypeFont ttFont)
         {
             _implementation = ttFont ?? throw new HpdfException(HpdfErrorCode.InvalidParameter, "TrueType font cannot be null");
             _isCIDFont = false;
@@ -101,7 +101,7 @@ namespace Haru.Font
         /// Creates a font wrapper for a Type 1 font.
         /// </summary>
         /// <param name="type1Font">The Type 1 font to wrap.</param>
-        internal HpdfFont(HpdfType1Font type1Font)
+        public HpdfFont(HpdfType1Font type1Font)
         {
             _implementation = type1Font ?? throw new HpdfException(HpdfErrorCode.InvalidParameter, "Type 1 font cannot be null");
             _isCIDFont = false;

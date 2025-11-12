@@ -6,6 +6,7 @@
  * Copyright (c) 1999-2025 Haru Free PDF Library
  */
 
+using System;
 using Haru.Font;
 using Haru.Types;
 
@@ -31,32 +32,21 @@ namespace Haru.Doc
             if (string.IsNullOrEmpty(fontName))
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Font name cannot be null or empty");
 
-            // Parse encoding to code page
             int codePage = ParseEncodingToCodePage(encodingName);
-
-            // Create a cache key that includes both font name and encoding
             string cacheKey = $"{fontName}#{codePage}";
 
-            // Check if this font+encoding combination was previously loaded
             if (document.FontRegistry.TryGetValue(cacheKey, out var cachedFont))
             {
                 return cachedFont;
             }
 
-            // Check if this is a TrueType or Type1 font loaded via LoadTTFontFromFile/LoadType1FontFromFile
-            // These are registered by their BaseFont name without encoding suffix
             if (document.FontRegistry.TryGetValue(fontName, out var loadedFont))
             {
                 return loadedFont;
             }
 
-            // Map font names to standard fonts
             var standardFont = MapFontName(fontName);
-
-            // Generate a unique local name for this font
             var localName = $"F{document.Xref.Entries.Count}";
-
-            // Create the font with the specified encoding and cache it in the registry
             var font = new HpdfFont(document.Xref, standardFont, localName, codePage);
             document.FontRegistry[cacheKey] = font;
 
@@ -73,6 +63,13 @@ namespace Haru.Doc
                 encodingName == "StandardEncoding")
             {
                 return 1252; // Default WinAnsiEncoding
+            }
+
+            // Handle UTF-8 explicitly (consistent with HpdfDocument.ParseEncodingToCodePage)
+            if (encodingName.Equals("UTF-8", System.StringComparison.OrdinalIgnoreCase) ||
+                encodingName.Equals("UTF8", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return 65001;
             }
 
             // Handle CPxxxx format (e.g., "CP1251")
