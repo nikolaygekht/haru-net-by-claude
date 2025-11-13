@@ -160,7 +160,8 @@ namespace Haru.Font
         }
 
         /// <summary>
-        /// Loads a TrueType font from a file with default code page (437 - DOS).
+        /// Loads a TrueType font from a file with default code page (1252 - Windows ANSI/WinAnsiEncoding).
+        /// This matches libharu's default behavior and PDF standard encoding for Western European text.
         /// </summary>
         /// <param name="xref">The cross-reference table.</param>
         /// <param name="localName">Local resource name (e.g., "F1").</param>
@@ -169,7 +170,7 @@ namespace Haru.Font
         /// <returns>The loaded TrueType font.</returns>
         public static HpdfTrueTypeFont LoadFromFile(HpdfXref xref, string localName, string filePath, bool embedding)
         {
-            return LoadFromFile(xref, localName, filePath, embedding, 437);
+            return LoadFromFile(xref, localName, filePath, embedding, 1252);
         }
 
         /// <summary>
@@ -202,14 +203,15 @@ namespace Haru.Font
         /// <param name="stream">Stream containing TTF data.</param>
         /// <param name="fontData">Font data bytes (for embedding).</param>
         /// <param name="embedding">Whether to embed the font data.</param>
-        /// <param name="codePage">The code page to use for encoding (e.g., 437 for DOS, 1251 for Cyrillic).</param>
+        /// <param name="codePage">The code page to use for encoding (e.g., 1252 for Windows ANSI, 1251 for Cyrillic).</param>
         /// <returns>The loaded TrueType font.</returns>
-        public static HpdfTrueTypeFont LoadFromStream(HpdfXref xref, string localName, Stream stream, byte[] fontData, bool embedding, int codePage = 437)
+        public static HpdfTrueTypeFont LoadFromStream(HpdfXref xref, string localName, Stream stream, byte[] fontData, bool embedding, int codePage = 1252)
         {
             var font = new HpdfTrueTypeFont(xref, localName, embedding, codePage);
 
-            if (embedding)
-                font._fontData = fontData;
+            // Always keep font data for name extraction
+            // (we'll only embed it in the PDF if embedding is true)
+            font._fontData = fontData;
 
             using (var parser = new TrueTypeParser(stream))
             {
@@ -281,6 +283,35 @@ namespace Haru.Font
             font.CreateFontDescriptor();
 
             return font;
+        }
+
+        /// <summary>
+        /// Creates a TrueType font instance from shared parsed data (from FontDataPool).
+        /// This method reuses cached font file data, avoiding redundant disk I/O when multiple
+        /// documents use the same fonts. The font data is parsed from memory which is much faster
+        /// than reading from disk.
+        /// </summary>
+        /// <param name="xref">The cross-reference table for this document.</param>
+        /// <param name="localName">Local resource name (e.g., "F1").</param>
+        /// <param name="parsedData">Shared parsed font data from FontDataPool.</param>
+        /// <param name="embedding">Whether to embed the font data in this document.</param>
+        /// <returns>The TrueType font instance ready to use in this document.</returns>
+        public static HpdfTrueTypeFont LoadFromSharedData(HpdfXref xref, string localName, ParsedTrueTypeData parsedData, bool embedding)
+        {
+            if (parsedData == null)
+                throw new ArgumentNullException(nameof(parsedData));
+
+            // The font data is already in memory (cached in pool), so we just parse it from memory stream
+            // This is much faster than LoadFromFile() which reads from disk
+            using (var stream = new MemoryStream(parsedData.FontData))
+            {
+                var font = LoadFromStream(xref, localName, stream, parsedData.FontData, embedding, parsedData.CodePage);
+
+                // Override the extracted font name with the cached one to avoid re-extraction
+                font._baseFont = parsedData.ExtractedFontName;
+
+                return font;
+            }
         }
 
         private void ParseCmapTable(TrueTypeParser parser)
@@ -434,20 +465,137 @@ namespace Haru.Font
 
         private string ExtractFontName()
         {
-            // Try to get PostScript name (name ID 6) or full font name (name ID 4)
-            if (_nameTable?.NameRecords != null)
+            if (_nameTable is null || _nameTable.NameRecords is null || _fontData is null)
             {
-                foreach (var record in _nameTable.NameRecords)
-                {
-                    if (record.NameId == 6 && record.PlatformId == 3) // PostScript name
-                    {
-                        // For now, use a simplified name
-                        return "CustomTTFont";
-                    }
-                }
+                // Fallback to synthetic name if name table not available
+                return $"CustomTTFont-{_localName}";
             }
 
-            return "CustomTTFont";
+            // Create parser from font data to read name strings
+            using (var stream = new MemoryStream(_fontData))
+            using (var parser = new TrueTypeParser(stream))
+            {
+                // Need to get the name table reference for reading strings
+                var nameTableRef = parser.FindTable(_offsetTable, "name");
+                if (nameTableRef is null)
+                    return $"CustomTTFont-{_localName}";
+
+                // Priority 1: PostScript name (name ID 6) - Platform 3 (Microsoft), Encoding 1 (Unicode), Language 0x0409 (English US)
+                TrueTypeNameRecord? postScriptName = FindNameRecord(_nameTable.NameRecords, 6, 3, 1, 0x0409);
+
+                // Priority 2: PostScript name - Platform 3, any encoding, any language
+                if (postScriptName is null)
+                    postScriptName = FindNameRecord(_nameTable.NameRecords, 6, 3);
+
+                // Priority 3: PostScript name - Platform 1 (Macintosh)
+                if (postScriptName is null)
+                    postScriptName = FindNameRecord(_nameTable.NameRecords, 6, 1);
+
+                // Priority 4: PostScript name - Any platform
+                if (postScriptName is null)
+                    postScriptName = FindNameRecord(_nameTable.NameRecords, 6);
+
+                if (postScriptName != null)
+                {
+                    string? name = parser.ReadNameString(_nameTable, nameTableRef!, postScriptName);
+                    if (!string.IsNullOrWhiteSpace(name))
+                    {
+                        // Clean up the name - remove invalid characters for PDF names
+                        return CleanFontName(name);
+                    }
+                }
+
+                // Fallback: Try family name (ID 1) + subfamily name (ID 2)
+                TrueTypeNameRecord? familyName = FindNameRecord(_nameTable.NameRecords, 1, 3, 1, 0x0409);
+                if (familyName is null)
+                    familyName = FindNameRecord(_nameTable.NameRecords, 1, 3);
+                if (familyName is null)
+                    familyName = FindNameRecord(_nameTable.NameRecords, 1);
+
+                TrueTypeNameRecord? subfamilyName = FindNameRecord(_nameTable.NameRecords, 2, 3, 1, 0x0409);
+                if (subfamilyName is null)
+                    subfamilyName = FindNameRecord(_nameTable.NameRecords, 2, 3);
+                if (subfamilyName is null)
+                    subfamilyName = FindNameRecord(_nameTable.NameRecords, 2);
+
+                if (familyName != null)
+                {
+                    string? family = parser.ReadNameString(_nameTable, nameTableRef!, familyName);
+                    if (!string.IsNullOrWhiteSpace(family))
+                    {
+                        string? subfamily = null;
+                        if (subfamilyName != null)
+                        {
+                            subfamily = parser.ReadNameString(_nameTable, nameTableRef!, subfamilyName);
+                        }
+
+                        // Combine family + subfamily (e.g., "Arial-Bold")
+                        if (!string.IsNullOrWhiteSpace(subfamily) && subfamily != "Regular")
+                        {
+                            return CleanFontName($"{family}-{subfamily.Replace(" ", "")}");
+                        }
+                        else
+                        {
+                            return CleanFontName(family);
+                        }
+                    }
+                }
+
+                // Last resort: use synthetic name
+                return $"CustomTTFont-{_localName}";
+            }
+        }
+
+        /// <summary>
+        /// Finds a name record by name ID, platform ID, encoding ID, and language ID.
+        /// </summary>
+        private TrueTypeNameRecord? FindNameRecord(TrueTypeNameRecord[] records, ushort nameId,
+            ushort? platformId = null, ushort? encodingId = null, ushort? languageId = null)
+        {
+            foreach (var record in records)
+            {
+                if (record.NameId == nameId &&
+                    (!platformId.HasValue || record.PlatformId == platformId.Value) &&
+                    (!encodingId.HasValue || record.EncodingId == encodingId.Value) &&
+                    (!languageId.HasValue || record.LanguageId == languageId.Value))
+                {
+                    return record;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Cleans font name for use in PDF.
+        /// Removes or replaces characters that are invalid in PDF names.
+        /// </summary>
+        private string CleanFontName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return $"CustomTTFont-{_localName}";
+
+            // Remove spaces and invalid characters
+            // PDF names should not contain: space, #, /, (, ), <, >, [, ], {, }, %, null
+            var cleaned = new System.Text.StringBuilder();
+            foreach (char c in name)
+            {
+                if (c > 32 && c < 127 &&  // Printable ASCII
+                    c != '#' && c != '/' && c != '(' && c != ')' &&
+                    c != '<' && c != '>' && c != '[' && c != ']' &&
+                    c != '{' && c != '}' && c != '%' && c != ' ')
+                {
+                    cleaned.Append(c);
+                }
+                else if (c == ' ')
+                {
+                    // Replace spaces with hyphen (common in font names)
+                    cleaned.Append('-');
+                }
+                // Skip other invalid characters
+            }
+
+            string result = cleaned.ToString();
+            return string.IsNullOrWhiteSpace(result) ? $"CustomTTFont-{_localName}" : result;
         }
 
         private void CreateFontDictionary()
@@ -570,9 +718,15 @@ namespace Haru.Font
                     continue;
                 }
 
-                // For non-ASCII, we need to specify the glyph name
-                // Use uni[XXXX] format where XXXX is the Unicode hex value
-                string glyphName = $"uni{unicode:X4}";
+                // For non-ASCII, we need to specify the PostScript glyph name
+                // Get the proper glyph name from the mapping table (e.g., afii10017 for Cyrillic А)
+                // Fall back to uni[XXXX] format if no standard name exists
+                string? glyphName = HpdfGlyphNames.GetGlyphName(unicode);
+                if (glyphName == null)
+                {
+                    // Use uni[XXXX] format for unmapped characters
+                    glyphName = $"uni{unicode:X4}";
+                }
 
                 // Start a new range or continue current one
                 if (rangeStart < 0)
@@ -850,6 +1004,18 @@ namespace Haru.Font
         public byte[] ConvertTextToGlyphIDs(string text)
         {
             throw new InvalidOperationException("The method is available for CID fonts only");
+        }
+
+        /// <summary>
+        /// Encodes text to bytes using the font's code page encoding.
+        /// </summary>
+        public byte[] EncodeText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return Array.Empty<byte>();
+
+            var encoding = System.Text.Encoding.GetEncoding(_codePage);
+            return encoding.GetBytes(text);
         }
 
         /// <summary>

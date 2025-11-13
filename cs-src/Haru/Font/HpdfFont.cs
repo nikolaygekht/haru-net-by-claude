@@ -66,14 +66,24 @@ namespace Haru.Font
         }
 
         /// <summary>
+        /// Encodes text to bytes using the font's encoding.
+        /// This ensures measurement and output use the same byte sequence.
+        /// </summary>
+        public byte[] EncodeText(string text)
+        {
+            return _implementation.EncodeText(text);
+        }
+
+        /// <summary>
         /// Creates a standard Type 1 font.
         /// </summary>
         /// <param name="xref">The cross-reference table.</param>
         /// <param name="standardFont">The standard font to use.</param>
         /// <param name="localName">Local resource name (e.g., "F1").</param>
-        public HpdfFont(HpdfXref xref, HpdfStandardFont standardFont, string localName)
+        /// <param name="codePage">The code page to use for text encoding (default 1252 for WinAnsiEncoding).</param>
+        public HpdfFont(HpdfXref xref, HpdfStandardFont standardFont, string localName, int codePage = 1252)
         {
-            _implementation = new HpdfStandardFontImpl(xref, standardFont, localName);
+            _implementation = new HpdfStandardFontImpl(xref, standardFont, localName, codePage);
             _isCIDFont = false;
         }
 
@@ -81,7 +91,7 @@ namespace Haru.Font
         /// Creates a font wrapper for a TrueType font.
         /// </summary>
         /// <param name="ttFont">The TrueType font to wrap.</param>
-        internal HpdfFont(HpdfTrueTypeFont ttFont)
+        public HpdfFont(HpdfTrueTypeFont ttFont)
         {
             _implementation = ttFont ?? throw new HpdfException(HpdfErrorCode.InvalidParameter, "TrueType font cannot be null");
             _isCIDFont = false;
@@ -91,7 +101,7 @@ namespace Haru.Font
         /// Creates a font wrapper for a Type 1 font.
         /// </summary>
         /// <param name="type1Font">The Type 1 font to wrap.</param>
-        internal HpdfFont(HpdfType1Font type1Font)
+        public HpdfFont(HpdfType1Font type1Font)
         {
             _implementation = type1Font ?? throw new HpdfException(HpdfErrorCode.InvalidParameter, "Type 1 font cannot be null");
             _isCIDFont = false;

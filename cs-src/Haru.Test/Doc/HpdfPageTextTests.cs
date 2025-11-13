@@ -20,7 +20,7 @@ namespace Haru.Test.Doc
 
         private string GetPageContent(HpdfPage page)
         {
-            return Encoding.ASCII.GetString(page.Contents.Stream.ToArray());
+            return System.Text.Encoding.ASCII.GetString(page.Contents.Stream.ToArray());
         }
 
         // Text Object Operations
@@ -442,6 +442,7 @@ namespace Haru.Test.Doc
 
             // Assert
             var content = GetPageContent(page);
+            // Literal format
             content.Should().Contain("(Line 1) Tj\n");
             content.Should().Contain("T*\n");
             content.Should().Contain("(Line 2) Tj\n");

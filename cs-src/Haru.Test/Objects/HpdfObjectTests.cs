@@ -16,7 +16,7 @@ namespace Haru.Test.Objects
                 obj.Write(stream);
             else
                 obj.WriteValue(stream);
-            return Encoding.ASCII.GetString(stream.ToArray());
+            return System.Text.Encoding.ASCII.GetString(stream.ToArray());
         }
 
         [Fact]

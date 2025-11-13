@@ -49,7 +49,7 @@ namespace Haru.Doc
                 throw new HpdfException(HpdfErrorCode.InvalidParameter, "Xref cannot be null");
 
             string xmpContent = GenerateXmpContent();
-            byte[] xmpBytes = Encoding.UTF8.GetBytes(xmpContent);
+            byte[] xmpBytes = System.Text.Encoding.UTF8.GetBytes(xmpContent);
 
             var stream = new HpdfStreamObject();
             xref.Add(stream);
@@ -174,7 +174,7 @@ namespace Haru.Doc
             if (_info.Dict.TryGetValue(key, out var obj))
             {
                 if (obj is HpdfString str)
-                    return Encoding.UTF8.GetString(str.Value);
+                    return System.Text.Encoding.UTF8.GetString(str.Value);
             }
 
             return null;

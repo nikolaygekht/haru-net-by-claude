@@ -290,17 +290,18 @@ namespace Haru.Doc
             // CID fonts with CIDToGIDMap=Identity require glyph IDs in content stream
             if (page.CurrentFont?.IsCIDFont == true)
             {
-                byte[] glyphIds = page.CurrentFont.ConvertTextToGlyphIDs(text);
+                byte[] glyphIds = page.CurrentFont.EncodeText(text);
                 stream.WriteHexString(glyphIds);
             }
-            // Use font's encoding if it has one (TrueType fonts)
-            else if (page.CurrentFont?.EncodingCodePage.HasValue == true)
+            else if (page.CurrentFont != null)
             {
-                stream.WriteEscapedText(text, page.CurrentFont.EncodingCodePage.Value);
+                // Use font's encoding directly to ensure consistency with measurement
+                byte[] bytes = page.CurrentFont.EncodeText(text);
+                stream.WriteLiteralString(bytes);
             }
             else
             {
-                // Standard fonts use PDFDocEncoding
+                // Fallback: no font set, use WinAnsiEncoding
                 stream.WriteEscapedText(text);
             }
 
@@ -328,17 +329,18 @@ namespace Haru.Doc
             // CID fonts with CIDToGIDMap=Identity require glyph IDs in content stream
             if (page.CurrentFont?.IsCIDFont == true)
             {
-                byte[] glyphIds = page.CurrentFont.ConvertTextToGlyphIDs(text);
+                byte[] glyphIds = page.CurrentFont.EncodeText(text);
                 stream.WriteHexString(glyphIds);
             }
-            // Use font's encoding if it has one (TrueType fonts)
-            else if (page.CurrentFont?.EncodingCodePage.HasValue == true)
+            else if (page.CurrentFont != null)
             {
-                stream.WriteEscapedText(text, page.CurrentFont.EncodingCodePage.Value);
+                // Use font's encoding directly to ensure consistency with measurement
+                byte[] bytes = page.CurrentFont.EncodeText(text);
+                stream.WriteLiteralString(bytes);
             }
             else
             {
-                // Standard fonts use PDFDocEncoding
+                // Fallback: no font set, use WinAnsiEncoding
                 stream.WriteEscapedText(text);
             }
 
@@ -377,17 +379,18 @@ namespace Haru.Doc
             // CID fonts with CIDToGIDMap=Identity require glyph IDs in content stream
             if (page.CurrentFont?.IsCIDFont == true)
             {
-                byte[] glyphIds = page.CurrentFont.ConvertTextToGlyphIDs(text);
+                byte[] glyphIds = page.CurrentFont.EncodeText(text);
                 stream.WriteHexString(glyphIds);
             }
-            // Use font's encoding if it has one (TrueType fonts)
-            else if (page.CurrentFont?.EncodingCodePage.HasValue == true)
+            else if (page.CurrentFont != null)
             {
-                stream.WriteEscapedText(text, page.CurrentFont.EncodingCodePage.Value);
+                // Use font's encoding directly to ensure consistency with measurement
+                byte[] bytes = page.CurrentFont.EncodeText(text);
+                stream.WriteLiteralString(bytes);
             }
             else
             {
-                // Standard fonts use PDFDocEncoding
+                // Fallback: no font set, use WinAnsiEncoding
                 stream.WriteEscapedText(text);
             }
 

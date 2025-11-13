@@ -45,7 +45,7 @@ namespace Haru.Test.Xref
             xref.WriteToStream(stream);
 
             // Assert
-            var output = Encoding.ASCII.GetString(stream.ToArray());
+            var output = System.Text.Encoding.ASCII.GetString(stream.ToArray());
 
             // Validate structure
             output.Should().Contain("1 0 obj"); // Catalog
@@ -71,7 +71,7 @@ namespace Haru.Test.Xref
 
             // Act
             xref.WriteToStream(stream);
-            var output = Encoding.ASCII.GetString(stream.ToArray());
+            var output = System.Text.Encoding.ASCII.GetString(stream.ToArray());
 
             // Assert - Validate xref format
             var xrefMatch = Regex.Match(output, @"xref\n0 3\n");
@@ -105,7 +105,7 @@ namespace Haru.Test.Xref
 
             // Act
             xref.WriteToStream(stream);
-            var output = Encoding.ASCII.GetString(stream.ToArray());
+            var output = System.Text.Encoding.ASCII.GetString(stream.ToArray());
 
             // Assert
             output.Should().Contain("1 0 obj");
@@ -138,7 +138,7 @@ namespace Haru.Test.Xref
 
             // Act
             xref.WriteToStream(stream);
-            var output = Encoding.ASCII.GetString(stream.ToArray());
+            var output = System.Text.Encoding.ASCII.GetString(stream.ToArray());
 
             // Assert
             output.Should().Contain("1 0 obj");
@@ -167,7 +167,7 @@ namespace Haru.Test.Xref
 
             // Act
             xref2.WriteToStream(stream2);
-            var output = Encoding.ASCII.GetString(stream2.ToArray());
+            var output = System.Text.Encoding.ASCII.GetString(stream2.ToArray());
 
             // Assert
             output.Should().Contain("1 0 obj"); // From previous xref
@@ -193,7 +193,7 @@ namespace Haru.Test.Xref
             xref.WriteToStream(stream);
 
             // Assert - Verify byte offsets match actual positions
-            var output = Encoding.ASCII.GetString(stream.ToArray());
+            var output = System.Text.Encoding.ASCII.GetString(stream.ToArray());
             var offset1 = xref.Entries[1].ByteOffset;
             var offset2 = xref.Entries[2].ByteOffset;
 
@@ -218,7 +218,7 @@ namespace Haru.Test.Xref
             xref.WriteToStream(stream);
 
             // Assert
-            var output = Encoding.ASCII.GetString(stream.ToArray());
+            var output = System.Text.Encoding.ASCII.GetString(stream.ToArray());
             var xrefAddress = xref.Address;
 
             // Find where "xref" keyword appears
@@ -239,7 +239,7 @@ namespace Haru.Test.Xref
             var xref = new HpdfXref(0);
 
             using var streamObj = new HpdfStreamObject();
-            streamObj.WriteToStream(Encoding.ASCII.GetBytes("Hello PDF"));
+            streamObj.WriteToStream(System.Text.Encoding.ASCII.GetBytes("Hello PDF"));
             streamObj.Add("Type", new HpdfName("Stream"));
             xref.Add(streamObj);
 
@@ -247,7 +247,7 @@ namespace Haru.Test.Xref
 
             // Act
             xref.WriteToStream(stream);
-            var output = Encoding.ASCII.GetString(stream.ToArray());
+            var output = System.Text.Encoding.ASCII.GetString(stream.ToArray());
 
             // Assert
             output.Should().Contain("1 0 obj");
@@ -274,7 +274,7 @@ namespace Haru.Test.Xref
 
             // Act
             xref.WriteToStream(stream);
-            var output = Encoding.ASCII.GetString(stream.ToArray());
+            var output = System.Text.Encoding.ASCII.GetString(stream.ToArray());
 
             // Assert
             output.Should().Contain("1 0 obj");
@@ -322,7 +322,7 @@ namespace Haru.Test.Xref
 
             // Act
             xref.WriteToStream(stream);
-            var output = Encoding.ASCII.GetString(stream.ToArray());
+            var output = System.Text.Encoding.ASCII.GetString(stream.ToArray());
 
             // Assert
             output.Should().Contain("1 0 obj");

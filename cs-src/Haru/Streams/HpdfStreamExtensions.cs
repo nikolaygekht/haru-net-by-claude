@@ -9,6 +9,13 @@ namespace Haru.Streams
     /// </summary>
     public static class HpdfStreamExtensions
     {
+        static HpdfStreamExtensions()
+        {
+            // Register code page encoding provider for Windows-1252 and other encodings
+            // This is required on .NET Core/5+ where these encodings are not available by default
+            System.Text.Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        }
+
         /// <summary>
         /// Writes a character to the stream
         /// </summary>
@@ -30,7 +37,7 @@ namespace Haru.Streams
             if (value is null)
                 throw new ArgumentNullException(nameof(value));
 
-            byte[] bytes = Encoding.ASCII.GetBytes(value);
+            byte[] bytes = System.Text.Encoding.ASCII.GetBytes(value);
             stream.Write(bytes);
         }
 
@@ -115,77 +122,15 @@ namespace Haru.Streams
         }
 
         /// <summary>
-        /// Writes an escaped PDF text string to the stream (enclosed in parentheses).
-        /// Uses PDFDocEncoding for ASCII text.
+        /// Writes pre-encoded bytes as a PDF literal string (enclosed in parentheses with proper escaping).
+        /// This ensures measurement and output use the same byte sequence.
         /// </summary>
-        public static void WriteEscapedText(this HpdfStream stream, string text)
+        public static void WriteLiteralString(this HpdfStream stream, byte[] bytes)
         {
             if (stream is null)
                 throw new ArgumentNullException(nameof(stream));
-            if (text is null)
-                throw new ArgumentNullException(nameof(text));
-
-            stream.WriteByte((byte)'(');
-
-            // ASCII text - use PDFDocEncoding (which is compatible with ASCII)
-            foreach (char c in text)
-            {
-                // Escape special characters in PDF strings
-                if (c == '(' || c == ')' || c == '\\')
-                {
-                    stream.WriteByte((byte)'\\');
-                    stream.WriteByte((byte)c);
-                }
-                else if (c == '\r')
-                {
-                    stream.WriteByte((byte)'\\');
-                    stream.WriteByte((byte)'r');
-                }
-                else if (c == '\n')
-                {
-                    stream.WriteByte((byte)'\\');
-                    stream.WriteByte((byte)'n');
-                }
-                else if (c < 32 || c > 126)
-                {
-                    // Write as octal escape
-                    stream.WriteByte((byte)'\\');
-                    stream.WriteByte((byte)('0' + ((c >> 6) & 0x07)));
-                    stream.WriteByte((byte)('0' + ((c >> 3) & 0x07)));
-                    stream.WriteByte((byte)('0' + (c & 0x07)));
-                }
-                else
-                {
-                    stream.WriteByte((byte)c);
-                }
-            }
-
-            stream.WriteByte((byte)')');
-        }
-
-        /// <summary>
-        /// Writes an escaped PDF text string using a specific encoding code page.
-        /// </summary>
-        public static void WriteEscapedText(this HpdfStream stream, string text, int codePage)
-        {
-            if (stream is null)
-                throw new ArgumentNullException(nameof(stream));
-            if (text is null)
-                throw new ArgumentNullException(nameof(text));
-
-            // Convert text to bytes using the specified code page
-            Encoding encoding;
-            try
-            {
-                encoding = Encoding.GetEncoding(codePage);
-            }
-            catch
-            {
-                // Fallback to Latin-1 if code page not available
-                encoding = Encoding.GetEncoding(28591); // ISO-8859-1
-            }
-
-            byte[] bytes = encoding.GetBytes(text);
+            if (bytes is null)
+                throw new ArgumentNullException(nameof(bytes));
 
             stream.WriteByte((byte)'(');
 
@@ -207,6 +152,14 @@ namespace Haru.Streams
                     stream.WriteByte((byte)'\\');
                     stream.WriteByte((byte)'n');
                 }
+                else if (b < 32 || b > 126)
+                {
+                    // Write as octal escape for non-printable characters
+                    stream.WriteByte((byte)'\\');
+                    stream.WriteByte((byte)('0' + ((b >> 6) & 0x07)));
+                    stream.WriteByte((byte)('0' + ((b >> 3) & 0x07)));
+                    stream.WriteByte((byte)('0' + (b & 0x07)));
+                }
                 else
                 {
                     stream.WriteByte(b);
@@ -214,6 +167,48 @@ namespace Haru.Streams
             }
 
             stream.WriteByte((byte)')');
+        }
+
+        /// <summary>
+        /// Writes an escaped PDF text string to the stream (enclosed in parentheses).
+        /// Uses WinAnsiEncoding (Windows-1252 / CP1252) by default for characters outside ASCII range.
+        /// This is the default encoding for standard PDF fonts (Helvetica, Times, Courier, etc.).
+        /// </summary>
+        public static void WriteEscapedText(this HpdfStream stream, string text)
+        {
+            if (stream is null)
+                throw new ArgumentNullException(nameof(stream));
+            if (text is null)
+                throw new ArgumentNullException(nameof(text));
+
+            // Delegate to the codePage overload with WinAnsiEncoding (CP1252)
+            WriteEscapedText(stream, text, 1252);
+        }
+
+        /// <summary>
+        /// Writes an escaped PDF text string using a specific encoding code page.
+        /// </summary>
+        public static void WriteEscapedText(this HpdfStream stream, string text, int codePage)
+        {
+            if (stream is null)
+                throw new ArgumentNullException(nameof(stream));
+            if (text is null)
+                throw new ArgumentNullException(nameof(text));
+
+            // Convert text to bytes using the specified code page
+            System.Text.Encoding encoding;
+            try
+            {
+                encoding = System.Text.Encoding.GetEncoding(codePage);
+            }
+            catch
+            {
+                // Fallback to Latin-1 if code page not available
+                encoding = System.Text.Encoding.GetEncoding(28591); // ISO-8859-1
+            }
+
+            byte[] bytes = encoding.GetBytes(text);
+            stream.WriteLiteralString(bytes);
         }
 
         /// <summary>
@@ -229,15 +224,15 @@ namespace Haru.Streams
                 throw new ArgumentNullException(nameof(text));
 
             // Convert text to MBCS bytes using the code page
-            Encoding encoding;
+            System.Text.Encoding encoding;
             try
             {
-                encoding = Encoding.GetEncoding(codePage);
+                encoding = System.Text.Encoding.GetEncoding(codePage);
             }
             catch
             {
                 // Fallback to UTF-8 if code page not available
-                encoding = Encoding.UTF8;
+                encoding = System.Text.Encoding.UTF8;
             }
 
             byte[] mbcsBytes = encoding.GetBytes(text);

@@ -18,7 +18,7 @@ namespace Haru.Test.Doc
 
         private string GetPageContent(HpdfPage page)
         {
-            return Encoding.ASCII.GetString(page.Contents.Stream.ToArray());
+            return System.Text.Encoding.ASCII.GetString(page.Contents.Stream.ToArray());
         }
 
         // Circle Tests

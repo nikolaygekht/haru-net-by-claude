@@ -297,7 +297,7 @@ namespace Haru.Test.Doc
             page.DrawImage(image, 100, 200, 50, 75);
 
             // Assert
-            var content = Encoding.ASCII.GetString(page.Contents.Stream.ToArray());
+            var content = System.Text.Encoding.ASCII.GetString(page.Contents.Stream.ToArray());
             content.Should().Contain("q\n");  // GSave
             content.Should().Contain("50 0 0 75 100 200 cm\n");  // Transform
             content.Should().Contain("/Im1 Do\n");  // Draw image

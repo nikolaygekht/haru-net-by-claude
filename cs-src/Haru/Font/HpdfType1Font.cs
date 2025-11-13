@@ -174,6 +174,44 @@ namespace Haru.Font
             return font;
         }
 
+        /// <summary>
+        /// Creates a Type1 font instance from shared parsed data (from FontDataPool).
+        /// This method avoids re-parsing the font files, improving performance when multiple
+        /// documents use the same fonts.
+        /// </summary>
+        /// <param name="xref">The cross-reference table for this document.</param>
+        /// <param name="localName">Local resource name (e.g., "F1").</param>
+        /// <param name="parsedData">Shared parsed font data from FontDataPool.</param>
+        /// <param name="embedding">Whether to embed the font data in this document.</param>
+        /// <returns>The Type1 font instance ready to use in this document.</returns>
+        public static HpdfType1Font LoadFromSharedData(HpdfXref xref, string localName, ParsedType1Data parsedData, bool embedding)
+        {
+            if (parsedData == null)
+                throw new ArgumentNullException(nameof(parsedData));
+
+            var font = new HpdfType1Font(xref, localName, embedding, 1252); // Type1 typically uses 1252
+
+            // Populate font fields from shared parsed data
+            font._afmData = parsedData.AfmData;
+
+            // Copy PFB data if embedding
+            if (embedding)
+            {
+                font._pfbData = parsedData.PfbData;
+            }
+
+            // Use cached extracted font name
+            font._baseFont = parsedData.ExtractedFontName;
+
+            // Create font dictionary
+            font.CreateFontDictionary();
+
+            // Create font descriptor
+            font.CreateFontDescriptor(embedding ? parsedData.PfbPath : null);
+
+            return font;
+        }
+
         private void CreateFontDictionary()
         {
             _dict.Add("Type", new HpdfName("Font"));
@@ -505,6 +543,18 @@ namespace Haru.Font
         public byte[] ConvertTextToGlyphIDs(string text)
         {
             throw new InvalidOperationException("The method is available for CID fonts only");
+        }
+
+        /// <summary>
+        /// Encodes text to bytes using the font's code page encoding.
+        /// </summary>
+        public byte[] EncodeText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return Array.Empty<byte>();
+
+            var encoding = System.Text.Encoding.GetEncoding(_codePage);
+            return encoding.GetBytes(text);
         }
 
         /// <summary>

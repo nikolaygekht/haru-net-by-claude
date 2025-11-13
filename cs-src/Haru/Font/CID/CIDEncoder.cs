@@ -48,14 +48,14 @@ namespace Haru.Font.CID
         /// <summary>
         /// Gets the .NET encoding for this code page.
         /// </summary>
-        protected Encoding Encoding { get; private set; } = System.Text.Encoding.UTF8;
+        protected System.Text.Encoding Encoding { get; private set; } = System.Text.Encoding.UTF8;
 
         protected CIDEncoder()
         {
             // Ensure code page provider is registered
             try
             {
-                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                System.Text.Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             }
             catch
             {
@@ -72,7 +72,7 @@ namespace Haru.Font.CID
             if (CodePage <= 0)
                 throw new InvalidOperationException("CodePage must be set before initializing encoding");
 
-            Encoding = Encoding.GetEncoding(CodePage);
+            Encoding = System.Text.Encoding.GetEncoding(CodePage);
         }
 
         /// <summary>

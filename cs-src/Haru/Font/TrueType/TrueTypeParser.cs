@@ -32,7 +32,7 @@ namespace Haru.Font.TrueType
         public TrueTypeParser(Stream stream)
         {
             _stream = stream ?? throw new ArgumentNullException(nameof(stream));
-            _reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
+            _reader = new BinaryReader(stream, System.Text.Encoding.UTF8, leaveOpen: true);
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace Haru.Font.TrueType
         public string ReadTag()
         {
             byte[] bytes = _reader.ReadBytes(4);
-            return Encoding.ASCII.GetString(bytes);
+            return System.Text.Encoding.ASCII.GetString(bytes);
         }
 
         /// <summary>
@@ -356,11 +356,11 @@ namespace Haru.Font.TrueType
             // Unicode strings (platform 0 or 3)
             if (record.PlatformId == 0 || record.PlatformId == 3)
             {
-                return Encoding.BigEndianUnicode.GetString(bytes);
+                return System.Text.Encoding.BigEndianUnicode.GetString(bytes);
             }
             else
             {
-                return Encoding.ASCII.GetString(bytes);
+                return System.Text.Encoding.ASCII.GetString(bytes);
             }
         }
 

@@ -74,8 +74,9 @@ namespace Haru.Font
                     realWidth = w;
                 }
 
-                // Add character width (scaled from 1000-unit glyph space to user space)
-                w += font.GetCharWidth(b) * fontSize / 1000f;
+                // Add character width (get it in user space units from the font implementation)
+                // Use single-character string to leverage font's proper scaling (handles different UnitsPerEm)
+                w += font.MeasureText(c.ToString(), fontSize);
 
                 // Check if we exceeded width OR hit line feed
                 if (w > width || b == 0x0A)

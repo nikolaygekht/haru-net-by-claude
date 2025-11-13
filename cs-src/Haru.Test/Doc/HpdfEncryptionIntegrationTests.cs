@@ -29,7 +29,7 @@ namespace Haru.Test.Doc
             pdfData.Length.Should().BeGreaterThan(0);
 
             // PDF should contain encryption dictionary
-            string pdfText = System.Text.Encoding.Latin1.GetString(pdfData);
+            string pdfText = System.Text.Encoding.GetEncoding(28591).GetString(pdfData);
             pdfText.Should().Contain("/Encrypt");
             pdfText.Should().Contain("/V 1"); // Version 1 for R2
             pdfText.Should().Contain("/R 2"); // Revision 2
@@ -50,7 +50,7 @@ namespace Haru.Test.Doc
             pdfData.Should().NotBeNull();
             pdfData.Length.Should().BeGreaterThan(0);
 
-            string pdfText = System.Text.Encoding.Latin1.GetString(pdfData);
+            string pdfText = System.Text.Encoding.GetEncoding(28591).GetString(pdfData);
             pdfText.Should().Contain("/Encrypt");
             pdfText.Should().Contain("/V 2"); // Version 2 for R3
             pdfText.Should().Contain("/R 3"); // Revision 3
@@ -72,7 +72,7 @@ namespace Haru.Test.Doc
             pdfData.Should().NotBeNull();
             pdfData.Length.Should().BeGreaterThan(0);
 
-            string pdfText = System.Text.Encoding.Latin1.GetString(pdfData);
+            string pdfText = System.Text.Encoding.GetEncoding(28591).GetString(pdfData);
             pdfText.Should().Contain("/Encrypt");
             pdfText.Should().Contain("/V 4"); // Version 4 for R4 (AES)
             pdfText.Should().Contain("/R 4"); // Revision 4
@@ -92,7 +92,7 @@ namespace Haru.Test.Doc
             byte[] pdfData = doc.SaveToMemory();
 
             // Assert
-            string pdfText = System.Text.Encoding.Latin1.GetString(pdfData);
+            string pdfText = System.Text.Encoding.GetEncoding(28591).GetString(pdfData);
             pdfText.Should().Contain("/ID"); // Document ID is required for encryption
         }
 
@@ -110,7 +110,7 @@ namespace Haru.Test.Doc
 
             // Assert
             pdfData.Should().NotBeNull();
-            string pdfText = System.Text.Encoding.Latin1.GetString(pdfData);
+            string pdfText = System.Text.Encoding.GetEncoding(28591).GetString(pdfData);
 
             // Should have exactly one ID entry (not duplicated)
             int idCount = 0;
@@ -136,7 +136,7 @@ namespace Haru.Test.Doc
             byte[] pdfData = doc.SaveToMemory();
 
             // Assert
-            string pdfText = System.Text.Encoding.Latin1.GetString(pdfData);
+            string pdfText = System.Text.Encoding.GetEncoding(28591).GetString(pdfData);
             // R2 works with PDF 1.2, so version should not change
             pdfText.Should().StartWith("%PDF-1.2");
         }
@@ -154,7 +154,7 @@ namespace Haru.Test.Doc
             byte[] pdfData = doc.SaveToMemory();
 
             // Assert
-            string pdfText = System.Text.Encoding.Latin1.GetString(pdfData);
+            string pdfText = System.Text.Encoding.GetEncoding(28591).GetString(pdfData);
             pdfText.Should().StartWith("%PDF-1.4"); // R3 requires PDF 1.4
         }
 
@@ -171,7 +171,7 @@ namespace Haru.Test.Doc
             byte[] pdfData = doc.SaveToMemory();
 
             // Assert
-            string pdfText = System.Text.Encoding.Latin1.GetString(pdfData);
+            string pdfText = System.Text.Encoding.GetEncoding(28591).GetString(pdfData);
             pdfText.Should().StartWith("%PDF-1.6"); // R4 requires PDF 1.6
         }
 
@@ -189,7 +189,7 @@ namespace Haru.Test.Doc
             byte[] pdfData = doc.SaveToMemory();
 
             // Assert
-            string pdfText = System.Text.Encoding.Latin1.GetString(pdfData);
+            string pdfText = System.Text.Encoding.GetEncoding(28591).GetString(pdfData);
 
             // The actual title and author should be encrypted, so plain text shouldn't appear
             // (though Latin-1 decoding might show garbage)
@@ -219,7 +219,7 @@ namespace Haru.Test.Doc
             pdfData.Length.Should().BeGreaterThan(0);
 
             // The PDF should have encrypted stream content
-            string pdfText = System.Text.Encoding.Latin1.GetString(pdfData);
+            string pdfText = System.Text.Encoding.GetEncoding(28591).GetString(pdfData);
             pdfText.Should().Contain("stream");
             pdfText.Should().Contain("endstream");
         }
@@ -241,7 +241,7 @@ namespace Haru.Test.Doc
 
             // Assert
             pdfData.Should().NotBeNull();
-            string pdfText = System.Text.Encoding.Latin1.GetString(pdfData);
+            string pdfText = System.Text.Encoding.GetEncoding(28591).GetString(pdfData);
             pdfText.Should().Contain("/P "); // Permission flags
         }
 
@@ -349,7 +349,7 @@ namespace Haru.Test.Doc
             pdfData.Should().NotBeNull();
             pdfData.Length.Should().BeGreaterThan(0);
 
-            string pdfText = System.Text.Encoding.Latin1.GetString(pdfData);
+            string pdfText = System.Text.Encoding.GetEncoding(28591).GetString(pdfData);
             pdfText.Should().Contain("/Count 3"); // Should have 3 pages
         }
 
@@ -373,7 +373,7 @@ namespace Haru.Test.Doc
                 fileInfo.Length.Should().BeGreaterThan(0);
 
                 byte[] fileData = File.ReadAllBytes(tempFile);
-                string pdfText = System.Text.Encoding.Latin1.GetString(fileData);
+                string pdfText = System.Text.Encoding.GetEncoding(28591).GetString(fileData);
                 pdfText.Should().Contain("/Encrypt");
             }
             finally

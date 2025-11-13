@@ -116,7 +116,7 @@ namespace Haru.Test.Doc
             metadataStream!.Should().NotBeNull();
 
             var xmpBytes = metadataStream!.Stream.ToArray();
-            var xmpContent = Encoding.UTF8.GetString(xmpBytes);
+            var xmpContent = System.Text.Encoding.UTF8.GetString(xmpBytes);
 
             xmpContent.Should().Contain("pdfaid:part");
             xmpContent.Should().Contain("pdfaid:conformance");
@@ -142,7 +142,7 @@ namespace Haru.Test.Doc
             // Assert
             var metadataStream = doc.Catalog.Dict["Metadata"] as HpdfStreamObject;
             var xmpBytes = metadataStream!.Stream.ToArray();
-            var xmpContent = Encoding.UTF8.GetString(xmpBytes);
+            var xmpContent = System.Text.Encoding.UTF8.GetString(xmpBytes);
 
             xmpContent.Should().Contain("My PDF/A Document");
             xmpContent.Should().Contain("John Doe");
@@ -221,7 +221,7 @@ namespace Haru.Test.Doc
             pdfData.Length.Should().BeGreaterThan(0);
 
             // Check PDF header
-            string header = Encoding.ASCII.GetString(pdfData, 0, 8);
+            string header = System.Text.Encoding.ASCII.GetString(pdfData, 0, 8);
             header.Should().StartWith("%PDF-1.4"); // PDF/A-1 requires 1.4
         }
 
@@ -241,7 +241,7 @@ namespace Haru.Test.Doc
             // Assert
             var metadataStream = doc.Catalog.Dict["Metadata"] as HpdfStreamObject;
             var xmpBytes = metadataStream!.Stream.ToArray();
-            var xmpContent = Encoding.UTF8.GetString(xmpBytes);
+            var xmpContent = System.Text.Encoding.UTF8.GetString(xmpBytes);
 
             xmpContent.Should().Contain("xmp:CreateDate");
             xmpContent.Should().Contain("2025-01-15");
@@ -275,7 +275,7 @@ namespace Haru.Test.Doc
             // Assert
             var metadataStream = doc.Catalog.Dict["Metadata"] as HpdfStreamObject;
             var xmpBytes = metadataStream!.Stream.ToArray();
-            var xmpContent = Encoding.UTF8.GetString(xmpBytes);
+            var xmpContent = System.Text.Encoding.UTF8.GetString(xmpBytes);
 
             xmpContent.Should().Contain("&lt;special&gt;");
             xmpContent.Should().Contain("&amp;");

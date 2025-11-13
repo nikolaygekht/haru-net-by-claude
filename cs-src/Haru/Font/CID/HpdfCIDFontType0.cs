@@ -402,15 +402,36 @@ namespace Haru.Font.CID
             if (string.IsNullOrEmpty(text))
                 return 0;
 
-            // For POC: use Unicode code points directly as CIDs
+            byte[] encodedBytes = ConvertTextToBytes(text);
+
             float totalWidth = 0;
-            foreach (char c in text)
+            int i = 0;
+            while (i < encodedBytes.Length)
             {
-                ushort cid = (ushort)c;
+                ushort cid;
+
+                if (encodedBytes[i] < 0x80)
+                {
+                    cid = encodedBytes[i];
+                    i++;
+                }
+                else
+                {
+                    if (i + 1 < encodedBytes.Length)
+                    {
+                        cid = (ushort)((encodedBytes[i] << 8) | encodedBytes[i + 1]);
+                        i += 2;
+                    }
+                    else
+                    {
+                        cid = encodedBytes[i];
+                        i++;
+                    }
+                }
+
                 totalWidth += GetCIDWidth(cid);
             }
 
-            // Scale from 1000-unit glyph space to user space
             return totalWidth * fontSize / 1000f;
         }
 
@@ -443,6 +464,15 @@ namespace Haru.Font.CID
         {
             // For CIDFontType0, we use the encoding's byte representation
             // This is different from CIDFontType2 which uses Unicode→GlyphID mapping
+            return ConvertTextToBytes(text);
+        }
+
+        /// <summary>
+        /// Encodes text to bytes using the font's encoding.
+        /// </summary>
+        public byte[] EncodeText(string text)
+        {
+            // For CIDFontType0, encoding means converting to the encoding's byte representation
             return ConvertTextToBytes(text);
         }
 

@@ -41,7 +41,7 @@ namespace Haru.Doc
         private HpdfPoint _currentPos;
         private HpdfTransMatrix _textMatrix;
         private HpdfTransMatrix _textLineMatrix;
-        private HpdfFont? _currentFont;
+        // Note: _currentFont removed - now stored in GraphicsState.CurrentFont for proper save/restore
         private readonly Dictionary<string, HpdfFont> _fontResources;
         private readonly Dictionary<string, HpdfExtGState> _extGStateResources;
         private readonly Dictionary<string, HpdfImage> _imageResources;
@@ -111,11 +111,12 @@ namespace Haru.Doc
 
         /// <summary>
         /// Gets or sets the current font.
+        /// Font is part of graphics state and is saved/restored with GSave/GRestore.
         /// </summary>
         public HpdfFont? CurrentFont
         {
-            get => _currentFont;
-            internal set => _currentFont = value;
+            get => _graphicsState.CurrentFont;
+            internal set => _graphicsState.CurrentFont = value;
         }
 
         /// <summary>

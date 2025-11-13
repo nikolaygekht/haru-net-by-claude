@@ -91,5 +91,13 @@ namespace Haru.Font
         /// <param name="text">The text to convert.</param>
         /// <returns>Byte array for PDF content stream, or empty if not applicable.</returns>
         byte[] ConvertTextToGlyphIDs(string text);
+
+        /// <summary>
+        /// Encodes text to bytes using the font's encoding.
+        /// This is used for both measurement and output to ensure consistency.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        /// <returns>Byte array encoded using the font's encoding.</returns>
+        byte[] EncodeText(string text);
     }
 }

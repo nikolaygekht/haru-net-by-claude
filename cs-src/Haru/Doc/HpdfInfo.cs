@@ -47,7 +47,8 @@ namespace Haru.Doc
 
             // Set default values
             Producer = "Haru Free PDF Library (C# Port)";
-            SetCreationDate(DateTime.Now);
+            // Note: CreationDate is not set automatically to allow for reproducible PDFs
+            // Call SetCreationDate(DateTime.Now) explicitly if timestamp is needed
         }
 
         /// <summary>

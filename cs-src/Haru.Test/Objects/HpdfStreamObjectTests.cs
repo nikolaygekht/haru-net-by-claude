@@ -16,7 +16,7 @@ namespace Haru.Test.Objects
         {
             using var stream = new HpdfMemoryStream();
             obj.WriteValue(stream);
-            return Encoding.ASCII.GetString(stream.ToArray());
+            return System.Text.Encoding.ASCII.GetString(stream.ToArray());
         }
 
         [Fact]
@@ -39,7 +39,7 @@ namespace Haru.Test.Objects
         public void StreamObject_WithData_WritesStreamSection()
         {
             using var obj = new HpdfStreamObject();
-            byte[] data = Encoding.ASCII.GetBytes("Hello PDF");
+            byte[] data = System.Text.Encoding.ASCII.GetBytes("Hello PDF");
             obj.WriteToStream(data);
 
             string result = WriteToString(obj);
@@ -57,7 +57,7 @@ namespace Haru.Test.Objects
         {
             using var obj = new HpdfStreamObject();
             obj.Filter = HpdfStreamFilter.None;
-            obj.WriteToStream(Encoding.ASCII.GetBytes("Test"));
+            obj.WriteToStream(System.Text.Encoding.ASCII.GetBytes("Test"));
 
             string result = WriteToString(obj);
 
@@ -69,7 +69,7 @@ namespace Haru.Test.Objects
         {
             using var obj = new HpdfStreamObject();
             obj.Filter = HpdfStreamFilter.FlateDecode;
-            obj.WriteToStream(Encoding.ASCII.GetBytes("Test data to compress"));
+            obj.WriteToStream(System.Text.Encoding.ASCII.GetBytes("Test data to compress"));
 
             string result = WriteToString(obj);
 
@@ -83,7 +83,7 @@ namespace Haru.Test.Objects
             using var obj = new HpdfStreamObject();
             string originalData = "This is test data that should be compressed using Flate/Deflate algorithm. " +
                                 "It contains repeated text. It contains repeated text. It contains repeated text.";
-            byte[] originalBytes = Encoding.ASCII.GetBytes(originalData);
+            byte[] originalBytes = System.Text.Encoding.ASCII.GetBytes(originalData);
 
             obj.Filter = HpdfStreamFilter.FlateDecode;
             obj.WriteToStream(originalBytes);
@@ -103,7 +103,7 @@ namespace Haru.Test.Objects
             using var obj = new HpdfStreamObject();
             string originalData = "Test compression data with some repeated content. " +
                                 "Repeated content helps compression work better.";
-            byte[] originalBytes = Encoding.ASCII.GetBytes(originalData);
+            byte[] originalBytes = System.Text.Encoding.ASCII.GetBytes(originalData);
 
             obj.Filter = HpdfStreamFilter.FlateDecode;
             obj.WriteToStream(originalBytes);
@@ -111,7 +111,7 @@ namespace Haru.Test.Objects
             // Get the written output
             using var outputStream = new HpdfMemoryStream();
             obj.WriteValue(outputStream);
-            string output = Encoding.ASCII.GetString(outputStream.ToArray());
+            string output = System.Text.Encoding.ASCII.GetString(outputStream.ToArray());
 
             // Extract the compressed data between "stream" and "endstream"
             int streamStart = output.IndexOf("stream\n") + 7;
@@ -128,7 +128,7 @@ namespace Haru.Test.Objects
             {
                 decompressor.CopyTo(resultStream);
                 byte[] decompressed = resultStream.ToArray();
-                string decompressedText = Encoding.ASCII.GetString(decompressed);
+                string decompressedText = System.Text.Encoding.ASCII.GetString(decompressed);
 
                 decompressedText.Should().Be(originalData);
             }
@@ -138,7 +138,7 @@ namespace Haru.Test.Objects
         public void StreamObject_UpdatesLengthCorrectly()
         {
             using var obj = new HpdfStreamObject();
-            byte[] data = Encoding.ASCII.GetBytes("12345");
+            byte[] data = System.Text.Encoding.ASCII.GetBytes("12345");
             obj.WriteToStream(data);
 
             // Force write to update length
@@ -157,7 +157,7 @@ namespace Haru.Test.Objects
         {
             using var obj = new HpdfStreamObject();
             obj.Filter = HpdfStreamFilter.FlateDecode;
-            byte[] data = Encoding.ASCII.GetBytes("AAAAAAAAAA"); // Highly compressible
+            byte[] data = System.Text.Encoding.ASCII.GetBytes("AAAAAAAAAA"); // Highly compressible
             obj.WriteToStream(data);
 
             // Force write to update length
@@ -176,7 +176,7 @@ namespace Haru.Test.Objects
         public void StreamObject_ClearStream_RemovesData()
         {
             using var obj = new HpdfStreamObject();
-            obj.WriteToStream(Encoding.ASCII.GetBytes("Test data"));
+            obj.WriteToStream(System.Text.Encoding.ASCII.GetBytes("Test data"));
             obj.Stream.Size.Should().Be(9);
 
             obj.ClearStream();
@@ -190,7 +190,7 @@ namespace Haru.Test.Objects
             using var obj = new HpdfStreamObject();
             obj.Add("Type", new HpdfName("XObject"));
             obj.Add("Subtype", new HpdfName("Image"));
-            obj.WriteToStream(Encoding.ASCII.GetBytes("Image data"));
+            obj.WriteToStream(System.Text.Encoding.ASCII.GetBytes("Image data"));
 
             string result = WriteToString(obj);
 
@@ -206,7 +206,7 @@ namespace Haru.Test.Objects
         {
             using var obj = new HpdfStreamObject();
             obj.Filter = HpdfStreamFilter.FlateDecode | HpdfStreamFilter.AsciiHexDecode;
-            obj.WriteToStream(Encoding.ASCII.GetBytes("Test"));
+            obj.WriteToStream(System.Text.Encoding.ASCII.GetBytes("Test"));
 
             string result = WriteToString(obj);
 
@@ -219,7 +219,7 @@ namespace Haru.Test.Objects
         public void StreamObject_WriteToStreamWithOffset_Works()
         {
             using var obj = new HpdfStreamObject();
-            byte[] data = Encoding.ASCII.GetBytes("ABCDEFGH");
+            byte[] data = System.Text.Encoding.ASCII.GetBytes("ABCDEFGH");
             obj.WriteToStream(data, 2, 4); // Write "CDEF"
 
             string result = WriteToString(obj);

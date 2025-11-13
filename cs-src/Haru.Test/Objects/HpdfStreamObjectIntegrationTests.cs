@@ -40,7 +40,7 @@ namespace Haru.Test.Objects
         {
             // Load the real uncompressed stream from embedded resource
             byte[] fileContent = LoadEmbeddedResource("stream1.txt");
-            string content = Encoding.ASCII.GetString(fileContent);
+            string content = System.Text.Encoding.ASCII.GetString(fileContent);
 
             // Extract just the stream content (between "stream\n" and "\nendstream")
             int streamStart = content.IndexOf("stream\n") + 7;
@@ -50,12 +50,12 @@ namespace Haru.Test.Objects
             // Create a stream object with the same content
             using var obj = new HpdfStreamObject();
             obj.Filter = HpdfStreamFilter.None; // No compression
-            obj.WriteToStream(Encoding.ASCII.GetBytes(streamContent));
+            obj.WriteToStream(System.Text.Encoding.ASCII.GetBytes(streamContent));
 
             // Write and verify
             using var outputStream = new HpdfMemoryStream();
             obj.WriteValue(outputStream);
-            string output = Encoding.ASCII.GetString(outputStream.ToArray());
+            string output = System.Text.Encoding.ASCII.GetString(outputStream.ToArray());
 
             // Should contain the graphics operators
             output.Should().Contain("stream");
@@ -80,7 +80,7 @@ namespace Haru.Test.Objects
             byte[] fileContent = LoadEmbeddedResource("stream2.txt");
 
             // Extract the compressed data (between "stream" and "endstream")
-            string fileText = Encoding.Latin1.GetString(fileContent);
+            string fileText = System.Text.Encoding.Latin1.GetString(fileContent);
             int streamKeywordPos = fileText.IndexOf("stream");
             if (streamKeywordPos < 0)
             {
@@ -151,7 +151,7 @@ namespace Haru.Test.Objects
             obj.WriteValue(outputStream);
             byte[] output = outputStream.ToArray();
 
-            string outputText = Encoding.Latin1.GetString(output);
+            string outputText = System.Text.Encoding.Latin1.GetString(output);
 
             // Should have the filter entry
             outputText.Should().Contain("/Filter");
@@ -179,11 +179,11 @@ BT
 ET";
 
             using var obj = new HpdfStreamObject();
-            obj.WriteToStream(Encoding.ASCII.GetBytes(graphicsContent));
+            obj.WriteToStream(System.Text.Encoding.ASCII.GetBytes(graphicsContent));
 
             using var outputStream = new HpdfMemoryStream();
             obj.WriteValue(outputStream);
-            string output = Encoding.ASCII.GetString(outputStream.ToArray());
+            string output = System.Text.Encoding.ASCII.GetString(outputStream.ToArray());
 
             // Verify all operators are preserved
             output.Should().Contain("1 w");
@@ -208,7 +208,7 @@ BT
 (Hello World) Tj
 ET
 Q";
-            byte[] originalBytes = Encoding.ASCII.GetBytes(originalContent);
+            byte[] originalBytes = System.Text.Encoding.ASCII.GetBytes(originalContent);
 
             // Create stream object with compression
             using var obj = new HpdfStreamObject();
@@ -220,7 +220,7 @@ Q";
             obj.WriteValue(outputStream);
             byte[] output = outputStream.ToArray();
 
-            string outputText = Encoding.Latin1.GetString(output);
+            string outputText = System.Text.Encoding.Latin1.GetString(output);
 
             // Extract compressed data
             int streamStart = outputText.IndexOf("stream\n") + 7;
@@ -238,7 +238,7 @@ Q";
             {
                 decompressor.CopyTo(resultStream);
                 byte[] decompressed = resultStream.ToArray();
-                string decompressedText = Encoding.ASCII.GetString(decompressed);
+                string decompressedText = System.Text.Encoding.ASCII.GetString(decompressed);
 
                 decompressedText.Should().Be(originalContent);
             }
@@ -259,7 +259,7 @@ Q";
                 sb.AppendLine("Q");
             }
             string largeContent = sb.ToString();
-            byte[] largeBytes = Encoding.ASCII.GetBytes(largeContent);
+            byte[] largeBytes = System.Text.Encoding.ASCII.GetBytes(largeContent);
 
             // Without compression
             using var objUncompressed = new HpdfStreamObject();
@@ -293,11 +293,11 @@ Q";
             ));
 
             string content = "q 1 0 0 1 50 50 cm 0 0 20 20 re f Q";
-            obj.WriteToStream(Encoding.ASCII.GetBytes(content));
+            obj.WriteToStream(System.Text.Encoding.ASCII.GetBytes(content));
 
             using var outputStream = new HpdfMemoryStream();
             obj.WriteValue(outputStream);
-            string output = Encoding.ASCII.GetString(outputStream.ToArray());
+            string output = System.Text.Encoding.ASCII.GetString(outputStream.ToArray());
 
             // Verify structure: dictionary, then stream data
             int dictEnd = output.IndexOf(">>");
